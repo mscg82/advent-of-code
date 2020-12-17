@@ -40,7 +40,6 @@ public class AdventDay2 {
                     .map(Optional::get)
                     .collect(Collectors.toList());
         }
-
     }
 }
 
