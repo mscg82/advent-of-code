@@ -11,12 +11,29 @@
         <module>day1</module>
         <module>day2</module>
         <module>day3</module>
+        <module>day4</module>
     </modules>
     <packaging>pom</packaging>
 
     <properties>
         <java.version>15</java.version>
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.16</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.7.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
