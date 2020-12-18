@@ -21,7 +21,7 @@ public class AdventDay5 {
                 .map(Optional::get)
                 .mapToInt(SeatId::computeId)
                 .max()
-                .getAsInt();
+                .orElseGet(() -> -1);
         System.out.println("Part 1: Max seat id: %d".formatted(maxSeatId));
     }
 
