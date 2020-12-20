@@ -50,9 +50,7 @@ public record BagRule(String color, Map<String, Integer> allowedContainedBags) {
                     .findAny()
                     .ifPresent(rule -> {
                         rule.allowedContainedBags().forEach((containedColor, allowedCount) -> {
-                            int c = counts.computeIfAbsent(containedColor, __ -> 0);
-                            c += allowedCount * currentColor.multiplier();
-                            counts.put(containedColor, c);
+                            counts.merge(containedColor, allowedCount * currentColor.multiplier(), Integer::sum);
 
                             queue.add(new QueueEl(allowedCount * currentColor.multiplier(), containedColor));
                         });
