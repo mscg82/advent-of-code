@@ -21,6 +21,7 @@
         <module>day11</module>
         <module>day12</module>
         <module>day13</module>
+        <module>day14</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -29,6 +30,12 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.codepoetics</groupId>
+            <artifactId>protonpack</artifactId>
+            <version>1.16</version>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
