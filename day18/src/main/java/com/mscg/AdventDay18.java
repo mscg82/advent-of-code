@@ -14,7 +14,7 @@ public class AdventDay18 {
 
     private static void part1() throws Exception {
         try (BufferedReader in = readInput()) {
-            final long sum = Calculator.parseInput(in).stream()
+            final long sum = Calculator.parseInput1(in).stream()
                     .map(Calculator::compute)
                     .mapToLong(OptionalLong::orElseThrow)
                     .sum();
@@ -24,7 +24,11 @@ public class AdventDay18 {
 
     private static void part2() throws Exception {
         try (BufferedReader in = readInput()) {
-
+            final long sum = Calculator.parseInput2(in).stream()
+                    .map(Calculator::compute)
+                    .mapToLong(OptionalLong::orElseThrow)
+                    .sum();
+            System.out.println("Part 2: Answer: %d".formatted(sum));
         }
     }
 

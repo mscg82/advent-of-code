@@ -35,37 +35,68 @@ public class AdventDay18Test {
     }
 
     @Test
-    public void testParseSingle() {
+    public void testParseSingle1() {
         {
-            var calculator = Calculator.fromString("1 + 2 * 3");
+            var calculator = Calculator.fromString1("1 + 2 * 3");
             Assertions.assertEquals(OptionalLong.of(9), calculator.compute());
         }
         {
-            var calculator = Calculator.fromString("1 + (2 * 3)");
+            var calculator = Calculator.fromString1("1 + (2 * 3)");
             Assertions.assertEquals(OptionalLong.of(7), calculator.compute());
         }
         {
-            var calculator = Calculator.fromString("(1 + 2) * 3");
+            var calculator = Calculator.fromString1("(1 + 2) * 3");
             Assertions.assertEquals(OptionalLong.of(9), calculator.compute());
         }
         {
-            var calculator = Calculator.fromString("(1 + (2 * 3)) + 4");
+            var calculator = Calculator.fromString1("(1 + (2 * 3)) + 4");
             Assertions.assertEquals(OptionalLong.of(11), calculator.compute());
         }
         {
-            var calculator = Calculator.fromString("((1 + 2) * (2 + 3)) + 4");
+            var calculator = Calculator.fromString1("((1 + 2) * (2 + 3)) + 4");
             Assertions.assertEquals(OptionalLong.of(19), calculator.compute());
         }
     }
 
     @Test
-    public void testParse() throws Exception {
+    public void testParse1() throws Exception {
         try (BufferedReader in = readInput()) {
-            final long[] values = Calculator.parseInput(in).stream()
+            final long[] values = Calculator.parseInput1(in).stream()
                     .map(Calculator::compute)
                     .mapToLong(OptionalLong::orElseThrow)
                     .toArray();
             Assertions.assertArrayEquals(new long[] { 71, 51, 26, 437, 12240, 13632 }, values);
+        }
+    }
+
+    @Test
+    public void testParseSingle2() {
+        {
+            var calculator = Calculator.fromString2("1 + 2 * 3");
+            Assertions.assertEquals(OptionalLong.of(9), calculator.compute());
+        }
+        {
+            var calculator = Calculator.fromString2("1 + (2 * 3)");
+            Assertions.assertEquals(OptionalLong.of(7), calculator.compute());
+        }
+        {
+            var calculator = Calculator.fromString2("2 * 3 + 4");
+            Assertions.assertEquals(OptionalLong.of(14), calculator.compute());
+        }
+        {
+            var calculator = Calculator.fromString2("(2 * 3) + 4");
+            Assertions.assertEquals(OptionalLong.of(10), calculator.compute());
+        }
+    }
+
+    @Test
+    public void testParse2() throws Exception {
+        try (BufferedReader in = readInput()) {
+            final long[] values = Calculator.parseInput2(in).stream()
+                    .map(Calculator::compute)
+                    .mapToLong(OptionalLong::orElseThrow)
+                    .toArray();
+            Assertions.assertArrayEquals(new long[] { 231, 51, 46, 1445, 669060, 23340 }, values);
         }
     }
 
