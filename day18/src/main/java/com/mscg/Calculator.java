@@ -170,7 +170,7 @@ public class Calculator {
         }
     }
 
-    public sealed interface Computable {
+    public interface Computable {
 
     }
 

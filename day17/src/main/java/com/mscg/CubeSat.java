@@ -167,7 +167,7 @@ public class CubeSat implements Cloneable {
         for (int w = 0; w < hyperCube.length; w++) {
             var cube = hyperCube[w];
             for (int z = 0; z < cube.length; z++) {
-                if (!str.isEmpty()) {
+                if (str.length() != 0) {
                     str.append("\n\n");
                 }
                 str.append("z=").append(z - zOffset).append(", w=").append(w - wOffset).append('\n');

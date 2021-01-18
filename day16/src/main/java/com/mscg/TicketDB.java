@@ -101,11 +101,11 @@ public record TicketDB(List<ValidityRule> validityRules, Ticket yourTicket, List
                 .reduce(i -> true, IntPredicate::and);
     }
 
-    public static TicketDB parseInput(BufferedReader in) throws Exception {
-        enum State {
-            RULES, MY_TICKET, NEARBY_TICKETS
-        }
+    private enum State {
+        RULES, MY_TICKET, NEARBY_TICKETS
+    }
 
+    public static TicketDB parseInput(BufferedReader in) throws Exception {
         var state = State.RULES;
         final List<ValidityRule> validityRules = new ArrayList<>();
         Ticket yourTicket = null;

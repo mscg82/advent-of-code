@@ -56,7 +56,7 @@ record Interval(int min, int max) implements IntPredicate {
         }
     }
 
-    Interval {
+    public Interval {
         if (min > max) {
             throw new IllegalArgumentException("min must be less that max");
         }

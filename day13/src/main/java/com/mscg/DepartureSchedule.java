@@ -17,7 +17,7 @@ public record DepartureSchedule(long minDepartureTime, long[] lineIds) {
 
     public long solveContest() {
         record Sieve(long a, long mod) {
-            Sieve {
+            public Sieve {
                 while (a < 0) {
                     a += mod;
                 }

@@ -2,6 +2,7 @@ package com.mscg;
 
 import com.codepoetics.protonpack.StreamUtils;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
@@ -58,6 +59,7 @@ public class AdventDay15Test {
     }
 
     @Test
+    @Disabled("This takes too much time")
     public void testGame2() throws Exception {
         try (var in = readInput()) {
             var game = Game.parseInput(in);
