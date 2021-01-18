@@ -63,6 +63,7 @@ public class Interpreter {
             switch (instruction.opCode) {
                 case NOP -> fixedInstructions.set(i, new Instruction(OpCodes.JMP, instruction.data()));
                 case JMP -> fixedInstructions.set(i, new Instruction(OpCodes.NOP, instruction.data()));
+                case ACC -> { /* DO NOTHING HERE */ }
             }
 
             Result result = run(fixedInstructions);
