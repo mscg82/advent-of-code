@@ -13,11 +13,8 @@ public class AdventDay19 {
 
     private static void part1() throws Exception {
         try (BufferedReader in = readInput()) {
-            // final long sum = Calculator.parseInput1(in).stream()
-            //         .map(Calculator::compute)
-            //         .mapToLong(OptionalLong::orElseThrow)
-            //         .sum();
-            // System.out.println("Part 1: Answer: %d".formatted(sum));
+            var ruleset = Ruleset.parseInput(readInput());
+            System.out.println("Part 1: Answer: %d".formatted(ruleset.getValidMessage(0).size()));
         }
     }
 
