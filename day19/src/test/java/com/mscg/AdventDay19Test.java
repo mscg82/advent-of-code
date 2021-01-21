@@ -15,8 +15,8 @@ public class AdventDay19Test {
     public void testRuleTransformation() {
         var rule1 = new Rule.BaseRule('a');
         var rule3 = new Rule.BaseRule('b');
-        var rule2 = new Rule.OrRule(List.of(new Rule.AndRule(List.of(rule1, rule3)), new Rule.AndRule(List.of(rule3, rule1))));
-        var rule0 = new Rule.AndRule(List.of(rule1, rule2));
+        var rule2 = new Rule.OrRule(new Rule.AndRule(rule1, rule3), new Rule.AndRule(rule3, rule1));
+        var rule0 = new Rule.AndRule(rule1, rule2);
 
         Assertions.assertEquals("(a((ab)|(ba)))", rule0.asRegExp());
         var pattern = Pattern.compile("^" + rule0.asRegExp() + "$");
@@ -36,10 +36,10 @@ public class AdventDay19Test {
 
         var rule4 = new Rule.BaseRule('a');
         var rule5 = new Rule.BaseRule('b');
-        var rule2 = new Rule.OrRule(List.of(new Rule.AndRule(List.of(rule4, rule4)), new Rule.AndRule(List.of(rule5, rule5))));
-        var rule3 = new Rule.OrRule(List.of(new Rule.AndRule(List.of(rule4, rule5)), new Rule.AndRule(List.of(rule5, rule4))));
-        var rule1 = new Rule.OrRule(List.of(new Rule.AndRule(List.of(rule2, rule3)), new Rule.AndRule(List.of(rule3, rule2))));
-        var rule0 = new Rule.AndRule(List.of(rule4, rule1, rule5));
+        var rule2 = new Rule.OrRule(new Rule.AndRule(rule4, rule4), new Rule.AndRule(rule5, rule5));
+        var rule3 = new Rule.OrRule(new Rule.AndRule(rule4, rule5), new Rule.AndRule(rule5, rule4));
+        var rule1 = new Rule.OrRule(new Rule.AndRule(rule2, rule3), new Rule.AndRule(rule3, rule2));
+        var rule0 = new Rule.AndRule(rule4, rule1, rule5);
         Assertions.assertEquals(rule0, ruleset.getRules().get(0));
         Assertions.assertEquals(rule1, ruleset.getRules().get(1));
         Assertions.assertEquals(rule2, ruleset.getRules().get(2));
