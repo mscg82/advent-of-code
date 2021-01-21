@@ -23,17 +23,18 @@ public interface Rule {
         public AndRule(Rule first, Rule... rest) {
             this(asList(first, rest));
         }
-        
+
         @Override
         public String asRegExp() {
             return rules.stream() //
-            .map(Rule::asRegExp) //
-            .collect(Collectors.joining("", "(", ")"));
+                    .map(Rule::asRegExp) //
+                    .collect(Collectors.joining("", "(", ")"));
         }
-    }
-    
-    public record OrRule(List<Rule> rules) implements Rule {
         
+    }
+
+    public record OrRule(List<Rule> rules) implements Rule {
+
         public OrRule(Rule first, Rule... rest) {
             this(asList(first, rest));
         }
@@ -44,6 +45,16 @@ public interface Rule {
                     .map(Rule::asRegExp) //
                     .collect(Collectors.joining("|", "(", ")"));
         }
+
+    }
+
+    public record ExplicitRule(String regExp) implements Rule {
+
+        @Override
+        public String asRegExp() {
+            return regExp;
+        }
+
     }
 
     private static List<Rule> asList(Rule first, Rule... rest) {

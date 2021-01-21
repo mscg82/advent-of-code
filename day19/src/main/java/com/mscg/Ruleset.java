@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -21,6 +22,12 @@ public class Ruleset {
 
     @Getter
     private final List<String> messages;
+
+    public Ruleset patchRules(@NonNull final Map<Integer, Rule> rules) {
+        var newRules = new HashMap<Integer, Rule>(this.rules);
+        newRules.putAll(rules);
+        return new Ruleset(Map.copyOf(newRules), messages);
+    }
 
     public List<String> getValidMessage(int ruleId) {
         var rule = rules.get(ruleId);
