@@ -13,8 +13,8 @@ public class AdventDay20 {
 
     private static void part1() throws Exception {
         try (BufferedReader in = readInput()) {
-            // var ruleset = Ruleset.parseInput(in);
-            // System.out.println("Part 1: Answer: %d".formatted(ruleset.getValidMessage(0).size()));
+            var tileset = Tileset.parseInput(in);
+            System.out.println("Part 1: Answer: %d".formatted(tileset.validate()));
         }
     }
 
