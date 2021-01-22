@@ -1,15 +1,20 @@
 package com.mscg;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 public class AdventDay16Test {
+
+    @SuppressWarnings("unchecked")
+    private static <T> List<T> cast(List<?> source, Class<T> clazz) {
+        return (List<T>) source;
+    }
 
     @Test
     public void testParse() throws Exception {
@@ -20,15 +25,15 @@ public class AdventDay16Test {
                     new TicketDB.ValidityRule("class", new TicketDB.InclusiveRange(1, 3), new TicketDB.InclusiveRange(5, 7)),
                     new TicketDB.ValidityRule("row", new TicketDB.InclusiveRange(6, 11), new TicketDB.InclusiveRange(33, 44)),
                     new TicketDB.ValidityRule("seat", new TicketDB.InclusiveRange(13, 40), new TicketDB.InclusiveRange(45, 50))
-            }, ticketDB.validityRules().toArray(new TicketDB.ValidityRule[0]));
+            }, cast(ticketDB.validityRules(), TicketDB.ValidityRule.class).toArray(new TicketDB.ValidityRule[0]));
 
             Assertions.assertArrayEquals(new int[]{ 7, 1, 14 }, ticketDB.yourTicket().values());
 
             Assertions.assertEquals(4, ticketDB.nearbyTickets().size());
-            Assertions.assertArrayEquals(new int[]{ 7, 3, 47 }, ticketDB.nearbyTickets().get(0).values());
-            Assertions.assertArrayEquals(new int[]{ 40, 4, 50 }, ticketDB.nearbyTickets().get(1).values());
-            Assertions.assertArrayEquals(new int[]{ 55, 2, 20 }, ticketDB.nearbyTickets().get(2).values());
-            Assertions.assertArrayEquals(new int[]{ 38, 6, 12 }, ticketDB.nearbyTickets().get(3).values());
+            Assertions.assertArrayEquals(new int[]{ 7, 3, 47 }, ((TicketDB.Ticket) ticketDB.nearbyTickets().get(0)).values());
+            Assertions.assertArrayEquals(new int[]{ 40, 4, 50 }, ((TicketDB.Ticket) ticketDB.nearbyTickets().get(1)).values());
+            Assertions.assertArrayEquals(new int[]{ 55, 2, 20 }, ((TicketDB.Ticket) ticketDB.nearbyTickets().get(2)).values());
+            Assertions.assertArrayEquals(new int[]{ 38, 6, 12 }, ((TicketDB.Ticket) ticketDB.nearbyTickets().get(3)).values());
         }
     }
 

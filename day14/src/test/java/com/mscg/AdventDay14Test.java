@@ -1,8 +1,5 @@
 package com.mscg;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -12,7 +9,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 public class AdventDay14Test {
+
+    @SuppressWarnings("unchecked")
+    private static <T> List<T> cast(List<?> source, Class<T> clazz) {
+        return (List<T>) source;
+    }
 
     @Test
     public void testParse() throws Exception {
@@ -37,7 +42,7 @@ public class AdventDay14Test {
                     Computer.BitmaskValue._X, Computer.BitmaskValue._X, Computer.BitmaskValue._X, Computer.BitmaskValue._X,
                     Computer.BitmaskValue._X, Computer.BitmaskValue._1, Computer.BitmaskValue._X, Computer.BitmaskValue._X,
                     Computer.BitmaskValue._X, Computer.BitmaskValue._X, Computer.BitmaskValue._0, Computer.BitmaskValue._X,
-            }, bitmask.values().toArray(new Computer.BitmaskValue[0]));
+            }, cast(bitmask.values(), Computer.BitmaskValue.class).toArray(new Computer.BitmaskValue[0]));
         }
     }
 
@@ -64,7 +69,7 @@ public class AdventDay14Test {
                     Computer.BitmaskValue._X, Computer.BitmaskValue._X, Computer.BitmaskValue._X, Computer.BitmaskValue._X,
                     Computer.BitmaskValue._X, Computer.BitmaskValue._1, Computer.BitmaskValue._X, Computer.BitmaskValue._X,
                     Computer.BitmaskValue._X, Computer.BitmaskValue._X, Computer.BitmaskValue._0, Computer.BitmaskValue._X,
-            }, computer.getBitmask().values().toArray(new Computer.BitmaskValue[0]));
+            }, cast(computer.getBitmask().values(), Computer.BitmaskValue.class).toArray(new Computer.BitmaskValue[0]));
 
             Assertions.assertTrue(computer.runNext1());
             Assertions.assertEquals(Map.of(
