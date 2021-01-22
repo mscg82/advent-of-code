@@ -30,10 +30,10 @@ public class AdventDay16Test {
             Assertions.assertArrayEquals(new int[]{ 7, 1, 14 }, ticketDB.yourTicket().values());
 
             Assertions.assertEquals(4, ticketDB.nearbyTickets().size());
-            Assertions.assertArrayEquals(new int[]{ 7, 3, 47 }, ((TicketDB.Ticket) ticketDB.nearbyTickets().get(0)).values());
-            Assertions.assertArrayEquals(new int[]{ 40, 4, 50 }, ((TicketDB.Ticket) ticketDB.nearbyTickets().get(1)).values());
-            Assertions.assertArrayEquals(new int[]{ 55, 2, 20 }, ((TicketDB.Ticket) ticketDB.nearbyTickets().get(2)).values());
-            Assertions.assertArrayEquals(new int[]{ 38, 6, 12 }, ((TicketDB.Ticket) ticketDB.nearbyTickets().get(3)).values());
+            Assertions.assertArrayEquals(new int[]{ 7, 3, 47 }, cast(ticketDB.nearbyTickets(), TicketDB.Ticket.class).get(0).values());
+            Assertions.assertArrayEquals(new int[]{ 40, 4, 50 }, cast(ticketDB.nearbyTickets(), TicketDB.Ticket.class).get(1).values());
+            Assertions.assertArrayEquals(new int[]{ 55, 2, 20 }, cast(ticketDB.nearbyTickets(), TicketDB.Ticket.class).get(2).values());
+            Assertions.assertArrayEquals(new int[]{ 38, 6, 12 }, cast(ticketDB.nearbyTickets(), TicketDB.Ticket.class).get(3).values());
         }
     }
 
