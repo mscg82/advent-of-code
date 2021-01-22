@@ -13,7 +13,7 @@ public record Tileset(List<Tile> tiles) {
         Map<Long, List<Tile>> adjacencyMap = getAdjacencyMap();
         long[] corners = adjacencyMap.entrySet().stream() //
                 .filter(entry -> entry.getValue().size() == 2) //
-                .mapToLong(entry -> entry.getKey()) //
+                .mapToLong(Map.Entry::getKey) //
                 .toArray();
         long prod = 1L;
         for (long corner : corners) {
