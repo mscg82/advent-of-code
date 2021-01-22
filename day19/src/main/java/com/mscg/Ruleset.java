@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,7 @@ public class Ruleset {
     public Ruleset patchRules(@NonNull final Map<Integer, Rule> rules) {
         var newRules = new HashMap<Integer, Rule>(this.rules);
         newRules.putAll(rules);
-        return new Ruleset(Map.copyOf(newRules), messages);
+        return new Ruleset(Map.copyOf(newRules), List.copyOf(messages));
     }
 
     public List<String> getValidMessage(int ruleId) {
