@@ -33,7 +33,7 @@ public record Tile(long id, List<List<Pixel>> image) {
     public boolean isAdjacentTo(final Tile tile) {
         var otherTiles = List.of(tile, tile.flipHor(), tile.flipVer(), tile.flipHor().flipVer());
         return otherTiles.stream() //
-            .anyMatch(otherTile -> this.haveCommonEdge(otherTile));
+                .anyMatch(otherTile -> this.haveCommonEdge(otherTile));
     }
 
     public boolean haveCommonEdge(final Tile tile) {
@@ -54,7 +54,10 @@ public record Tile(long id, List<List<Pixel>> image) {
             left.add(row.get(0));
             right.add(row.get(row.size() - 1));
         });
-        return List.of(image.get(0), right, image.get(image.size() - 1), left);
+        return List.of(List.copyOf(image.get(0)), //
+                List.copyOf(right), //
+                List.copyOf(image.get(image.size() - 1)), //
+                List.copyOf(left));
     }
 
     @Override
