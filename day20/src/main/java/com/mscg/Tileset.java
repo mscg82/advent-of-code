@@ -7,10 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -54,7 +52,7 @@ public record Tileset(List<Tile> tiles) {
         int sideLength = (int) Math.floor(Math.sqrt(tiles.size()));
         List<List<Long>> arrangedTiles = IntStream.range(0, sideLength) //
                 .mapToObj(i -> IntStream.range(0, sideLength) //
-                        .mapToObj(j -> Long.valueOf(0L)) //
+                        .mapToObj(j -> 0L) //
                         .collect(Collectors.toList())) //
                 .collect(Collectors.toList());
 
@@ -64,17 +62,37 @@ public record Tileset(List<Tile> tiles) {
                 .sorted() //
                 .toArray();
 
+        Map<Long, List<Long>> paths = getPathsFromNode(corners[0], adjacencyMap);
+        List<List<Long>> pathToCorners = Arrays.stream(corners) //
+                 .filter(id -> paths.getOrDefault(id, List.of()).size() == sideLength) //
+                 .mapToObj(paths::get) //
+                 .collect(Collectors.toList());
+         List<Long> row = arrangedTiles.get(0);
+         for (int i = 0; i < sideLength; i++) {
+             row.set(i, pathToCorners.get(0).get(i));
+         }
+         for (int i = 1; i < sideLength; i++) {
+             arrangedTiles.get(i).set(0, pathToCorners.get(1).get(i));
+         }
+
+        return List.copyOf(arrangedTiles.stream() //
+                .map(List::copyOf) //
+                .collect(Collectors.toList()));
+    }
+
+    private Map<Long, List<Long>> getPathsFromNode(long node, Map<Long, List<Tile>> adjacencyMap) {
         Map<Long, Long> parents = new HashMap<>();
+        parents.put(node, null);
         Deque<Long> queue = new ArrayDeque<>(tiles.size());
-        queue.add(corners[0]);
+        queue.add(node);
         while (!queue.isEmpty()) {
-            long node = queue.removeFirst();
-            List<Tile> adjacentNodes = adjacencyMap.get(node);
+            long currentNode = queue.removeFirst();
+            List<Tile> adjacentNodes = adjacencyMap.get(currentNode);
             adjacentNodes.stream() //
                     .map(Tile::id) //
                     .filter(id -> !parents.containsKey(id)) //
                     .forEach(id -> {
-                        parents.put(id, node);
+                        parents.put(id, currentNode);
                         queue.add(id);
                     });
         }
@@ -82,27 +100,18 @@ public record Tileset(List<Tile> tiles) {
         Map<Long, List<Long>> paths = new HashMap<>();
         tiles.stream() //
                 .map(Tile::id) //
-                .filter(id -> id != corners[0]) //
+                .filter(id -> id != node) //
                 .forEach(id -> {
-                    long node = id;
+                    long currentNode = id;
                     Long parent;
-                    while ((parent = parents.get(node)) != null) {
-                        paths.computeIfAbsent(id, __ -> new ArrayList<>()).add(0, parent);
-                        node = parent;
+                    List<Long> nodePath = paths.computeIfAbsent(id, __ -> new ArrayList<>());
+                    nodePath.add(id);
+                    while ((parent = parents.get(currentNode)) != null) {
+                        nodePath.add(0, parent);
+                        currentNode = parent;
                     }
                 });
-        // List<List<Long>> pathToCorners = Arrays.stream(corners) //
-        //         .filter(id -> paths.getOrDefault(id, List.of()).size() == sideLength) //
-        //         .mapToObj(paths::get) //
-        //         .collect(Collectors.toList());
-        // List<Long> row = arrangedTiles.get(0);
-        // for (int i = 0, l = row.size(); i < l; i++) {
-        //     row.set(i, pathToCorners.get(0).get(i));
-        // }
-
-        return List.copyOf(arrangedTiles.stream() //
-                .map(List::copyOf) //
-                .collect(Collectors.toList()));
+        return paths;
     }
 
     public static Tileset parseInput(BufferedReader in) throws IOException {
