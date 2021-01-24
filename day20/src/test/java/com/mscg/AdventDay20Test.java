@@ -146,6 +146,20 @@ public class AdventDay20Test {
         }
     }
 
+    @Test
+    public void testArrangedTiles() throws Exception {
+        try (BufferedReader in = readInput()) {
+            var tileset = Tileset.parseInput(in);
+            var arrangedTiles = tileset.arrangeTiles();
+
+            Assertions.assertEquals(List.of( //
+                    List.of(1171L, 1489L, 2971L), //
+                    List.of(2473L, 1427L, 2729L), //
+                    List.of(3079L, 2311L, 1951L)), //
+                    arrangedTiles);
+        }
+    }
+
     private BufferedReader readInput() {
         return new BufferedReader(
                 new InputStreamReader(this.getClass().getResourceAsStream("/test-input.txt"), StandardCharsets.UTF_8));
