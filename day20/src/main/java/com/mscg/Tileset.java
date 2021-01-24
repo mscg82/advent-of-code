@@ -11,15 +11,10 @@ public record Tileset(List<Tile> tiles) {
 
     public long validate() {
         Map<Long, List<Tile>> adjacencyMap = getAdjacencyMap();
-        long[] corners = adjacencyMap.entrySet().stream() //
+        return adjacencyMap.entrySet().stream() //
                 .filter(entry -> entry.getValue().size() == 2) //
                 .mapToLong(Map.Entry::getKey) //
-                .toArray();
-        long prod = 1L;
-        for (long corner : corners) {
-            prod *= corner;
-        }
-        return prod;
+                .reduce(1L, (res, val) -> res * val);
     }
 
     public Map<Long, List<Tile>> getAdjacencyMap() {
