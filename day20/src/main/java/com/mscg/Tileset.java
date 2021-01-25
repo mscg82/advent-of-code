@@ -12,7 +12,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public record Tileset(List<Tile> tiles) {
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+public class Tileset {
+
+    private final List<Tile> tiles;
+
+    public List<Tile> tiles() {
+        return tiles;
+    }
 
     public long validate() {
         Map<Long, List<Tile>> adjacencyMap = getAdjacencyMap();
