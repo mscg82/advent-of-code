@@ -7,8 +7,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -77,16 +79,39 @@ public class Tileset {
 
         Map<Long, List<Long>> paths = getPathsFromNode(corners[0], adjacencyMap);
         List<List<Long>> pathToCorners = Arrays.stream(corners) //
-                 .filter(id -> paths.getOrDefault(id, List.of()).size() == sideLength) //
-                 .mapToObj(paths::get) //
-                 .collect(Collectors.toList());
-         List<Long> row = arrangedTiles.get(0);
-         for (int i = 0; i < sideLength; i++) {
-             row.set(i, pathToCorners.get(0).get(i));
-         }
-         for (int i = 1; i < sideLength; i++) {
-             arrangedTiles.get(i).set(0, pathToCorners.get(1).get(i));
-         }
+                .filter(id -> paths.getOrDefault(id, List.of()).size() == sideLength) //
+                .mapToObj(paths::get) //
+                .collect(Collectors.toList());
+        Set<Long> visitedNodes = new HashSet<>();
+        List<Long> row = arrangedTiles.get(0);
+        for (int i = 0; i < sideLength; i++) {
+            long node = pathToCorners.get(0).get(i);
+            row.set(i, node);
+            visitedNodes.add(node);
+        }
+        for (int i = 1; i < sideLength; i++) {
+            long node = pathToCorners.get(1).get(i);
+            arrangedTiles.get(i).set(0, node);
+            visitedNodes.add(node);
+        }
+
+        for (int i = 1; i < sideLength; i++) {
+            for (int j = 1; j < sideLength; j++) {
+                long upNode = arrangedTiles.get(i - 1).get(j);
+                long leftNode = arrangedTiles.get(i).get(j - 1);
+                Set<Long> upNodeNeighbours = adjacencyMap.get(upNode).stream() //
+                        .map(Tile::id) //
+                        .collect(Collectors.toSet());
+                Set<Long> leftNodeNeighbours = adjacencyMap.get(leftNode).stream() //
+                        .map(Tile::id) //
+                        .collect(Collectors.toSet());
+                upNodeNeighbours.retainAll(leftNodeNeighbours);
+                upNodeNeighbours.removeAll(visitedNodes);
+                long node = upNodeNeighbours.iterator().next();
+                arrangedTiles.get(i).set(j, node);
+                visitedNodes.add(node);
+            }
+        }
 
         return List.copyOf(arrangedTiles.stream() //
                 .map(List::copyOf) //
