@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,11 @@ public record Tile(long id, List<List<Pixel>> image) {
             newImage.add(List.copyOf(it.previous()));
         }
         return new Tile(id, List.copyOf(newImage));
+    }
+
+    public Stream<Tile> rotations() {
+        return Stream.iterate(this, tile -> new Tile(tile.id, Tileset.rotate(tile.image))) //
+                .limit(4);
     }
 
     public boolean isAdjacentTo(final Tile tile) {

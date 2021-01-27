@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.mscg.Tile.Pixel;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -147,17 +149,167 @@ public class AdventDay20Test {
     }
 
     @Test
-    public void testArrangedTiles() throws Exception {
+    public void testArrangedTilesIds() throws Exception {
         try (BufferedReader in = readInput()) {
             var tileset = Tileset.parseInput(in);
-            var arrangedTiles = tileset.arrangeTiles();
+            var arrangedTilesIds = tileset.arrangeTileIds();
 
             Assertions.assertEquals(List.of( //
                     List.of(1171L, 1489L, 2971L), //
                     List.of(2473L, 1427L, 2729L), //
                     List.of(3079L, 2311L, 1951L)), //
-                    arrangedTiles);
+                    arrangedTilesIds);
         }
+    }
+
+    @Test
+    public void testArrangedTiles() throws Exception {
+        try (BufferedReader in = readInput()) {
+            var tileset = Tileset.parseInput(in);
+            var arrangedTilesIds = Tileset.rotate(Tileset.rotate(tileset.arrangeTileIds()));
+
+            var arrangedTiles = tileset.arrangeTiles(arrangedTilesIds);
+
+            Assertions.assertEquals("""
+                    Tile 1951:
+                    #...##.#..
+                    ..#.#..#.#
+                    .###....#.
+                    ###.##.##.
+                    .###.#####
+                    .##.#....#
+                    #...######
+                    .....#..##
+                    #.####...#
+                    #.##...##.""", arrangedTiles.get(0).get(0).toString());
+            Assertions.assertEquals("""
+                    Tile 3079:
+                    #.#.#####.
+                    .#..######
+                    ..#.......
+                    ######....
+                    ####.#..#.
+                    .#...#.##.
+                    #.#####.##
+                    ..#.###...
+                    ..#.......
+                    ..#.###...""", arrangedTiles.get(0).get(2).toString());
+            Assertions.assertEquals("""
+                    Tile 2971:
+                    ...#.#.#.#
+                    ..#.#.###.
+                    ..####.###
+                    #..#.#..#.
+                    .#..####.#
+                    .#####..##
+                    ##.##..#..
+                    #.#.###...
+                    #...###...
+                    ..#.#....#""", arrangedTiles.get(2).get(0).toString());
+            Assertions.assertEquals("""
+                    Tile 1171:
+                    .##...####
+                    #..#.##..#
+                    .#.#..#.##
+                    .####.###.
+                    ####.###..
+                    .##....##.
+                    .####...#.
+                    .####.##.#
+                    ...#..####
+                    ...##.....""", arrangedTiles.get(2).get(2).toString());
+        }
+    }
+
+    @Test
+    public void testRebuiltImage() throws Exception {
+        try (BufferedReader in = readInput()) {
+            var tileset = Tileset.parseInput(in);
+            var arrangedTilesIds = Tileset.rotate(Tileset.rotate(tileset.arrangeTileIds()));
+
+            var arrangedTiles = tileset.arrangeTiles(arrangedTilesIds);
+
+            Tile rebuildImage = Tileset.rebuildImage(arrangedTiles);
+
+            Assertions.assertEquals("""
+                    Tile 0:
+                    .#.#..#.##...#.##..#####
+                    ###....#.#....#..#......
+                    ##.##.###.#.#..######...
+                    ###.#####...#.#####.#..#
+                    ##.#....#.##.####...#.##
+                    ...########.#....#####.#
+                    ....#..#...##..#.#.###..
+                    .####...#..#.....#......
+                    #..#.##..#..###.#.##....
+                    #.####..#.####.#.#.###..
+                    ###.#.#...#.######.#..##
+                    #.####....##..########.#
+                    ##..##.#...#...#.#.#.#..
+                    ...#..#..#.#.##..###.###
+                    .#.#....#.##.#...###.##.
+                    ###.#...#..#.##.######..
+                    .#.#.###.##.##.#..#.##..
+                    .####.###.#...###.#..#.#
+                    ..#.#..#..#.#.#.####.###
+                    #..####...#.#.#.###.###.
+                    #####..#####...###....##
+                    #.##..#..#...#..####...#
+                    .#.###..##..##..####.##.
+                    ...###...##...#...#..###""", rebuildImage.toString());
+        }
+    }
+
+    @Test
+    public void testRotate() {
+        List<List<Long>> matrix = List.of( //
+                List.of(1171L, 1489L, 2971L), //
+                List.of(2473L, 1427L, 2729L), //
+                List.of(3079L, 2311L, 1951L));
+
+        List<List<Long>> rotated1 = Tileset.rotate(matrix);
+        Assertions.assertEquals(List.of( //
+                List.of(3079L, 2473L, 1171L), //
+                List.of(2311L, 1427L, 1489L), //
+                List.of(1951L, 2729L, 2971L)), //
+                rotated1);
+
+        List<List<Long>> rotated2 = Tileset.rotate(rotated1);
+        Assertions.assertEquals(List.of( //
+                List.of(1951L, 2311L, 3079L), //
+                List.of(2729L, 1427L, 2473L), //
+                List.of(2971L, 1489L, 1171L)), //
+                rotated2);
+    }
+
+    @Test
+    public void testRotateTile() {
+        Tile tile = new Tile(1L, List.of( //
+                List.of(Pixel.BLACK, Pixel.WHITE, Pixel.BLACK), //
+                List.of(Pixel.WHITE, Pixel.WHITE, Pixel.WHITE), //
+                List.of(Pixel.BLACK, Pixel.WHITE, Pixel.WHITE)));
+        List<Tile> rotatedTiles = tile.rotations().collect(Collectors.toList());
+
+        Assertions.assertEquals("""
+                Tile 1:
+                #.#
+                ...
+                #..""", rotatedTiles.get(0).toString());
+        Assertions.assertEquals("""
+                Tile 1:
+                #.#
+                ...
+                ..#""", rotatedTiles.get(1).toString());
+        Assertions.assertEquals("""
+                Tile 1:
+                ..#
+                ...
+                #.#""", rotatedTiles.get(2).toString());
+        Assertions.assertEquals("""
+                Tile 1:
+                #..
+                ...
+                #.#""", rotatedTiles.get(3).toString());
     }
 
     private BufferedReader readInput() {
