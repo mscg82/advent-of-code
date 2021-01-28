@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.mscg.Tile.Pixel;
 
@@ -166,7 +167,7 @@ public class AdventDay20Test {
     public void testArrangedTiles() throws Exception {
         try (BufferedReader in = readInput()) {
             var tileset = Tileset.parseInput(in);
-            var arrangedTilesIds = Tileset.rotate(Tileset.rotate(tileset.arrangeTileIds()));
+            var arrangedTilesIds = Utils.rotate(Utils.rotate(tileset.arrangeTileIds()));
 
             var arrangedTiles = tileset.arrangeTiles(arrangedTilesIds);
 
@@ -225,11 +226,11 @@ public class AdventDay20Test {
     public void testRebuiltImage() throws Exception {
         try (BufferedReader in = readInput()) {
             var tileset = Tileset.parseInput(in);
-            var arrangedTilesIds = Tileset.rotate(Tileset.rotate(tileset.arrangeTileIds()));
+            var arrangedTilesIds = Utils.rotate(Utils.rotate(tileset.arrangeTileIds()));
 
             var arrangedTiles = tileset.arrangeTiles(arrangedTilesIds);
 
-            Tile rebuildImage = Tileset.rebuildImage(arrangedTiles);
+            Tile rebuiltImage = Utils.rebuildImage(arrangedTiles);
 
             Assertions.assertEquals("""
                     Tile 0:
@@ -256,7 +257,7 @@ public class AdventDay20Test {
                     #####..#####...###....##
                     #.##..#..#...#..####...#
                     .#.###..##..##..####.##.
-                    ...###...##...#...#..###""", rebuildImage.toString());
+                    ...###...##...#...#..###""", rebuiltImage.toString());
         }
     }
 
@@ -267,14 +268,14 @@ public class AdventDay20Test {
                 List.of(2473L, 1427L, 2729L), //
                 List.of(3079L, 2311L, 1951L));
 
-        List<List<Long>> rotated1 = Tileset.rotate(matrix);
+        List<List<Long>> rotated1 = Utils.rotate(matrix);
         Assertions.assertEquals(List.of( //
                 List.of(3079L, 2473L, 1171L), //
                 List.of(2311L, 1427L, 1489L), //
                 List.of(1951L, 2729L, 2971L)), //
                 rotated1);
 
-        List<List<Long>> rotated2 = Tileset.rotate(rotated1);
+        List<List<Long>> rotated2 = Utils.rotate(rotated1);
         Assertions.assertEquals(List.of( //
                 List.of(1951L, 2311L, 3079L), //
                 List.of(2729L, 1427L, 2473L), //
@@ -310,6 +311,47 @@ public class AdventDay20Test {
                 #..
                 ...
                 #.#""", rotatedTiles.get(3).toString());
+    }
+
+    @Test
+    public void testParseMask() {
+        var mask = Mask.parseStrings(List.of(//
+                "                  # ", //
+                "#    ##    ##    ###", //
+                " #  #  #  #  #  #   "));
+
+        Assertions.assertEquals("                  # \n"//
+                + "#    ##    ##    ###\n"//
+                + " #  #  #  #  #  #   ", mask.toString());
+    }
+
+    @Test
+    public void testApplyMask() throws Exception {
+        try (BufferedReader in = readInput()) {
+            var tileset = Tileset.parseInput(in);
+            var arrangedTilesIds = Utils.rotate(Utils.rotate(tileset.arrangeTileIds()));
+
+            var arrangedTiles = tileset.arrangeTiles(arrangedTilesIds);
+
+            Tile rebuiltImage = Utils.rebuildImage(arrangedTiles);
+
+            var mask = Mask.parseStrings(List.of(//
+                    "                  # ", //
+                    "#    ##    ##    ###", //
+                    " #  #  #  #  #  #   "));
+
+            long blackCount = rebuiltImage.countBlackPixels();
+
+            Tile monsterImage = Stream.of(rebuiltImage, rebuiltImage.flipHor(), //
+                    rebuiltImage.flipVer(), rebuiltImage.flipHor().flipVer()) //
+                    .flatMap(Tile::rotations) //
+                    .map(t -> new Tile(t.id(), mask.apply(Utils.cast(t.image(), Pixel.class)))) //
+                    .filter(t -> t.countBlackPixels() != blackCount) //
+                    .findAny() //
+                    .orElseThrow(() -> new IllegalArgumentException("Can't find monsters in image"));
+
+            Assertions.assertEquals(273, monsterImage.countBlackPixels());
+        }
     }
 
     private BufferedReader readInput() {

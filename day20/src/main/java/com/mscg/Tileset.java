@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -26,60 +25,6 @@ import lombok.ToString;
 @EqualsAndHashCode
 @RequiredArgsConstructor
 public class Tileset {
-
-    private static <T> List<List<T>> immutableMatrix(List<List<T>> orig) {
-        for (var it = orig.listIterator(); it.hasPrevious();) {
-            List<T> row = it.next();
-            it.set(List.copyOf(row));
-        }
-        return List.copyOf(orig);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> List<List<T>> cast(List<?> source, Class<T> clazz) {
-        return (List<List<T>>) source;
-    }
-
-    public static <T> List<List<T>> rotate(List<List<T>> orig) {
-        int rows = orig.size();
-        int cols = orig.get(0).size();
-        List<List<T>> rotated = IntStream.range(0, cols) //
-                .mapToObj(i -> IntStream.range(0, rows) //
-                        .mapToObj(j -> (T) null) //
-                        .collect(Collectors.toList())) //
-                .collect(Collectors.toList());
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                rotated.get(j).set(rows - i - 1, orig.get(i).get(j));
-            }
-        }
-
-        return immutableMatrix(rotated);
-    }
-
-    public static Tile rebuildImage(List<List<Tile>> pieces) {
-        int rowsInPieces = pieces.get(0).get(0).image().size();
-        int colsInPieces = cast(pieces.get(0).get(0).image(), Pixel.class).get(0).size();
-
-        List<List<Pixel>> image = IntStream.range(0, (rowsInPieces - 2) * pieces.size()) //
-                .mapToObj(i -> Arrays.asList(new Pixel[(colsInPieces - 2) * pieces.get(0).size()])) //
-                .collect(Collectors.toList());
-
-        for (int i = 0, r = pieces.size(); i < r; i++) {
-            List<Tile> row = pieces.get(i);
-            for (int j = 0, c = row.size(); j < c; j++) {
-                Tile tile = row.get(j);
-                List<List<Pixel>> tileImage = cast(tile.image(), Pixel.class);
-                for (int k1 = 1; k1 < rowsInPieces - 1; k1++) {
-                    for (int k2 = 1; k2 < colsInPieces - 1; k2++) {
-                        image.get(i * (rowsInPieces - 2) + (k1 - 1)).set(j * (colsInPieces - 2) + (k2 - 1), tileImage.get(k1).get(k2));
-                    }
-                }
-            }
-        }
-
-        return new Tile(0L, immutableMatrix(image));
-    }
 
     private final List<Tile> tiles;
 
@@ -192,7 +137,7 @@ public class Tileset {
         for (int j = 1; j < cols; j++) {
             final int currentCol = j;
             Tile currentTile = arrangedTiles.get(0).get(j - 1);
-            List<Pixel> lastCol = cast(currentTile.image(), Pixel.class).stream() //
+            List<Pixel> lastCol = Utils.cast(currentTile.image(), Pixel.class).stream() //
                     .map(row -> row.get(row.size() - 1)) //
                     .collect(Collectors.toList());
 
@@ -201,7 +146,7 @@ public class Tileset {
                     nextTile.flipVer(), nextTile.flipHor().flipVer()) //
                     .flatMap(Tile::rotations) //
                     .filter(nextTileVar -> {
-                        List<Pixel> firstCol = cast(nextTileVar.image(), Pixel.class).stream() //
+                        List<Pixel> firstCol = Utils.cast(nextTileVar.image(), Pixel.class).stream() //
                                 .map(row -> row.get(0)) //
                                 .collect(Collectors.toList());
                         return firstCol.equals(lastCol);
@@ -218,14 +163,14 @@ public class Tileset {
             for (int j = 0; j < cols; j++) {
                 final int currentCol = j;
                 Tile currentTile = arrangedTiles.get(i - 1).get(j);
-                List<Pixel> lastRow = cast(currentTile.image(), Pixel.class).get(currentTile.image().size() - 1);
+                List<Pixel> lastRow = Utils.cast(currentTile.image(), Pixel.class).get(currentTile.image().size() - 1);
 
                 Tile nextTile = mappedTiles.get(arrangedIds.get(i).get(j));
                 Tile placedNextTile = Stream.of(nextTile, nextTile.flipHor(), //
                         nextTile.flipVer(), nextTile.flipHor().flipVer()) //
                         .flatMap(Tile::rotations) //
                         .filter(nextTileVar -> {
-                            List<Pixel> firstRow = cast(nextTileVar.image(), Pixel.class).get(0);
+                            List<Pixel> firstRow = Utils.cast(nextTileVar.image(), Pixel.class).get(0);
                             return firstRow.equals(lastRow);
                         }) //
                         .findAny() //
@@ -235,7 +180,7 @@ public class Tileset {
             }
         }
 
-        return immutableMatrix(arrangedTiles);
+        return Utils.immutableMatrix(arrangedTiles);
     }
 
     private Tile orientFirstTile(List<List<Long>> arrangedIds, Map<Long, Tile> mappedTiles) {
@@ -247,12 +192,12 @@ public class Tileset {
 
         return mappedTiles.get(arrangedIds.get(0).get(0)).rotations() //
                 .filter(tile -> {
-                    List<Pixel> lastCol = cast(tile.image(), Pixel.class).stream() //
+                    List<Pixel> lastCol = Utils.cast(tile.image(), Pixel.class).stream() //
                             .map(row -> row.get(row.size() - 1)) //
                             .collect(Collectors.toList());
                     return secondTileVariations.stream() //
                             .anyMatch(secondTileVar -> {
-                                List<Pixel> firstCol = cast(secondTileVar.image(), Pixel.class).stream() //
+                                List<Pixel> firstCol = Utils.cast(secondTileVar.image(), Pixel.class).stream() //
                                         .map(row -> row.get(0)) //
                                         .collect(Collectors.toList());
                                 return firstCol.equals(lastCol);
@@ -271,10 +216,10 @@ public class Tileset {
 
         return Stream.of(firstTile, firstTile.flipVer()) //
                 .filter(tile -> {
-                    List<Pixel> lastRow = cast(tile.image(), Pixel.class).get(tile.image().size() - 1);
+                    List<Pixel> lastRow = Utils.cast(tile.image(), Pixel.class).get(tile.image().size() - 1);
                     return secondTileVariations.stream() //
                             .anyMatch(secondTileVar -> {
-                                List<Pixel> firstRow = cast(secondTileVar.image(), Pixel.class).get(0);
+                                List<Pixel> firstRow = Utils.cast(secondTileVar.image(), Pixel.class).get(0);
                                 return firstRow.equals(lastRow);
                             });
                 }) //

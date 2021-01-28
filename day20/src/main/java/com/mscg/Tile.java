@@ -32,7 +32,7 @@ public record Tile(long id, List<List<Pixel>> image) {
     }
 
     public Stream<Tile> rotations() {
-        return Stream.iterate(this, tile -> new Tile(tile.id, Tileset.rotate(tile.image))) //
+        return Stream.iterate(this, tile -> new Tile(tile.id, Utils.rotate(tile.image))) //
                 .limit(4);
     }
 
@@ -51,6 +51,13 @@ public record Tile(long id, List<List<Pixel>> image) {
             }
         }
         return false;
+    }
+
+    public long countBlackPixels() {
+        return image.stream() //
+                .flatMap(List::stream) //
+                .filter(p -> p == Pixel.BLACK) //
+                .count();
     }
 
     private List<List<Pixel>> extractEdges() {
@@ -78,7 +85,7 @@ public record Tile(long id, List<List<Pixel>> image) {
     @Getter
     @RequiredArgsConstructor
     public enum Pixel {
-        BLACK('#'), WHITE('.');
+        BLACK('#'), WHITE('.'), GREY('O'), TRANSPARENT(' ');
 
         private final char value;
 
@@ -91,6 +98,8 @@ public record Tile(long id, List<List<Pixel>> image) {
             return switch (c) {
                 case '#' -> Optional.of(BLACK);
                 case '.' -> Optional.of(WHITE);
+                case 'O' -> Optional.of(GREY);
+                case ' ' -> Optional.of(TRANSPARENT);
                 default -> Optional.empty();
             };
         }

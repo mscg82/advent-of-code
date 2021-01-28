@@ -3,6 +3,10 @@ package com.mscg;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Stream;
+
+import com.mscg.Tile.Pixel;
 
 public class AdventDay20 {
 
@@ -20,22 +24,29 @@ public class AdventDay20 {
 
     private static void part2() throws Exception {
         try (BufferedReader in = readInput()) {
-            // var ruleset = Ruleset.parseInput(in);
+            var tileset = Tileset.parseInput(in);
+            var arrangedTilesIds = Utils.rotate(Utils.rotate(tileset.arrangeTileIds()));
 
-            // Rule rule42 = ruleset.getRules().get(42);
-            // Rule rule31 = ruleset.getRules().get(31);
-            // Rule newRule8 = new Rule.ExplicitRule("(" + rule42.asRegExp() + ")+");
-            // Rule newRule11a = new Rule.AndRule(rule42, rule31);
-            // Rule newRule11b = new Rule.AndRule(rule42, rule42, rule31, rule31);
-            // Rule newRule11c = new Rule.AndRule(rule42, rule42, rule42, rule31, rule31, rule31);
-            // Rule newRule11d = new Rule.AndRule(rule42, rule42, rule42, rule42, rule31, rule31, rule31, rule31);
-            // Rule newRule11 = new Rule.OrRule(newRule11a, newRule11b, newRule11c, newRule11d);
-            // Rule newRule0 = new Rule.AndRule(newRule8, newRule11);
-            // ruleset = ruleset.patchRules(Map.of( //
-            //         0, newRule0, //
-            //         8, newRule8, //
-            //         11, newRule11));
-            // System.out.println("Part 2: Answer: %d".formatted(ruleset.getValidMessage(0).size()));
+            var arrangedTiles = tileset.arrangeTiles(arrangedTilesIds);
+
+            Tile rebuiltImage = Utils.rebuildImage(arrangedTiles);
+
+            var mask = Mask.parseStrings(List.of(//
+                    "                  # ", //
+                    "#    ##    ##    ###", //
+                    " #  #  #  #  #  #   "));
+
+            long blackCount = rebuiltImage.countBlackPixels();
+
+            Tile monsterImage = Stream.of(rebuiltImage, rebuiltImage.flipHor(), //
+                    rebuiltImage.flipVer(), rebuiltImage.flipHor().flipVer()) //
+                    .flatMap(Tile::rotations) //
+                    .map(t -> new Tile(t.id(), mask.apply(Utils.cast(t.image(), Pixel.class)))) //
+                    .filter(t -> t.countBlackPixels() != blackCount) //
+                    .findAny() //
+                    .orElseThrow(() -> new IllegalArgumentException("Can't find monsters in image"));
+
+            System.out.println("Part 2: Answer: %d".formatted(monsterImage.countBlackPixels()));
         }
     }
 
