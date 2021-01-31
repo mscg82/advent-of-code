@@ -42,7 +42,19 @@ public class AdventDay22Test {
     public void testGameValue() throws Exception {
         var game = CombatGame.parseInput(readInput());
 
-        Assertions.assertEquals(306, game.getGameValue());
+        Assertions.assertEquals(306L, game.getGameValue());
+    }
+    
+    @Test
+    public void testRecursiveGameValue() throws Exception {
+        var game = CombatGame.parseInput(readInput());
+
+        GameStatus status = game.playRecursiveGame();
+
+        Assertions.assertEquals(GameStatus.PLAYER_2_WINS, status);
+        Assertions.assertEquals(List.of(), game.getPlayer1Hand());
+        Assertions.assertEquals(List.of(7, 5, 6, 2, 4, 1, 10, 8, 9, 3), game.getPlayer2Hand());
+        Assertions.assertEquals(291L, game.getValidationNumber(status));
     }
 
     private BufferedReader readInput() {
