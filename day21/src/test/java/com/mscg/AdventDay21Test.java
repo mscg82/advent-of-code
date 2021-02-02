@@ -42,6 +42,13 @@ public class AdventDay21Test {
         Assertions.assertEquals(5, foodList.computePart1Answer());
     }
 
+    @Test
+    public void testPart2Answer() throws Exception {
+        var foodList = FoodList.parseInput(readInput());
+
+        Assertions.assertEquals("mxmxvkd,sqjhc,fvjkl", foodList.computePart2Answer());
+    }
+
     private BufferedReader readInput() {
         return new BufferedReader(
                 new InputStreamReader(this.getClass().getResourceAsStream("/test-input.txt"), StandardCharsets.UTF_8));

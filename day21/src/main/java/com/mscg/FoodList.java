@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import lombok.Getter;
@@ -82,6 +84,11 @@ public class FoodList {
                 .flatMap(recipe -> Utils.cast(recipe.ingredients(), String.class).stream()) //
                 .filter(foodWithoutAllergenes::contains) //
                 .count();
+    }
+
+    public String computePart2Answer() {
+        Map<String, String> allergeneToFood = new TreeMap<>(mapAllergenesToFood());
+        return allergeneToFood.values().stream().collect(Collectors.joining(","));
     }
 
     public static FoodList parseInput(BufferedReader in) {

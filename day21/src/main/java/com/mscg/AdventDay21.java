@@ -20,29 +20,8 @@ public class AdventDay21 {
 
     private static void part2() throws Exception {
         try (BufferedReader in = readInput()) {
-            // var tileset = Tileset.parseInput(in);
-            // var arrangedTilesIds = Utils.rotate(Utils.rotate(tileset.arrangeTileIds()));
-
-            // var arrangedTiles = tileset.arrangeTiles(arrangedTilesIds);
-
-            // Tile rebuiltImage = Utils.rebuildImage(arrangedTiles);
-
-            // var mask = Mask.parseStrings(List.of(//
-            //         "                  # ", //
-            //         "#    ##    ##    ###", //
-            //         " #  #  #  #  #  #   "));
-
-            // long blackCount = rebuiltImage.countBlackPixels();
-
-            // Tile monsterImage = Stream.of(rebuiltImage, rebuiltImage.flipHor(), //
-            //         rebuiltImage.flipVer(), rebuiltImage.flipHor().flipVer()) //
-            //         .flatMap(Tile::rotations) //
-            //         .map(t -> new Tile(t.id(), mask.apply(Utils.cast(t.image(), Pixel.class)))) //
-            //         .filter(t -> t.countBlackPixels() != blackCount) //
-            //         .findAny() //
-            //         .orElseThrow(() -> new IllegalArgumentException("Can't find monsters in image"));
-
-            // System.out.println("Part 2: Answer: %d".formatted(monsterImage.countBlackPixels()));
+            var foodList = FoodList.parseInput(readInput());
+            System.out.println("Part 2: Answer: %s".formatted(foodList.computePart2Answer()));
         }
     }
 
