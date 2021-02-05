@@ -2,6 +2,7 @@ package com.mscg;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Arrays;
 
 public class Cupset {
@@ -29,8 +30,15 @@ public class Cupset {
     }
 
     public void run(int steps) {
+        run(steps, false);
+    }
+
+    public void run(int steps, boolean withLogger) {
         int currentCupIdx = 0;
         for (int i = 0; i < steps; i++) {
+            if (i % 500 == 0) {
+                System.out.println("%s - Step %d".formatted(Instant.now(), i + 1));
+            }
             final int destinationCupIdx = getDestinationCupIndex(currentCupIdx);
             int destinationCup = cups[destinationCupIdx];
 
@@ -47,6 +55,13 @@ public class Cupset {
 
             currentCupIdx = (currentCupIdx + 1) % cups.length;
         }
+    }
+
+    public long getValidationNumber() {
+        int index = findDestinationIndex(1);
+        int cup1 = cups[(index + 1) % cups.length];
+        int cup2 = cups[(index + 2) % cups.length];
+        return cup1 * (long) cup2;
     }
 
     @Override
@@ -115,7 +130,7 @@ public class Cupset {
                 return i;
             }
         }
-        throw new IllegalStateException("This should not happen");
+        throw new IllegalStateException("This should not happen: cup " + destinationCup + " doesn't exist");
     }
 
     public static Cupset parseInput(BufferedReader in) throws IOException {
@@ -124,6 +139,24 @@ public class Cupset {
         final int[] cups = new int[length];
         for (int i = 0; i < length; i++) {
             cups[i] = Integer.parseInt(line.substring(i, i + 1));
+        }
+        return new Cupset(cups);
+    }
+
+    public static Cupset parseInput2(BufferedReader in) throws IOException {
+        String line = in.readLine();
+        int length = line.length();
+        final int[] cups = new int[1_000_000];
+        int max = Integer.MIN_VALUE;
+        for (int i = 0; i < length; i++) {
+            int val = Integer.parseInt(line.substring(i, i + 1));
+            if (val > max) {
+                max = val;
+            }
+            cups[i] = val;
+        }
+        for (int i = length; i < cups.length; i++) {
+            cups[i] = max + (i - length) + 1;
         }
         return new Cupset(cups);
     }

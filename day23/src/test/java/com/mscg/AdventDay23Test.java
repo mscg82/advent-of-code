@@ -87,6 +87,13 @@ public class AdventDay23Test {
         Assertions.assertEquals("67384529", cupset.toStringFrom(1));
     }
 
+    // @Test
+    // public void testValidationNumber() throws Exception {
+    //     Cupset cupset = Cupset.parseInput2(readInput());
+    //     cupset.run(10_000_000);
+    //     Assertions.assertEquals(149245887792L, cupset.getValidationNumber());
+    // }
+
     private BufferedReader readInput() {
         return new BufferedReader(
                 new InputStreamReader(this.getClass().getResourceAsStream("/test-input.txt"), StandardCharsets.UTF_8));

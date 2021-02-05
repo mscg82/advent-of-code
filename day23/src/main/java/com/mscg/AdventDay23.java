@@ -21,12 +21,9 @@ public class AdventDay23 {
 
     private static void part2() throws Exception {
         try (BufferedReader in = readInput()) {
-            // var game = CombatGame.parseInput(readInput());
-
-            // GameStatus status = game.playRecursiveGame();
-
-            // System.out.println("Part 2: Answer:
-            // %d".formatted(game.getValidationNumber(status)));
+            Cupset cupset = Cupset.parseInput2(readInput());
+            cupset.run(10_000_000, true);
+            System.out.println("Part 2: Answer: %d".formatted(cupset.getValidationNumber()));
         }
     }
 
