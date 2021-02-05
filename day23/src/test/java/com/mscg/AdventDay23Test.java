@@ -27,7 +27,7 @@ public class AdventDay23Test {
     public void test3Step() throws Exception {
         Cupset cupset = Cupset.parseInput(readInput());
         cupset.run(3);
-        Assertions.assertEquals("725891346", cupset.toString());
+        Assertions.assertEquals("346725891", cupset.toString());
     }
 
     @Test
@@ -41,42 +41,42 @@ public class AdventDay23Test {
     public void test5Step() throws Exception {
         Cupset cupset = Cupset.parseInput(readInput());
         cupset.run(5);
-        Assertions.assertEquals("925841367", cupset.toString());
+        Assertions.assertEquals("367925841", cupset.toString());
     }
 
     @Test
     public void test6Step() throws Exception {
         Cupset cupset = Cupset.parseInput(readInput());
         cupset.run(6);
-        Assertions.assertEquals("725841936", cupset.toString());
+        Assertions.assertEquals("367258419", cupset.toString());
     }
 
     @Test
     public void test7Step() throws Exception {
         Cupset cupset = Cupset.parseInput(readInput());
         cupset.run(7);
-        Assertions.assertEquals("836741925", cupset.toString());
+        Assertions.assertEquals("367419258", cupset.toString());
     }
 
     @Test
     public void test8Step() throws Exception {
         Cupset cupset = Cupset.parseInput(readInput());
         cupset.run(8);
-        Assertions.assertEquals("741583926", cupset.toString());
+        Assertions.assertEquals("392674158", cupset.toString());
     }
 
     @Test
     public void test9Step() throws Exception {
         Cupset cupset = Cupset.parseInput(readInput());
         cupset.run(9);
-        Assertions.assertEquals("574183926", cupset.toString());
+        Assertions.assertEquals("392657418", cupset.toString());
     }
 
     @Test
     public void test10Step() throws Exception {
         Cupset cupset = Cupset.parseInput(readInput());
         cupset.run(10);
-        Assertions.assertEquals("583741926", cupset.toString());
+        Assertions.assertEquals("374192658", cupset.toString());
         Assertions.assertEquals("92658374", cupset.toStringFrom(1));
     }
 
@@ -87,12 +87,12 @@ public class AdventDay23Test {
         Assertions.assertEquals("67384529", cupset.toStringFrom(1));
     }
 
-    // @Test
-    // public void testValidationNumber() throws Exception {
-    //     Cupset cupset = Cupset.parseInput2(readInput());
-    //     cupset.run(10_000_000);
-    //     Assertions.assertEquals(149245887792L, cupset.getValidationNumber());
-    // }
+    @Test
+    public void testValidationNumber() throws Exception {
+        Cupset cupset = Cupset.parseInput2(readInput());
+        cupset.run(10_000_000);
+        Assertions.assertEquals(149245887792L, cupset.getValidationNumber());
+    }
 
     private BufferedReader readInput() {
         return new BufferedReader(

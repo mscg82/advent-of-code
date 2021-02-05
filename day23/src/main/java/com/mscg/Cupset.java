@@ -2,117 +2,109 @@ package com.mscg;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 public class Cupset {
 
-    private final int[] cups;
+    private final Cup[] cups;
+    private final Map<Integer, Cup> valToCup;
     private final int minCup;
     private final int maxCup;
 
     public Cupset(final int[] cups) {
-        this.cups = cups;
-
-        int min = cups[0];
-        int max = cups[1];
-        for (int c : cups) {
-            if (c < min) {
-                min = c;
-            }
-            if (c > max) {
-                max = c;
-            }
+        this.cups = Arrays.stream(cups) //
+                .mapToObj(Cup::new) //
+                .toArray(Cup[]::new);
+        this.cups[0].setPrev(this.cups[this.cups.length - 1]);
+        this.cups[this.cups.length - 1].setNext(this.cups[0]);
+        for (int i = 1; i < this.cups.length; i++) {
+            this.cups[i].setPrev(this.cups[i - 1]);
+            this.cups[i - 1].setNext(this.cups[i]);
         }
 
-        this.minCup = min;
-        this.maxCup = max;
+        valToCup = Arrays.stream(this.cups) //
+                .collect(Collectors.toMap(Cup::getValue, c -> c));
+
+        var stats = Arrays.stream(cups) //
+                .summaryStatistics();
+
+        this.minCup = stats.getMin();
+        this.maxCup = stats.getMax();
     }
 
     public void run(int steps) {
-        run(steps, false);
-    }
-
-    public void run(int steps, boolean withLogger) {
-        int currentCupIdx = 0;
+        Cup currentCup = cups[0];
         for (int i = 0; i < steps; i++) {
-            if (withLogger && i % 500 == 0) {
-                System.out.println("%s - Step %d".formatted(Instant.now(), i + 1));
-            }
-            final int destinationCupIdx = getDestinationCupIndex(currentCupIdx);
-            int destinationCup = cups[destinationCupIdx];
+            Cup destinationCup = getDestinationCup(currentCup);
+            Cup afterDestination = destinationCup.getNext();
+            Cup next1 = currentCup.getNext();
+            Cup next2 = next1.getNext();
+            Cup next3 = next2.getNext();
+            Cup next4 = next3.getNext();
 
-            final int next1 = pickCup((currentCupIdx + 1) % cups.length);
-            final int next2 = pickCup((currentCupIdx + 2) % cups.length);
-            final int next3 = pickCup((currentCupIdx + 3) % cups.length);
+            destinationCup.setNext(next1);
+            next1.setPrev(destinationCup);
 
-            shiftLeft(currentCupIdx, destinationCupIdx);
-            final int newDestinationCupIdx = findDestinationIndex(destinationCup);
+            next3.setNext(afterDestination);
+            afterDestination.setPrev(next3);
 
-            cups[(newDestinationCupIdx + 1) % cups.length] = next1;
-            cups[(newDestinationCupIdx + 2) % cups.length] = next2;
-            cups[(newDestinationCupIdx + 3) % cups.length] = next3;
+            currentCup.setNext(next4);
+            next4.setPrev(currentCup);
 
-            currentCupIdx = (currentCupIdx + 1) % cups.length;
+            currentCup = currentCup.getNext();
         }
     }
 
     public long getValidationNumber() {
-        int index = findDestinationIndex(1);
-        int cup1 = cups[(index + 1) % cups.length];
-        int cup2 = cups[(index + 2) % cups.length];
-        return cup1 * (long) cup2;
+        Cup cup1 = findCup(1);
+        Cup next1 = cup1.getNext();
+        Cup next2 = next1.getNext();
+        return next1.getValue() * (long) next2.getValue();
     }
 
     @Override
     public String toString() {
-        StringBuilder str = Arrays.stream(cups) //
-                .collect(StringBuilder::new, (s, c) -> s.append(c), (s1, s2) -> s1.append(s2));
-        return str.toString();
+        return Stream.concat(Stream.of(cups[0]), Stream.iterate(cups[0].getNext(), cup -> cup != cups[0], Cup::getNext)) //
+                .mapToInt(Cup::getValue) //
+                .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append) //
+                .toString();
     }
 
     public String toStringFrom(int firstCup) {
-        int firstIndex = findDestinationIndex(firstCup);
-        var str = new StringBuilder(cups.length - 1);
-        for (int i = (firstIndex + 1) % cups.length; i != firstIndex; i = (i + 1) % cups.length) {
-            str.append(cups[i]);
+        Cup startCup = findCup(firstCup);
+        return Stream.iterate(startCup.getNext(), cup -> cup != startCup, Cup::getNext) //
+                .mapToInt(Cup::getValue) //
+                .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append) //
+                .toString();
+    }
+
+    private Cup findCup(int value) {
+        Cup cup = valToCup.get(value);
+        if (cup != null) {
+            return cup;
         }
-        return str.toString();
+        throw new IllegalArgumentException("Unable to find cup with value " + value);
     }
 
-    private int pickCup(int index) {
-        int cup = cups[index];
-        cups[index] = Integer.MIN_VALUE;
-        return cup;
-    }
+    private Cup getDestinationCup(final Cup currentCup) {
+        final Cup next1 = currentCup.getNext();
+        final Cup next2 = next1.getNext();
+        final Cup next3 = next2.getNext();
 
-    private void shiftLeft(int currentIndex, int destinationIndex) {
-        int firstIndex = (currentIndex + 4) % cups.length;
-        int lastIndex = destinationIndex;
-        int writeIndex = (currentIndex + 1) % cups.length;
-
-        int copySize = lastIndex >= firstIndex ? (lastIndex - firstIndex + 1)
-                : (lastIndex - firstIndex + 1) + cups.length;
-        int workIndex = firstIndex;
-        for (int i = 0; i < copySize; i++) {
-            cups[writeIndex] = pickCup(workIndex);
-            workIndex = (workIndex + 1) % cups.length;
-            writeIndex = (writeIndex + 1) % cups.length;
-        }
-    }
-
-    private int getDestinationCupIndex(int currentCupIdx) {
-        final int currentCup = cups[currentCupIdx];
-        final int next1 = cups[(currentCupIdx + 1) % cups.length];
-        final int next2 = cups[(currentCupIdx + 2) % cups.length];
-        final int next3 = cups[(currentCupIdx + 3) % cups.length];
-
-        int destinationCup = currentCup - 1;
+        int destinationCup = currentCup.getValue() - 1;
         if (destinationCup < minCup) {
             destinationCup = maxCup;
         }
-        while (destinationCup == next1 || destinationCup == next2 || destinationCup == next3) {
-            if (destinationCup == currentCup) {
+        while (destinationCup == next1.getValue() || destinationCup == next2.getValue()
+                || destinationCup == next3.getValue()) {
+            if (destinationCup == currentCup.getValue()) {
                 throw new IllegalStateException("Unable to find destination cup");
             }
             destinationCup = destinationCup - 1;
@@ -121,16 +113,7 @@ public class Cupset {
             }
         }
 
-        return findDestinationIndex(destinationCup);
-    }
-
-    private int findDestinationIndex(int destinationCup) {
-        for (int i = 0; i < cups.length; i++) {
-            if (cups[i] == destinationCup) {
-                return i;
-            }
-        }
-        throw new IllegalStateException("This should not happen: cup " + destinationCup + " doesn't exist");
+        return findCup(destinationCup);
     }
 
     public static Cupset parseInput(BufferedReader in) throws IOException {
@@ -159,6 +142,20 @@ public class Cupset {
             cups[i] = max + (i - length) + 1;
         }
         return new Cupset(cups);
+    }
+
+    @Getter
+    @Setter
+    @RequiredArgsConstructor
+    private static class Cup {
+        private final int value;
+        private Cup next;
+        private Cup prev;
+
+        @Override
+        public String toString() {
+            return String.valueOf(value);
+        }
     }
 
 }

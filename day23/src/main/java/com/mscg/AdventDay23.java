@@ -22,7 +22,7 @@ public class AdventDay23 {
     private static void part2() throws Exception {
         try (BufferedReader in = readInput()) {
             Cupset cupset = Cupset.parseInput2(readInput());
-            cupset.run(10_000_000, true);
+            cupset.run(10_000_000);
             System.out.println("Part 2: Answer: %d".formatted(cupset.getValidationNumber()));
         }
     }
