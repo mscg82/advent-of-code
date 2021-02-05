@@ -15,7 +15,7 @@ public class AdventDay23 {
         try (BufferedReader in = readInput()) {
             Cupset cupset = Cupset.parseInput(readInput());
             cupset.run(100);
-            System.out.println("Part 1: Answer: %s".formatted(cupset.toStringFrom('1')));
+            System.out.println("Part 1: Answer: %s".formatted(cupset.toStringFrom(1)));
         }
     }
 

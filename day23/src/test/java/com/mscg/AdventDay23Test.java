@@ -77,14 +77,14 @@ public class AdventDay23Test {
         Cupset cupset = Cupset.parseInput(readInput());
         cupset.run(10);
         Assertions.assertEquals("583741926", cupset.toString());
-        Assertions.assertEquals("92658374", cupset.toStringFrom('1'));
+        Assertions.assertEquals("92658374", cupset.toStringFrom(1));
     }
 
     @Test
     public void test100Step() throws Exception {
         Cupset cupset = Cupset.parseInput(readInput());
         cupset.run(100);
-        Assertions.assertEquals("67384529", cupset.toStringFrom('1'));
+        Assertions.assertEquals("67384529", cupset.toStringFrom(1));
     }
 
     private BufferedReader readInput() {

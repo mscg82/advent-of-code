@@ -2,19 +2,20 @@ package com.mscg;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class Cupset {
 
-    private final char[] cups;
-    private final char minCup;
-    private final char maxCup;
+    private final int[] cups;
+    private final int minCup;
+    private final int maxCup;
 
-    public Cupset(final char[] cups) {
+    public Cupset(final int[] cups) {
         this.cups = cups;
 
-        char min = cups[0];
-        char max = cups[1];
-        for (char c : cups) {
+        int min = cups[0];
+        int max = cups[1];
+        for (int c : cups) {
             if (c < min) {
                 min = c;
             }
@@ -31,11 +32,11 @@ public class Cupset {
         int currentCupIdx = 0;
         for (int i = 0; i < steps; i++) {
             final int destinationCupIdx = getDestinationCupIndex(currentCupIdx);
-            char destinationCup = cups[destinationCupIdx];
-            
-            final char next1 = pickCup((currentCupIdx + 1) % cups.length);
-            final char next2 = pickCup((currentCupIdx + 2) % cups.length);
-            final char next3 = pickCup((currentCupIdx + 3) % cups.length);
+            int destinationCup = cups[destinationCupIdx];
+
+            final int next1 = pickCup((currentCupIdx + 1) % cups.length);
+            final int next2 = pickCup((currentCupIdx + 2) % cups.length);
+            final int next3 = pickCup((currentCupIdx + 3) % cups.length);
 
             shiftLeft(currentCupIdx, destinationCupIdx);
             final int newDestinationCupIdx = findDestinationIndex(destinationCup);
@@ -50,10 +51,12 @@ public class Cupset {
 
     @Override
     public String toString() {
-        return new String(cups);
+        StringBuilder str = Arrays.stream(cups) //
+                .collect(StringBuilder::new, (s, c) -> s.append(c), (s1, s2) -> s1.append(s2));
+        return str.toString();
     }
 
-    public String toStringFrom(char firstCup) {
+    public String toStringFrom(int firstCup) {
         int firstIndex = findDestinationIndex(firstCup);
         var str = new StringBuilder(cups.length - 1);
         for (int i = (firstIndex + 1) % cups.length; i != firstIndex; i = (i + 1) % cups.length) {
@@ -62,9 +65,9 @@ public class Cupset {
         return str.toString();
     }
 
-    private char pickCup(int index) {
-        char cup = cups[index];
-        cups[index] = Character.MIN_VALUE;
+    private int pickCup(int index) {
+        int cup = cups[index];
+        cups[index] = Integer.MIN_VALUE;
         return cup;
     }
 
@@ -76,7 +79,7 @@ public class Cupset {
         int copySize = lastIndex >= firstIndex ? (lastIndex - firstIndex + 1)
                 : (lastIndex - firstIndex + 1) + cups.length;
         int workIndex = firstIndex;
-        for (int i = 0; i < copySize; i ++) {
+        for (int i = 0; i < copySize; i++) {
             cups[writeIndex] = pickCup(workIndex);
             workIndex = (workIndex + 1) % cups.length;
             writeIndex = (writeIndex + 1) % cups.length;
@@ -84,12 +87,12 @@ public class Cupset {
     }
 
     private int getDestinationCupIndex(int currentCupIdx) {
-        final char currentCup = cups[currentCupIdx];
-        final char next1 = cups[(currentCupIdx + 1) % cups.length];
-        final char next2 = cups[(currentCupIdx + 2) % cups.length];
-        final char next3 = cups[(currentCupIdx + 3) % cups.length];
+        final int currentCup = cups[currentCupIdx];
+        final int next1 = cups[(currentCupIdx + 1) % cups.length];
+        final int next2 = cups[(currentCupIdx + 2) % cups.length];
+        final int next3 = cups[(currentCupIdx + 3) % cups.length];
 
-        char destinationCup = (char) (currentCup - 1);
+        int destinationCup = currentCup - 1;
         if (destinationCup < minCup) {
             destinationCup = maxCup;
         }
@@ -97,7 +100,7 @@ public class Cupset {
             if (destinationCup == currentCup) {
                 throw new IllegalStateException("Unable to find destination cup");
             }
-            destinationCup = (char) (destinationCup - 1);
+            destinationCup = destinationCup - 1;
             if (destinationCup < minCup) {
                 destinationCup = maxCup;
             }
@@ -106,7 +109,7 @@ public class Cupset {
         return findDestinationIndex(destinationCup);
     }
 
-    private int findDestinationIndex(char destinationCup) {
+    private int findDestinationIndex(int destinationCup) {
         for (int i = 0; i < cups.length; i++) {
             if (cups[i] == destinationCup) {
                 return i;
@@ -118,9 +121,9 @@ public class Cupset {
     public static Cupset parseInput(BufferedReader in) throws IOException {
         String line = in.readLine();
         int length = line.length();
-        final char[] cups = new char[length];
+        final int[] cups = new int[length];
         for (int i = 0; i < length; i++) {
-            cups[i] = line.charAt(i);
+            cups[i] = Integer.parseInt(line.substring(i, i + 1));
         }
         return new Cupset(cups);
     }
