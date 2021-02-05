@@ -36,7 +36,7 @@ public class Cupset {
     public void run(int steps, boolean withLogger) {
         int currentCupIdx = 0;
         for (int i = 0; i < steps; i++) {
-            if (i % 500 == 0) {
+            if (withLogger && i % 500 == 0) {
                 System.out.println("%s - Step %d".formatted(Instant.now(), i + 1));
             }
             final int destinationCupIdx = getDestinationCupIndex(currentCupIdx);
