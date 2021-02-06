@@ -3,6 +3,7 @@ package com.mscg;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.stream.Stream;
 
 public class AdventDay24 {
 
@@ -21,12 +22,16 @@ public class AdventDay24 {
 
     private static void part2() throws Exception {
         try (BufferedReader in = readInput()) {
-            // var game = CombatGame.parseInput(readInput());
+            Floor floor = Floor.parseInput(readInput(), 137);
+            floor.run();
 
-            // GameStatus status = game.playRecursiveGame();
+            long[] blackTiles = Stream.iterate(floor, Floor::evolve) //
+                    .skip(1) //
+                    .limit(100) //
+                    .mapToLong(Floor::countBlackTiles) //
+                    .toArray();
 
-            // System.out.println("Part 2: Answer:
-            // %d".formatted(game.getValidationNumber(status)));
+            System.out.println("Part 2: Answer: %d".formatted(blackTiles[blackTiles.length - 1]));
         }
     }
 

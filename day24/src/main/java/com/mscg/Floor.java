@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 import lombok.Getter;
 
-public class Floor {
+public class Floor implements Cloneable {
 
     private final List<List<Direction>> paths;
     private final Tile startingTile;
@@ -21,7 +21,34 @@ public class Floor {
             throw new IllegalArgumentException("maxlayerWidth must be odd");
         }
         this.paths = paths;
-        List<Tile> allTiles = new ArrayList<>(maxLayerWidth * maxLayerWidth);
+        
+        InitedTiles initedTiles = initTiles(maxLayerWidth);
+        
+        this.startingTile = initedTiles.startingTile;
+        this.allTiles = List.copyOf(initedTiles.allTiles());
+    }
+
+    @Override
+    public Floor clone() {
+        List<List<Direction>> clonedPaths = this.paths.stream() //
+                .map(dirs -> List.copyOf(dirs)) //
+                .collect(Collectors.toList());
+        int maxLayerWidth = (int) Math.sqrt(this.allTiles.size());
+        Floor floor = new Floor(List.copyOf(clonedPaths), maxLayerWidth);
+
+        // copy colors
+        for (var it = this.allTiles.listIterator(); it.hasNext();) {
+            int idx = it.nextIndex();
+            Tile tile = it.next();
+            floor.allTiles.get(idx).color = tile.color;
+        }
+
+        return floor;
+    }
+
+    private InitedTiles initTiles(int maxLayerWidth) {
+        final Tile startingTile;
+        final List<Tile> allTiles = new ArrayList<>(maxLayerWidth * maxLayerWidth);
 
         List<Tile> previousLayer = List.of(new Tile());
         allTiles.addAll(previousLayer);
@@ -43,7 +70,7 @@ public class Floor {
             previousLayer = currentLayer;
         }
 
-        this.startingTile = previousLayer.get(maxLayerWidth / 2);
+        startingTile = previousLayer.get(maxLayerWidth / 2);
 
         for (int width = maxLayerWidth - 1; width >= 1; width--) {
             List<Tile> currentLayer = new ArrayList<>(width);
@@ -60,7 +87,7 @@ public class Floor {
             previousLayer = currentLayer;
         }
 
-        this.allTiles = List.copyOf(allTiles);
+        return new InitedTiles(startingTile, allTiles);
     }
 
     public void run() {
@@ -71,6 +98,19 @@ public class Floor {
             }
             currentTile.flipColor();
         }
+    }
+
+    public Floor evolve() {
+        Floor cloned = this.clone();
+
+        for (var it = cloned.allTiles.listIterator(); it.hasNext();) {
+            int idx = it.nextIndex();
+            Tile tile = it.next();
+            Map<Direction, Tile> neighbours = this.allTiles.get(idx).neighbours;
+            tile.computeNewColor(neighbours);
+        }
+
+        return cloned;
     }
 
     public long countBlackTiles() {
@@ -108,7 +148,33 @@ public class Floor {
                 case WHITE -> Color.BLACK;
             };
         }
+
+        public void computeNewColor(Map<Direction, Tile> neighbours) {
+            long blackNeighbours = neighbours.values().stream() //
+                    .filter(tile -> tile.getColor() == Color.BLACK) //
+                    .count();
+            color = switch (color) {
+                case BLACK -> {
+                    if (blackNeighbours == 0 || blackNeighbours > 2) {
+                        yield Color.WHITE;
+                    }
+                    else {
+                        yield Color.BLACK;
+                    }
+                }
+                case WHITE -> {
+                    if (blackNeighbours == 2) {
+                        yield Color.BLACK;
+                    }
+                    else {
+                        yield Color.WHITE;
+                    }
+                }
+            };
+        }
     }
+
+    private static record InitedTiles(Tile startingTile, List<Tile> allTiles) {}
 
     public enum Color {
         BLACK, WHITE;

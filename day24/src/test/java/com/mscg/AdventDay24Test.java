@@ -3,7 +3,9 @@ package com.mscg;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.mscg.Floor.Direction;
 
@@ -24,16 +26,53 @@ public class AdventDay24Test {
         }
         {
             var directions = Direction.parseLine("nwwswee");
-            Assertions.assertEquals(List.of(Direction.NW, Direction.W, Direction.SW, Direction.E, Direction.E), directions);
+            Assertions.assertEquals(List.of(Direction.NW, Direction.W, Direction.SW, Direction.E, Direction.E),
+                    directions);
         }
     }
 
     @Test
     public void testRun() throws Exception {
-        Floor floor = Floor.parseInput(readInput(), 15);
+        Floor floor = Floor.parseInput(readInput(), 11);
         floor.run();
 
         Assertions.assertEquals(10L, floor.countBlackTiles());
+    }
+
+    @Test
+    public void testClone() throws Exception {
+        {
+            Floor floor = Floor.parseInput(readInput(), 11);
+            floor.run();
+
+            Floor clonedFloor = floor.clone();
+            Assertions.assertEquals(10L, clonedFloor.countBlackTiles());
+        }
+        {
+            Floor floor = Floor.parseInput(readInput(), 11);
+
+            Floor clonedFloor = floor.clone();
+            clonedFloor.run();
+
+            Assertions.assertEquals(10L, clonedFloor.countBlackTiles());
+        }
+    }
+
+    @Test
+    public void testEvolve() throws Exception {
+        Floor floor = Floor.parseInput(readInput(), 111);
+        floor.run();
+
+        long[] blackTiles = Stream.iterate(floor, Floor::evolve) //
+                .skip(1) //
+                .limit(100) //
+                .mapToLong(Floor::countBlackTiles) //
+                .toArray();
+
+        Assertions.assertArrayEquals(new long[] { 15L, 12L, 25L, 14L, 23L, 28L, 41L, 37L, 49L, 37L },
+                Arrays.stream(blackTiles).limit(10).toArray());
+
+        Assertions.assertEquals(2208L, blackTiles[blackTiles.length - 1]);
     }
 
     private BufferedReader readInput() {
