@@ -13,8 +13,9 @@ public class AdventDay24 {
 
     private static void part1() throws Exception {
         try (BufferedReader in = readInput()) {
-            // var game = CombatGame.parseInput(readInput());
-            // System.out.println("Part 1: Answer: %d".formatted(game.getGameValue()));
+            Floor floor = Floor.parseInput(readInput(), 37);
+            floor.run();
+            System.out.println("Part 1: Answer: %d".formatted(floor.countBlackTiles()));
         }
     }
 
@@ -24,7 +25,8 @@ public class AdventDay24 {
 
             // GameStatus status = game.playRecursiveGame();
 
-            // System.out.println("Part 2: Answer: %d".formatted(game.getValidationNumber(status)));
+            // System.out.println("Part 2: Answer:
+            // %d".formatted(game.getValidationNumber(status)));
         }
     }
 
