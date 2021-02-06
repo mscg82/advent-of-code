@@ -13,8 +13,11 @@ public class AdventDay25 {
 
     private static void part1() throws Exception {
         try (BufferedReader in = readInput()) {
-            // var game = CombatGame.parseInput(readInput());
-            // System.out.println("Part 1: Answer: %d".formatted(game.getGameValue()));
+            var breaker = Breaker.parseInput(readInput());
+            var loopSizes = breaker.computeLoopSizes();
+            long encryptionKey1 = Breaker.generateKey(breaker.getPublicKey2(), loopSizes.loopSize1());
+            long encryptionKey2 = Breaker.generateKey(breaker.getPublicKey1(), loopSizes.loopSize2());
+            System.out.println("Part 1: Answer: %d - %d".formatted(encryptionKey1, encryptionKey2));
         }
     }
 
