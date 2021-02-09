@@ -14,11 +14,6 @@ import org.junit.jupiter.api.Test;
 
 public class AdventDay14Test {
 
-    @SuppressWarnings("unchecked")
-    private static <T> List<T> cast(List<?> source, Class<T> clazz) {
-        return (List<T>) source;
-    }
-
     @Test
     public void testParse() throws Exception {
         try (BufferedReader in = readInput()) {
@@ -42,7 +37,7 @@ public class AdventDay14Test {
                     Computer.BitmaskValue._X, Computer.BitmaskValue._X, Computer.BitmaskValue._X, Computer.BitmaskValue._X,
                     Computer.BitmaskValue._X, Computer.BitmaskValue._1, Computer.BitmaskValue._X, Computer.BitmaskValue._X,
                     Computer.BitmaskValue._X, Computer.BitmaskValue._X, Computer.BitmaskValue._0, Computer.BitmaskValue._X,
-            }, cast(bitmask.values(), Computer.BitmaskValue.class).toArray(new Computer.BitmaskValue[0]));
+            }, bitmask.values().toArray(new Computer.BitmaskValue[0]));
         }
     }
 
@@ -69,7 +64,7 @@ public class AdventDay14Test {
                     Computer.BitmaskValue._X, Computer.BitmaskValue._X, Computer.BitmaskValue._X, Computer.BitmaskValue._X,
                     Computer.BitmaskValue._X, Computer.BitmaskValue._1, Computer.BitmaskValue._X, Computer.BitmaskValue._X,
                     Computer.BitmaskValue._X, Computer.BitmaskValue._X, Computer.BitmaskValue._0, Computer.BitmaskValue._X,
-            }, cast(computer.getBitmask().values(), Computer.BitmaskValue.class).toArray(new Computer.BitmaskValue[0]));
+            }, computer.getBitmask().values().toArray(new Computer.BitmaskValue[0]));
 
             Assertions.assertTrue(computer.runNext1());
             Assertions.assertEquals(Map.of(

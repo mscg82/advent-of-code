@@ -15,11 +15,6 @@ import org.junit.jupiter.api.Test;
 
 public class AdventDay20Test {
 
-    @SuppressWarnings("unchecked")
-    private static <T> List<T> cast(List<?> source, Class<T> clazz) {
-        return (List<T>) source;
-    }
-
     @Test
     public void testParse() throws Exception {
         try (BufferedReader in = readInput()) {
@@ -57,7 +52,7 @@ public class AdventDay20Test {
     public void testFlipHor() throws Exception {
         try (BufferedReader in = readInput()) {
             var tileset = Tileset.parseInput(in);
-            Tile tile = cast(tileset.tiles(), Tile.class).get(0);
+            Tile tile = tileset.tiles().get(0);
             Tile flipped = tile.flipHor();
             Assertions.assertEquals("""
                     Tile 2311:
@@ -78,7 +73,7 @@ public class AdventDay20Test {
     public void testFlipVer() throws Exception {
         try (BufferedReader in = readInput()) {
             var tileset = Tileset.parseInput(in);
-            Tile tile = cast(tileset.tiles(), Tile.class).get(0);
+            Tile tile = tileset.tiles().get(0);
             Tile flipped = tile.flipVer();
             Assertions.assertEquals("""
                     Tile 2311:
@@ -99,7 +94,7 @@ public class AdventDay20Test {
     public void testFlipBoth() throws Exception {
         try (BufferedReader in = readInput()) {
             var tileset = Tileset.parseInput(in);
-            Tile tile = cast(tileset.tiles(), Tile.class).get(0);
+            Tile tile = tileset.tiles().get(0);
             Tile flipped = tile.flipVer().flipHor();
             Assertions.assertEquals("""
                     Tile 2311:
@@ -345,7 +340,7 @@ public class AdventDay20Test {
             Tile monsterImage = Stream.of(rebuiltImage, rebuiltImage.flipHor(), //
                     rebuiltImage.flipVer(), rebuiltImage.flipHor().flipVer()) //
                     .flatMap(Tile::rotations) //
-                    .map(t -> new Tile(t.id(), mask.apply(Utils.cast(t.image(), Pixel.class)))) //
+                    .map(t -> new Tile(t.id(), mask.apply(t.image()))) //
                     .filter(t -> t.countBlackPixels() != blackCount) //
                     .findAny() //
                     .orElseThrow(() -> new IllegalArgumentException("Can't find monsters in image"));

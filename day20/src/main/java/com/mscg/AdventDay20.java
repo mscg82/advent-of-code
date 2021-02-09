@@ -6,8 +6,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.mscg.Tile.Pixel;
-
 public class AdventDay20 {
 
     public static void main(String[] args) throws Exception {
@@ -41,7 +39,7 @@ public class AdventDay20 {
             Tile monsterImage = Stream.of(rebuiltImage, rebuiltImage.flipHor(), //
                     rebuiltImage.flipVer(), rebuiltImage.flipHor().flipVer()) //
                     .flatMap(Tile::rotations) //
-                    .map(t -> new Tile(t.id(), mask.apply(Utils.cast(t.image(), Pixel.class)))) //
+                    .map(t -> new Tile(t.id(), mask.apply(t.image()))) //
                     .filter(t -> t.countBlackPixels() != blackCount) //
                     .findAny() //
                     .orElseThrow(() -> new IllegalArgumentException("Can't find monsters in image"));

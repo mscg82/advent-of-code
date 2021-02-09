@@ -26,9 +26,9 @@ public class FoodList {
 
         final Map<String, List<Set<String>>> allergeneToIngredientsSet = new HashMap<>();
         for (var recipe : recipes) {
-            for (var allergene : Utils.cast(recipe.allergenes(), String.class)) {
+            for (var allergene : recipe.allergenes()) {
                 allergeneToIngredientsSet.computeIfAbsent(allergene, __ -> new ArrayList<>())
-                        .add(Utils.cast(recipe.ingredients(), String.class));
+                        .add(recipe.ingredients());
             }
         }
 
@@ -72,7 +72,7 @@ public class FoodList {
         Set<String> foodsWithAllergenes = new HashSet<>(allergeneToFood.values());
 
         return recipes.stream() //
-                .flatMap(recipe -> Utils.cast(recipe.ingredients(), String.class).stream()) //
+                .flatMap(recipe -> recipe.ingredients().stream()) //
                 .filter(ingredient -> !foodsWithAllergenes.contains(ingredient)) //
                 .collect(Collectors.toSet());
     }
@@ -80,7 +80,7 @@ public class FoodList {
     public long computePart1Answer() {
         Set<String> foodWithoutAllergenes = findFoodWithoutAllergenes();
         return recipes.stream() //
-                .flatMap(recipe -> Utils.cast(recipe.ingredients(), String.class).stream()) //
+                .flatMap(recipe -> recipe.ingredients().stream()) //
                 .filter(foodWithoutAllergenes::contains) //
                 .count();
     }

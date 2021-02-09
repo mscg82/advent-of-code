@@ -137,7 +137,7 @@ public class Tileset {
         for (int j = 1; j < cols; j++) {
             final int currentCol = j;
             Tile currentTile = arrangedTiles.get(0).get(j - 1);
-            List<Pixel> lastCol = Utils.cast(currentTile.image(), Pixel.class).stream() //
+            List<Pixel> lastCol = currentTile.image().stream() //
                     .map(row -> row.get(row.size() - 1)) //
                     .collect(Collectors.toList());
 
@@ -146,7 +146,7 @@ public class Tileset {
                     nextTile.flipVer(), nextTile.flipHor().flipVer()) //
                     .flatMap(Tile::rotations) //
                     .filter(nextTileVar -> {
-                        List<Pixel> firstCol = Utils.cast(nextTileVar.image(), Pixel.class).stream() //
+                        List<Pixel> firstCol = nextTileVar.image().stream() //
                                 .map(row -> row.get(0)) //
                                 .collect(Collectors.toList());
                         return firstCol.equals(lastCol);
@@ -163,14 +163,14 @@ public class Tileset {
             for (int j = 0; j < cols; j++) {
                 final int currentCol = j;
                 Tile currentTile = arrangedTiles.get(i - 1).get(j);
-                List<Pixel> lastRow = Utils.cast(currentTile.image(), Pixel.class).get(currentTile.image().size() - 1);
+                List<Pixel> lastRow = currentTile.image().get(currentTile.image().size() - 1);
 
                 Tile nextTile = mappedTiles.get(arrangedIds.get(i).get(j));
                 Tile placedNextTile = Stream.of(nextTile, nextTile.flipHor(), //
                         nextTile.flipVer(), nextTile.flipHor().flipVer()) //
                         .flatMap(Tile::rotations) //
                         .filter(nextTileVar -> {
-                            List<Pixel> firstRow = Utils.cast(nextTileVar.image(), Pixel.class).get(0);
+                            List<Pixel> firstRow = nextTileVar.image().get(0);
                             return firstRow.equals(lastRow);
                         }) //
                         .findAny() //
@@ -192,12 +192,12 @@ public class Tileset {
 
         return mappedTiles.get(arrangedIds.get(0).get(0)).rotations() //
                 .filter(tile -> {
-                    List<Pixel> lastCol = Utils.cast(tile.image(), Pixel.class).stream() //
+                    List<Pixel> lastCol = tile.image().stream() //
                             .map(row -> row.get(row.size() - 1)) //
                             .collect(Collectors.toList());
                     return secondTileVariations.stream() //
                             .anyMatch(secondTileVar -> {
-                                List<Pixel> firstCol = Utils.cast(secondTileVar.image(), Pixel.class).stream() //
+                                List<Pixel> firstCol = secondTileVar.image().stream() //
                                         .map(row -> row.get(0)) //
                                         .collect(Collectors.toList());
                                 return firstCol.equals(lastCol);
@@ -216,10 +216,10 @@ public class Tileset {
 
         return Stream.of(firstTile, firstTile.flipVer()) //
                 .filter(tile -> {
-                    List<Pixel> lastRow = Utils.cast(tile.image(), Pixel.class).get(tile.image().size() - 1);
+                    List<Pixel> lastRow = tile.image().get(tile.image().size() - 1);
                     return secondTileVariations.stream() //
                             .anyMatch(secondTileVar -> {
-                                List<Pixel> firstRow = Utils.cast(secondTileVar.image(), Pixel.class).get(0);
+                                List<Pixel> firstRow = secondTileVar.image().get(0);
                                 return firstRow.equals(lastRow);
                             });
                 }) //
