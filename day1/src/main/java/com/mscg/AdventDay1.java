@@ -31,7 +31,23 @@ public class AdventDay1 {
     }
 
     private static void part2() throws IOException {
-
+        try (BufferedReader in = readInput()) {
+            var line = in.readLine();
+            long floor = 0;
+            int answer = 0;
+            for (int i = 0, l = line.length(); i < l; i++) {
+                switch (line.charAt(i)) {
+                    case '(' -> floor++;
+                    case ')' -> floor--;
+                    default -> throw new IllegalArgumentException("Invalid char in input");
+                }
+                if (floor == -1) {
+                    answer = i + 1;
+                    break;
+                }
+            }
+            System.out.println("Part 2 - Answer %d".formatted(answer));
+        }
     }
 
     private static BufferedReader readInput() {
