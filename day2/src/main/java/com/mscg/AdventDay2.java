@@ -16,10 +16,8 @@ public class AdventDay2 {
         try (BufferedReader in = readInput()) {
             var boxSet = BoxSet.parseInput(in);
             long answer = boxSet.getBoxes().stream() //
-                    .mapToLong(box -> {
-                        var summary = box.faces().summaryStatistics();
-                        return summary.getSum() * 2 + summary.getMin();
-                    }) //
+                    .map(box -> box.faces().summaryStatistics()) //
+                    .mapToLong(summary -> summary.getSum() * 2 + summary.getMin()) //
                     .sum();
             System.out.println("Part 1 - Answer %d".formatted(answer));
         }
