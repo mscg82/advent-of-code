@@ -9,6 +9,8 @@
     <modules>
         <module>day1</module>
         <module>day2</module>
+        <module>day3</module>
+        <module>day4</module>
     </modules>
     <packaging>pom</packaging>
 
