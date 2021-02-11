@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 @Data
 @RequiredArgsConstructor
 public class BoxSet {
-    
+
     private final List<Box> boxes;
 
     public static BoxSet parseInput(BufferedReader in) {
@@ -24,8 +24,18 @@ public class BoxSet {
 
     public record Box(long width, long depth, long height) {
 
-        public LongStream faces() {
-            return LongStream.of(width * depth, width * height, depth * height);
+        public LongStream facesPerimeters() {
+            return LongStream.of(//
+                    width + width + depth + depth, //
+                    width + width + height + height, //
+                    depth + depth + height + height);
+        }
+
+        public LongStream facesAreas() {
+            return LongStream.of( //
+                    width * depth, //
+                    width * height, //
+                    depth * height);
         }
 
         public static Box parseString(String line) {
