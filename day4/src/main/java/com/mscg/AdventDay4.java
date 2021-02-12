@@ -14,37 +14,17 @@ public class AdventDay4 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            // var line = in.readLine();
-            // Map<Character, Long> counts = line.chars() //
-            //         .collect(() -> new HashMap<Character, Long>(), //
-            //                 (acc, v) -> {
-            //                     acc.merge((char) v, 1L, Long::sum);
-            //                 }, //
-            //                 (m1, m2) -> {
-            //                     m2.forEach((k, v) -> m1.merge(k, v, Long::sum));
-            //                 });
-            // long floor = counts.get('(') - counts.get(')');
-            // System.out.println("Part 1 - Answer %d".formatted(floor));
+            String seed = in.readLine();
+            Miner miner = new Miner(seed);
+            System.out.println("Part 1 - Answer %d".formatted(miner.mine()));
         }
     }
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            // var line = in.readLine();
-            // long floor = 0;
-            // int answer = 0;
-            // for (int i = 0, l = line.length(); i < l; i++) {
-            //     switch (line.charAt(i)) {
-            //         case '(' -> floor++;
-            //         case ')' -> floor--;
-            //         default -> throw new IllegalArgumentException("Invalid char in input");
-            //     }
-            //     if (floor == -1) {
-            //         answer = i + 1;
-            //         break;
-            //     }
-            // }
-            // System.out.println("Part 2 - Answer %d".formatted(answer));
+            String seed = in.readLine();
+            Miner miner = new Miner(seed);
+            System.out.println("Part 2 - Answer %d".formatted(miner.mine2()));
         }
     }
 
