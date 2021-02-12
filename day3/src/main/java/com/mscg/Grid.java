@@ -15,13 +15,40 @@ public class Grid {
     private final List<Direction> directions;
 
     public Map<Position, Long> visit() {
-        Position position = new Position(0, 0);
-
         Map<Position, Long> counts = new HashMap<>();
+        
+        Position position = new Position(0, 0);
         counts.merge(position, 1L, Long::sum);
         for (var direction : directions) {
             position = position.move(direction);
             counts.merge(position, 1L, Long::sum);
+        }
+
+        return counts;
+    }
+
+    public Map<Position, Long> visit2() {
+        Map<Position, Long> counts = new HashMap<>();
+        
+        Position position1 = new Position(0, 0);
+        Position position2 = new Position(0, 0);
+        counts.merge(position1, 1L, Long::sum);
+        counts.merge(position2, 1L, Long::sum);
+        
+        int turn = 0;
+        for (var direction : directions) {
+            switch (turn) {
+                case 0 -> {
+                    position1 = position1.move(direction);
+                    counts.merge(position1, 1L, Long::sum);
+                }
+                case 1 -> {
+                    position2 = position2.move(direction);
+                    counts.merge(position2, 1L, Long::sum);
+                }
+                default -> throw new IllegalArgumentException("Impossible case");
+            }
+            turn = (turn + 1) % 2;
         }
 
         return counts;
