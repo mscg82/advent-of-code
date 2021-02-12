@@ -1,8 +1,6 @@
 package com.mscg;
 
-import org.apache.commons.codec.cli.Digest;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.codec.digest.Md5Crypt;
 
 import lombok.RequiredArgsConstructor;
 
