@@ -14,17 +14,10 @@ public class AdventDay5 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            // var line = in.readLine();
-            // Map<Character, Long> counts = line.chars() //
-            //         .collect(() -> new HashMap<Character, Long>(), //
-            //                 (acc, v) -> {
-            //                     acc.merge((char) v, 1L, Long::sum);
-            //                 }, //
-            //                 (m1, m2) -> {
-            //                     m2.forEach((k, v) -> m1.merge(k, v, Long::sum));
-            //                 });
-            // long floor = counts.get('(') - counts.get(')');
-            // System.out.println("Part 1 - Answer %d".formatted(floor));
+            long niceStrings = in.lines() //
+                    .filter(StringFilter::isNice) //
+                    .count();
+            System.out.println("Part 1 - Answer %d".formatted(niceStrings));
         }
     }
 
