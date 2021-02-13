@@ -23,21 +23,10 @@ public class AdventDay5 {
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            // var line = in.readLine();
-            // long floor = 0;
-            // int answer = 0;
-            // for (int i = 0, l = line.length(); i < l; i++) {
-            //     switch (line.charAt(i)) {
-            //         case '(' -> floor++;
-            //         case ')' -> floor--;
-            //         default -> throw new IllegalArgumentException("Invalid char in input");
-            //     }
-            //     if (floor == -1) {
-            //         answer = i + 1;
-            //         break;
-            //     }
-            // }
-            // System.out.println("Part 2 - Answer %d".formatted(answer));
+            long niceStrings = in.lines() //
+                    .filter(StringFilter::isNice2) //
+                    .count();
+            System.out.println("Part 2 - Answer %d".formatted(niceStrings));
         }
     }
 
