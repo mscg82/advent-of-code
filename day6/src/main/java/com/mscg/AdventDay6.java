@@ -14,10 +14,12 @@ public class AdventDay6 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            // long niceStrings = in.lines() //
-            //         .filter(StringFilter::isNice) //
-            //         .count();
-            // System.out.println("Part 1 - Answer %d".formatted(niceStrings));
+            var grid = Grid.parseInput(in);
+            grid.run();
+            long lightsOn = grid.getLights().values().stream() //
+                    .filter(Boolean::booleanValue) //
+                    .count();
+            System.out.println("Part 1 - Answer %d".formatted(lightsOn));
         }
     }
 
