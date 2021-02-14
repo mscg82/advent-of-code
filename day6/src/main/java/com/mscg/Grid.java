@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import lombok.Data;
 
@@ -17,18 +18,20 @@ public class Grid {
 
     private final Map<Point, Boolean> lights;
 
+    private final Map<Point, Long> brightness;
+
     private Grid(final List<Instruction> instructions) {
         this.instructions = instructions;
-        this.lights = new HashMap<>();
-        for (int i = 0; i < 1000; i++) {
-            for (int j = 0; j < 1000; j++) {
-                lights.put(new Point(i, j), Boolean.FALSE);
-            }
-        }
+        this.lights = new HashMap<>(1_000_000);
+        this.brightness = new HashMap<>(1_000_000);
     }
 
     public void run() {
         instructions.forEach(instr -> instr.run(lights));
+    }
+
+    public void run2() {
+        instructions.forEach(instr -> instr.run2(brightness));
     }
 
     public static Grid parseInput(BufferedReader in) throws IOException {
@@ -43,16 +46,33 @@ public class Grid {
         private static Pattern INSTRUCTION_PATTERN = Pattern.compile("(turn on|turn off|toggle) (\\d{1,3}),(\\d{1,3}) through (\\d{1,3}),(\\d{1,3})");
 
         public void run(Map<Point, Boolean> lights) {
-            for (int i = range.start().x(); i <= range.end().x(); i++) {
-                for (int j = range.start().y(); j <= range.end().y(); j++) {
-                    var point = new Point(i, j);
-                    switch (type) {
-                        case TURN_ON -> lights.put(point, Boolean.TRUE);
-                        case TURN_OFF -> lights.put(point, Boolean.FALSE);
-                        case TOGGLE -> lights.compute(point, (__, oldStatus) -> !oldStatus.booleanValue());
-                    }
-                }
-            }
+            IntStream.rangeClosed(range.start().x(), range.end().x()) //
+                    .mapToObj(i -> IntStream.rangeClosed(range.start().y(), range.end().y()) //
+                                .mapToObj(j -> new Point(i, j))) //
+                    .flatMap(s -> s) //
+                    .forEach(point -> {
+                        switch (type) {
+                            case TURN_ON -> lights.put(point, Boolean.TRUE);
+                            case TURN_OFF -> lights.put(point, Boolean.FALSE);
+                            case TOGGLE -> lights.compute(point, (__, oldStatus) -> oldStatus == null ? Boolean.TRUE : !oldStatus.booleanValue());
+                        }    
+                    });
+        }
+
+        public void run2(Map<Point, Long> brightness) {
+            IntStream.rangeClosed(range.start().x(), range.end().x()) //
+                    .mapToObj(i -> IntStream.rangeClosed(range.start().y(), range.end().y()) //
+                                .mapToObj(j -> new Point(i, j))) //
+                    .flatMap(s -> s) //
+                    .forEach(point -> {
+                        long increment = switch (type) {
+                            case TURN_ON -> 1L;
+                            case TURN_OFF -> -1L;
+                            case TOGGLE -> 2L;
+                        };
+                        
+                        brightness.compute(point, (__, oldVal) -> Math.max(0L, (oldVal == null ? 0L : oldVal) + increment));
+                    });
         }
 
         public static Instruction parseString(String line) {

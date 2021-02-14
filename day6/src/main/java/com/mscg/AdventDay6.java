@@ -25,10 +25,12 @@ public class AdventDay6 {
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            // long niceStrings = in.lines() //
-            //         .filter(StringFilter::isNice2) //
-            //         .count();
-            // System.out.println("Part 2 - Answer %d".formatted(niceStrings));
+            var grid = Grid.parseInput(in);
+            grid.run2();
+            long totalBrightness = grid.getBrightness().values().stream() //
+                    .mapToLong(Long::longValue) //
+                    .sum();
+            System.out.println("Part 2 - Answer %d".formatted(totalBrightness));
         }
     }
 
