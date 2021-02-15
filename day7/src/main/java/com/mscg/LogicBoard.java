@@ -32,8 +32,6 @@ public class LogicBoard {
         while (!portToOperator.isEmpty()) {
             boolean modified = false;
 
-            Map<String, Operator> newPortToOperator = new HashMap<>(portToOperator);
-
             for (var it = portToOperator.entrySet().iterator(); it.hasNext();) {
                 var entry = it.next();
                 String port = entry.getKey();
@@ -41,17 +39,15 @@ public class LogicBoard {
                 if (op instanceof Constant c) {
                     portToValue.put(port, c);
                     it.remove();
-                    newPortToOperator.remove(port);
                     modified = true;
 
-                    for (var portToRemap : portToOperator.keySet()) {
-                        Operator operatorToRemap = newPortToOperator.get(portToRemap);
-                        newPortToOperator.put(portToRemap, operatorToRemap.bind(port, c.value()));
+                    for (var it2 = portToOperator.entrySet().iterator(); it2.hasNext();) {
+                        var entry2 = it2.next();
+                        Operator op2 = entry2.getValue();
+                        entry2.setValue(op2.bind(port, c.value()));
                     }
                 }
             }
-
-            portToOperator = newPortToOperator;
 
             if (!modified) {
                 throw new IllegalStateException("Can't evolve board");
