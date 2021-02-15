@@ -4,6 +4,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+
+import com.mscg.LogicBoard.Constant;
+import com.mscg.LogicBoard.Instruction;
 
 public class AdventDay7 {
 
@@ -14,19 +18,18 @@ public class AdventDay7 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            // long niceStrings = in.lines() //
-            //         .filter(StringFilter::isNice) //
-            //         .count();
-            // System.out.println("Part 1 - Answer %d".formatted(niceStrings));
+            var board = LogicBoard.parseInput(readInput());
+            Map<String, Constant> portToValues = board.execute();
+            System.out.println("Part 1 - Answer %d".formatted(portToValues.get("a").value()));
         }
     }
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            // long niceStrings = in.lines() //
-            //         .filter(StringFilter::isNice2) //
-            //         .count();
-            // System.out.println("Part 2 - Answer %d".formatted(niceStrings));
+            var board = LogicBoard.parseInput(readInput());
+            board = board.patch(new Instruction(new Constant(16076), "b"));
+            Map<String, Constant> portToValues = board.execute();
+            System.out.println("Part 2 - Answer %d".formatted(portToValues.get("a").value()));
         }
     }
 
