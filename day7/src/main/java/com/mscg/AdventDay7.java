@@ -27,8 +27,11 @@ public class AdventDay7 {
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
             var board = LogicBoard.parseInput(readInput());
-            board = board.patch(new Instruction(new Constant(16076), "b"));
             Map<String, Constant> portToValues = board.execute();
+
+            board = board.patch(new Instruction(new Constant(portToValues.get("a").value()), "b"));
+            portToValues = board.execute();
+            
             System.out.println("Part 2 - Answer %d".formatted(portToValues.get("a").value()));
         }
     }
