@@ -1,7 +1,5 @@
 package com.mscg;
 
-import org.w3c.dom.css.CSS2Properties;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -37,10 +35,9 @@ public class StringParser {
     }
 
     public static String expandString(final String source) {
-        String expanded = "\"" + source //
+        return "\"" + source //
                 .replace("\\", "\\\\") //
                 .replace("\"", "\\\"") + "\"";
-        return expanded;
     }
 
 }
