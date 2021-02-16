@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class AdventDay8 {
 
@@ -14,19 +16,31 @@ public class AdventDay8 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            // long niceStrings = in.lines() //
-            //         .filter(StringFilter::isNice) //
-            //         .count();
-            // System.out.println("Part 1 - Answer %d".formatted(niceStrings));
+            List<String> lines = in.lines() //
+                    .collect(Collectors.toUnmodifiableList());
+            long charSize = lines.stream() //
+                    .mapToInt(String::length) //
+                    .sum();
+            long memSize = lines.stream() //
+                    .map(StringParser::cleanString) //
+                    .mapToInt(String::length) //
+                    .sum();
+            System.out.println("Part 1 - Answer %d".formatted(charSize - memSize));
         }
     }
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            // long niceStrings = in.lines() //
-            //         .filter(StringFilter::isNice2) //
-            //         .count();
-            // System.out.println("Part 2 - Answer %d".formatted(niceStrings));
+            List<String> lines = in.lines() //
+                    .collect(Collectors.toUnmodifiableList());
+            long charSize = lines.stream() //
+                    .mapToInt(String::length) //
+                    .sum();
+            long expSize = lines.stream() //
+                    .map(StringParser::expandString) //
+                    .mapToInt(String::length) //
+                    .sum();
+            System.out.println("Part 2 - Answer %d".formatted(expSize - charSize));
         }
     }
 
