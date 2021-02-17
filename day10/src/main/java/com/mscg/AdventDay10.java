@@ -4,6 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AdventDay10 {
 
@@ -14,10 +17,12 @@ public class AdventDay10 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            // long niceStrings = in.lines() //
-            //         .filter(StringFilter::isNice) //
-            //         .count();
-            // System.out.println("Part 1 - Answer %d".formatted(niceStrings));
+            String input = in.readLine();
+            List<String> strings = Stream.iterate(input, LookAndSay::transform) //
+                    .skip(1) //
+                    .limit(40) //
+                    .collect(Collectors.toUnmodifiableList());
+            System.out.println("Part 1 - Answer %d".formatted(strings.get(strings.size() - 1).length()));
         }
     }
 
