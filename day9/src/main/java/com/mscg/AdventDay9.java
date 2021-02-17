@@ -17,18 +17,18 @@ public class AdventDay9 {
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
             var map = LocationMap.parseInput(readInput());
-            Path shorterPath = map.findShortestPath().orElseThrow();
+            Path shortestPath = map.findShortestPath().orElseThrow();
 
-            System.out.println("Part 1 - Answer %s".formatted(shorterPath));
+            System.out.println("Part 1 - Answer %s".formatted(shortestPath));
         }
     }
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            // long niceStrings = in.lines() //
-            // .filter(StringFilter::isNice2) //
-            // .count();
-            // System.out.println("Part 2 - Answer %d".formatted(niceStrings));
+            var map = LocationMap.parseInput(readInput());
+            Path longestPath = map.findLongestPath().orElseThrow();
+
+            System.out.println("Part 2 - Answer %s".formatted(longestPath));
         }
     }
 

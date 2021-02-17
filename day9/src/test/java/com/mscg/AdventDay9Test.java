@@ -46,6 +46,18 @@ public class AdventDay9Test {
         }
     }
 
+    @Test
+    public void testLongerPath() throws Exception {
+        var map = LocationMap.parseInput(readInput());
+        Path shorterPath = map.findLongestPath().orElseThrow();
+
+        try {
+            Assertions.assertEquals(new Path(982, List.of("Dublin", "London", "Belfast")), shorterPath);
+        } catch (AssertionFailedError e) {
+            Assertions.assertEquals(new Path(982, List.of("Belfast", "London", "Dublin")), shorterPath);
+        }
+    }
+
     private BufferedReader readInput() {
         return new BufferedReader(
                 new InputStreamReader(this.getClass().getResourceAsStream("/test-input.txt"), StandardCharsets.UTF_8));

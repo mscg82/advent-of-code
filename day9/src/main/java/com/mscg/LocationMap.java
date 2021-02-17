@@ -23,7 +23,7 @@ public class LocationMap {
     private final Map<String, List<Connection>> nodeToConnections;
 
     public Optional<Path> findShortestPath() {
-        Path shorterPath = null;
+        Path shortestPath = null;
         for (var startingNode : nodeToConnections.keySet()) {
             Path path = new Path(0, List.of(startingNode));
             while (path.nodes().size() != nodeToConnections.size()) {
@@ -36,11 +36,32 @@ public class LocationMap {
                         .orElseThrow();
                 path = path.append(minConnection);
             }
-            if (shorterPath == null || path.length() < shorterPath.length()) {
-                shorterPath = path;
+            if (shortestPath == null || path.length() < shortestPath.length()) {
+                shortestPath = path;
             }
         }
-        return Optional.ofNullable(shorterPath);
+        return Optional.ofNullable(shortestPath);
+    }
+
+    public Optional<Path> findLongestPath() {
+        Path longerPath = null;
+        for (var startingNode : nodeToConnections.keySet()) {
+            Path path = new Path(0, List.of(startingNode));
+            while (path.nodes().size() != nodeToConnections.size()) {
+                final var currentPath = path;
+                String lastNode = path.nodes().get(path.nodes().size() - 1);
+                var connections = nodeToConnections.get(lastNode);
+                var minConnection = connections.stream() //
+                        .filter(conn -> !currentPath.nodes().contains(conn.target())) //
+                        .max(Comparator.comparingInt(Connection::weight)) //
+                        .orElseThrow();
+                path = path.append(minConnection);
+            }
+            if (longerPath == null || path.length() > longerPath.length()) {
+                longerPath = path;
+            }
+        }
+        return Optional.ofNullable(longerPath);
     }
 
     public static LocationMap parseInput(BufferedReader in) throws IOException {
