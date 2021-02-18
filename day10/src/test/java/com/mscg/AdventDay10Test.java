@@ -22,6 +22,13 @@ public class AdventDay10Test {
                 .limit(5) //
                 .collect(Collectors.toUnmodifiableList());
         Assertions.assertEquals(List.of("11", "21", "1211", "111221", "312211"), strings);
+
+        String result = Stream.iterate("1", LookAndSay::transform) //
+                .skip(5) //
+                .findFirst() //
+                .orElseThrow();
+        Assertions.assertEquals("312211", result);
+
     }
 
 }
