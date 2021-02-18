@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
-public class AdventDay10 {
+public class AdventDay12 {
 
     public static void main(String[] args) throws Exception {
         part1();
@@ -32,7 +32,7 @@ public class AdventDay10 {
 
     private static BufferedReader readInput() {
         return new BufferedReader(
-                new InputStreamReader(AdventDay10.class.getResourceAsStream("/input.txt"), StandardCharsets.UTF_8));
+                new InputStreamReader(AdventDay12.class.getResourceAsStream("/input.txt"), StandardCharsets.UTF_8));
     }
 
 }
