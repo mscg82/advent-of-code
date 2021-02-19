@@ -14,10 +14,7 @@ public class AdventDay11 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            // long niceStrings = in.lines() //
-            //         .filter(StringFilter::isNice) //
-            //         .count();
-            // System.out.println("Part 1 - Answer %d".formatted(niceStrings));
+            System.out.println("Part 1 - Answer %s".formatted(PasswordManager.nextValid("hxbxwxba")));
         }
     }
 
