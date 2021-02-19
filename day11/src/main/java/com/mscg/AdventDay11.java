@@ -20,10 +20,7 @@ public class AdventDay11 {
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            // long niceStrings = in.lines() //
-            //         .filter(StringFilter::isNice2) //
-            //         .count();
-            // System.out.println("Part 2 - Answer %d".formatted(niceStrings));
+            System.out.println("Part 2 - Answer %s".formatted(PasswordManager.nextValid("hxbxwxba", 1)));
         }
     }
 

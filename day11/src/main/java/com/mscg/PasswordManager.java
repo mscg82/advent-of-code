@@ -23,8 +23,13 @@ public class PasswordManager {
     }
 
     public static String nextValid(String current) {
+        return nextValid(current, 0L);
+    }
+
+    public static String nextValid(String current, long skip) {
         return Stream.iterate(current, PasswordManager::next) //
                 .filter(PasswordManager::isValid) //
+                .skip(skip) //
                 .findFirst() //
                 .orElseThrow();
     }
