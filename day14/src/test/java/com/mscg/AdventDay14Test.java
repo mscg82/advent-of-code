@@ -57,6 +57,26 @@ public class AdventDay14Test {
         ), race.run(1000));
     }
 
+    @Test
+    public void testRunWithPoints() throws Exception {
+        var race = Race.parseInput(readInput());
+
+        Assertions.assertEquals(List.of( //
+                new Position("Comet", 0), //
+                new Position("Dancer", 1) //
+        ), race.runWithPoints(1));
+
+        Assertions.assertEquals(List.of( //
+                new Position("Comet", 1), //
+                new Position("Dancer", 139) //
+        ), race.runWithPoints(140));
+
+        Assertions.assertEquals(List.of( //
+                new Position("Comet", 312), //
+                new Position("Dancer", 689) //
+        ), race.runWithPoints(1000));
+    }
+
     private BufferedReader readInput() {
         return new BufferedReader(
                 new InputStreamReader(this.getClass().getResourceAsStream("/test-input.txt"), StandardCharsets.UTF_8));
