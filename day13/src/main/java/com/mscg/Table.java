@@ -3,6 +3,7 @@ package com.mscg;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -18,6 +19,16 @@ import lombok.RequiredArgsConstructor;
 public class Table {
 
     private final Map<Couple, Integer> coupleToHappiness;
+
+    public Table withMyself() {
+        Map<Couple, Integer> coupleToHappiness = new HashMap<>(this.coupleToHappiness);
+        getAllNames().forEach(name -> {
+            coupleToHappiness.put(new Couple("me", name), 0);
+            coupleToHappiness.put(new Couple(name, "me"), 0);
+        });
+
+        return new Table(coupleToHappiness);
+    }
 
     public List<String> getAllNames() {
         return coupleToHappiness.keySet().stream() //
