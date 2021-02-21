@@ -4,6 +4,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
+import java.util.List;
+
+import com.mscg.Race.Position;
 
 public class AdventDay14 {
 
@@ -14,10 +18,13 @@ public class AdventDay14 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            // String input = in.lines() //
-            //         .collect(Collectors.joining());
+            var race = Race.parseInput(in);
+            List<Position> result = race.run(2503);
+            var winner = result.stream() //
+                    .max(Comparator.comparingInt(Position::km)) //
+                    .orElseThrow();
 
-            // System.out.println("Part 1 - Answer %d".formatted(JsonCleaner.sumValues(input)));
+            System.out.println("Part 1 - Answer %d".formatted(winner.km()));
         }
     }
 
