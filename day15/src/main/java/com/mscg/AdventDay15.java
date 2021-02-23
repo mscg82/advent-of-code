@@ -14,10 +14,10 @@ public class AdventDay15 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            // String input = in.lines() //
-            //         .collect(Collectors.joining());
+            var recipeBook = RecipeBook.parseInput(readInput());
+            var recipe = recipeBook.getBestRecipe();
 
-            // System.out.println("Part 1 - Answer %d".formatted(JsonCleaner.sumValues(input)));
+            System.out.println("Part 1 - Answer %d".formatted(recipe.score()));
         }
     }
 
