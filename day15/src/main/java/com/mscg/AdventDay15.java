@@ -15,7 +15,7 @@ public class AdventDay15 {
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
             var recipeBook = RecipeBook.parseInput(readInput());
-            var recipe = recipeBook.getBestRecipe();
+            var recipe = recipeBook.getBestRecipe(0);
 
             System.out.println("Part 1 - Answer %d".formatted(recipe.score()));
         }
@@ -23,10 +23,10 @@ public class AdventDay15 {
 
     private static void part2() throws Exception {
         try (BufferedReader in = readInput()) {
-            // String input = in.lines() //
-            //         .collect(Collectors.joining());
+            var recipeBook = RecipeBook.parseInput(readInput());
+            var recipe = recipeBook.getBestRecipe(500);
 
-            // System.out.println("Part 2 - Answer %d".formatted(JsonCleaner.sumValues(JsonCleaner.cleanJson(input))));
+            System.out.println("Part 2 - Answer %d".formatted(recipe.score()));
         }
     }
 

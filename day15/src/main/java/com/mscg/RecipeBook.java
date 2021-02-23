@@ -57,7 +57,7 @@ public class RecipeBook {
         return List.copyOf(newList);
     }
 
-    public Recipe getBestRecipe() {
+    public Recipe getBestRecipe(long wantedCalories) {
 
         List<List<Proportion>> allProportions = generateProportions(100);
         Recipe bestRecipe = allProportions.parallelStream() //
@@ -66,16 +66,19 @@ public class RecipeBook {
                     int totalDurability = 0;
                     int totalFlavor = 0;
                     int totalTexture = 0;
+                    long totalCalories = 0L;
                     for (Proportion proportion : proportions) {
                         totalCapacity += proportion.quantity() * proportion.ingredient().capacity();
                         totalDurability += proportion.quantity() * proportion.ingredient().durability();
                         totalFlavor += proportion.quantity() * proportion.ingredient().flavor();
                         totalTexture += proportion.quantity() * proportion.ingredient().texture();
+                        totalCalories += proportion.quantity() * proportion.ingredient().calories();
                     }
                     long score = totalCapacity < 0 || totalDurability < 0 || totalFlavor < 0 || totalTexture < 0 ? 0
                             : totalCapacity * totalDurability * totalFlavor * totalTexture;
-                    return new Recipe(proportions, score);
+                    return new Recipe(proportions, score, totalCalories);
                 }) //
+                .filter(recipe -> wantedCalories == 0 || recipe.calories() == wantedCalories) //
                 .max(Comparator.comparingLong(Recipe::score)) //
                 .orElseThrow();
 
@@ -108,7 +111,7 @@ public class RecipeBook {
     public static record Proportion(Ingredient ingredient, int quantity) {
     }
 
-    public static record Recipe(List<Proportion> proportions, long score) {
+    public static record Recipe(List<Proportion> proportions, long score, long calories) {
     }
 
 }

@@ -44,7 +44,7 @@ public class AdventDay15Test {
     @Test
     public void testBestRecipe() throws Exception {
         var recipeBook = RecipeBook.parseInput(readInput());
-        var recipe = recipeBook.getBestRecipe();
+        var recipe = recipeBook.getBestRecipe(0);
 
         Map<String, Integer> ingredientToQuantity = recipe.proportions().stream() //
                 .collect(Collectors.toMap(p -> p.ingredient().name(), p -> p.quantity()));
@@ -54,6 +54,21 @@ public class AdventDay15Test {
         ), ingredientToQuantity);
 
         Assertions.assertEquals(62842880L, recipe.score());
+    }
+
+    @Test
+    public void testBestRecipeWithCalories() throws Exception {
+        var recipeBook = RecipeBook.parseInput(readInput());
+        var recipe = recipeBook.getBestRecipe(500);
+
+        Map<String, Integer> ingredientToQuantity = recipe.proportions().stream() //
+                .collect(Collectors.toMap(p -> p.ingredient().name(), p -> p.quantity()));
+        Assertions.assertEquals(Map.of( //
+                "Butterscotch", 40, //
+                "Cinnamon", 60 //
+        ), ingredientToQuantity);
+
+        Assertions.assertEquals(57600000L, recipe.score());
     }
 
     private BufferedReader readInput() {
