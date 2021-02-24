@@ -14,10 +14,9 @@ public class AdventDay16 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            // String input = in.lines() //
-            //         .collect(Collectors.joining());
+            var mfcsam = MFCSAM.parseInput(in);
 
-            // System.out.println("Part 1 - Answer %d".formatted(JsonCleaner.sumValues(input)));
+            System.out.println("Part 1 - Answer %d".formatted(mfcsam.findAunt().number()));
         }
     }
 
