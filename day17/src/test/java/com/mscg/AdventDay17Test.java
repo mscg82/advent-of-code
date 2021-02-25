@@ -22,6 +22,12 @@ public class AdventDay17Test {
         Assertions.assertEquals(4, containers.computeCombinations());
     }
 
+    @Test
+    public void testShorterCombinations() throws Exception {
+        var containers = ContainerList.parseInput(readInput());
+        Assertions.assertEquals(3, containers.computeShorterCombinations());
+    }
+
     private BufferedReader readInput() {
         return new BufferedReader(
                 new InputStreamReader(this.getClass().getResourceAsStream("/test-input.txt"), StandardCharsets.UTF_8));

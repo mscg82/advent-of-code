@@ -22,10 +22,9 @@ public class AdventDay17 {
 
     private static void part2() throws Exception {
         try (BufferedReader in = readInput()) {
-            // String input = in.lines() //
-            //         .collect(Collectors.joining());
+            var containers = ContainerList.parseInput(in);
 
-            // System.out.println("Part 2 - Answer %d".formatted(JsonCleaner.sumValues(JsonCleaner.cleanJson(input))));
+            System.out.println("Part 2 - Answer %d".formatted(containers.computeShorterCombinations()));
         }
     }
 
