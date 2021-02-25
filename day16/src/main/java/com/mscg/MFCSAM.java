@@ -20,8 +20,22 @@ public class MFCSAM {
 
     public Aunt findAunt() {
         return aunts.stream() //
-                .filter(aunt -> aunt.specs.entrySet().stream() //
+                .filter(aunt -> aunt.specs().entrySet().stream() //
                         .allMatch(specEntry -> target.getOrDefault(specEntry.getKey(), 0).equals(specEntry.getValue()))) //
+                .findFirst() //
+                .orElseThrow(() -> new IllegalStateException("Unable to find matching aunt"));
+    }
+
+    public Aunt findAunt2() {
+        return aunts.stream() //
+                .filter(aunt -> aunt.specs().entrySet().stream() //
+                        .allMatch(specEntry -> switch (specEntry.getKey()) {
+                        case "cats", "trees" -> target.getOrDefault(specEntry.getKey(), 0)
+                                .compareTo(specEntry.getValue()) < 0;
+                        case "pomeranians", "goldfish" -> target.getOrDefault(specEntry.getKey(), 0)
+                                .compareTo(specEntry.getValue()) > 0;
+                        default -> target.getOrDefault(specEntry.getKey(), 0).equals(specEntry.getValue());
+                        })) //
                 .findFirst() //
                 .orElseThrow(() -> new IllegalStateException("Unable to find matching aunt"));
     }
