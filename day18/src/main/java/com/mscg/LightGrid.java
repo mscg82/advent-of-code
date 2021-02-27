@@ -7,13 +7,32 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor
 public class LightGrid {
 
     private final List<List<Light>> lights;
+    private final boolean cornersStuck;
+
+    public LightGrid(final List<List<Light>> lights) {
+        this(lights, false);
+    }
+
+    public LightGrid(final List<List<Light>> lights, boolean cornersStuck) {
+        if (cornersStuck) {
+            List<Light> row = lights.get(0);
+            row.set(0, Light.ON);
+            row.set(row.size() - 1, Light.ON);
+
+            row = lights.get(lights.size() - 1);
+            row.set(0, Light.ON);
+            row.set(row.size() - 1, Light.ON);
+        }
+        this.cornersStuck = cornersStuck;
+        this.lights = lights.stream() //
+                .map(List::copyOf) //
+                .collect(Collectors.toUnmodifiableList());
+    }
 
     public LightGrid next() {
         List<List<Light>> newLights = cloneLights();
@@ -33,20 +52,18 @@ public class LightGrid {
                         .count();
                 newLights.get(i).set(j, switch (lights.get(i).get(j)) {
                     case ON -> switch (onNeighbours) {
-                        case 2, 3 -> Light.ON;
-                        default -> Light.OFF;
-                    };
+                            case 2, 3 -> Light.ON;
+                            default -> Light.OFF;
+                        };
                     case OFF -> switch (onNeighbours) {
-                        case 3 -> Light.ON;
-                        default -> Light.OFF;
-                    };
+                            case 3 -> Light.ON;
+                            default -> Light.OFF;
+                        };
                 });
             }
         }
 
-        return new LightGrid(newLights.stream() //
-                .map(List::copyOf) //
-                .collect(Collectors.toUnmodifiableList()));
+        return new LightGrid(newLights, cornersStuck);
     }
 
     @Override
@@ -62,13 +79,13 @@ public class LightGrid {
                 .collect(Collectors.toList());
     }
 
-    public static LightGrid parseInput(BufferedReader in) throws IOException {
+    public static LightGrid parseInput(BufferedReader in, boolean cornerStuck) throws IOException {
         List<List<Light>> lights = in.lines() //
                 .map(line -> line.chars() //
                         .mapToObj(c -> Light.of((char) c)) //
-                        .collect(Collectors.toUnmodifiableList())) //
-                .collect(Collectors.toUnmodifiableList());
-        return new LightGrid(lights);
+                        .collect(Collectors.toList())) //
+                .collect(Collectors.toList());
+        return new LightGrid(lights, cornerStuck);
     }
 
     public enum Light {

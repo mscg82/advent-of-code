@@ -11,7 +11,7 @@ public class AdventDay18Test {
 
     @Test
     public void testParse() throws Exception {
-        var ligthGrid = LightGrid.parseInput(readInput());
+        var ligthGrid = LightGrid.parseInput(readInput(), false);
 
         Assertions.assertEquals("""
                 .#.#.#
@@ -24,7 +24,7 @@ public class AdventDay18Test {
 
     @Test
     public void testNext() throws Exception {
-        var ligthGrid = LightGrid.parseInput(readInput());
+        var ligthGrid = LightGrid.parseInput(readInput(), false);
         Assertions.assertEquals("""
                 .#.#.#
                 ...##.
@@ -77,6 +77,63 @@ public class AdventDay18Test {
                 ..##..
                 ......
                 ......""", ligthGrid.toString());
+    }
+
+    @Test
+    public void testNextStuck() throws Exception {
+        var ligthGrid = LightGrid.parseInput(readInput(), true);
+        Assertions.assertEquals("""
+                ##.#.#
+                ...##.
+                #....#
+                ..#...
+                #.#..#
+                ####.#""", ligthGrid.toString());
+
+        ligthGrid = ligthGrid.next();
+        Assertions.assertEquals("""
+                #.##.#
+                ####.#
+                ...##.
+                ......
+                #...#.
+                #.####""", ligthGrid.toString());
+
+        ligthGrid = ligthGrid.next();
+        Assertions.assertEquals("""
+                #..#.#
+                #....#
+                .#.##.
+                ...##.
+                .#..##
+                ##.###""", ligthGrid.toString());
+
+        ligthGrid = ligthGrid.next();
+        Assertions.assertEquals("""
+                #...##
+                ####.#
+                ..##.#
+                ......
+                ##....
+                ####.#""", ligthGrid.toString());
+
+        ligthGrid = ligthGrid.next();
+        Assertions.assertEquals("""
+                #.####
+                #....#
+                ...#..
+                .##...
+                #.....
+                #.#..#""", ligthGrid.toString());
+
+        ligthGrid = ligthGrid.next();
+        Assertions.assertEquals("""
+                ##.###
+                .##..#
+                .##...
+                .##...
+                #.#...
+                ##...#""", ligthGrid.toString());
     }
 
     private BufferedReader readInput() {

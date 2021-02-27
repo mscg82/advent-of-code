@@ -18,7 +18,7 @@ public class AdventDay18 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            var lightGrid = LightGrid.parseInput(in);
+            var lightGrid = LightGrid.parseInput(in, false);
             LightGrid step100 = Stream.iterate(lightGrid, LightGrid::next) //
                     .skip(100) //
                     .limit(1) //
@@ -35,10 +35,18 @@ public class AdventDay18 {
 
     private static void part2() throws Exception {
         try (BufferedReader in = readInput()) {
-            // String input = in.lines() //
-            //         .collect(Collectors.joining());
+            var lightGrid = LightGrid.parseInput(in, true);
+            LightGrid step100 = Stream.iterate(lightGrid, LightGrid::next) //
+                    .skip(100) //
+                    .limit(1) //
+                    .findFirst() //
+                    .orElseThrow();
+            long lightsOn = step100.getLights().stream() //
+                    .flatMap(List::stream) //
+                    .filter(l -> l == Light.ON) //
+                    .count();
 
-            // System.out.println("Part 2 - Answer %d".formatted(JsonCleaner.sumValues(JsonCleaner.cleanJson(input))));
+            System.out.println("Part 1 - Answer %d".formatted(lightsOn));
         }
     }
 
