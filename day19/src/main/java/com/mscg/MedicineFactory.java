@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +20,42 @@ public class MedicineFactory {
     private final String molecule;
 
     public Set<String> generateVariants() {
+        return applyVariants(molecule, replacements) //
+                .collect(Collectors.toSet());
+    }
+
+    private Stream<String> applyVariants(String molecule, List<Replacement> replacements) {
         return replacements.stream() //
                 .flatMap(replacement -> replacement.source().matcher(molecule).results() //
                         .map(res -> new StringBuilder(molecule) //
                                 .replace(res.start(), res.end(), replacement.target()) //
-                                .toString())) //
+                                .toString()));
+    }
+
+    public long findSteps() {
+        Set<String> startingPoints = replacements.stream() //
+                .filter(r -> "e".equals(r.source().toString())) //
+                .map(Replacement::target) //
                 .collect(Collectors.toSet());
+
+        List<Replacement> reverseReplacements = replacements.stream() //
+                .map(Replacement::reverse) //
+                .collect(Collectors.toUnmodifiableList());
+
+        long step = 1;
+        Set<String> molecules = Set.of(molecule);
+        while (!matches(startingPoints, molecules)) {
+            step++;
+            molecules = molecules.stream() //
+                    .flatMap(molecule -> applyVariants(molecule, reverseReplacements)) //
+                    .filter(s -> s.length() < molecule.length()) //
+                    .collect(Collectors.toUnmodifiableSet());
+        }
+        return step;
+    }
+
+    private boolean matches(Set<String> startingPoints, Set<String> molecules) {
+        return startingPoints.stream().anyMatch(molecules::contains);
     }
 
     public static MedicineFactory parseInput(BufferedReader in) throws IOException {
@@ -39,6 +70,11 @@ public class MedicineFactory {
     }
 
     public static record Replacement(Pattern source, String target) {
+
+        public Replacement reverse() {
+            return new Replacement(Pattern.compile(target), source.toString());
+        }
+
     }
 
 }
