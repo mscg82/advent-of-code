@@ -2,6 +2,7 @@ package com.mscg;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -33,29 +34,44 @@ public class MedicineFactory {
     }
 
     public long findSteps() {
-        Set<String> startingPoints = replacements.stream() //
-                .filter(r -> "e".equals(r.source().toString())) //
-                .map(Replacement::target) //
-                .collect(Collectors.toSet());
-
-        List<Replacement> reverseReplacements = replacements.stream() //
+        long step = 0;
+        List<Replacement> inverseReplacements = replacements.stream() //
                 .map(Replacement::reverse) //
+                .map(r -> "e".equals(r.target()) ? new Replacement(Pattern.compile("^" + r.source() + "$"), r.target())
+                        : r) //
+                .sorted(Comparator.comparingInt((Replacement r) -> r.source().toString().length()).reversed()) //
                 .collect(Collectors.toUnmodifiableList());
 
-        long step = 1;
-        Set<String> molecules = Set.of(molecule);
-        while (!matches(startingPoints, molecules)) {
-            step++;
-            molecules = molecules.stream() //
-                    .flatMap(molecule -> applyVariants(molecule, reverseReplacements)) //
-                    .filter(s -> s.length() < molecule.length()) //
-                    .collect(Collectors.toUnmodifiableSet());
-        }
+        String currentMolecule = molecule;
+
+        var reducedMolecule = reduceMolecule(currentMolecule, inverseReplacements, true);
+        step += reducedMolecule.steps();
+
         return step;
     }
 
-    private boolean matches(Set<String> startingPoints, Set<String> molecules) {
-        return startingPoints.stream().anyMatch(molecules::contains);
+    private ReducedMolecule reduceMolecule(String molecule, List<Replacement> inverseReplacements,
+            boolean failOnNotUpdated) {
+        long step = 0;
+        String currentMolecule = molecule;
+        while (!"e".equals(currentMolecule)) {
+            boolean updated = false;
+            for (Replacement replacement : inverseReplacements) {
+                var matcher = replacement.source().matcher(currentMolecule);
+                if (matcher.find()) {
+                    updated = true;
+                    step++;
+                    currentMolecule = matcher.replaceFirst(replacement.target());
+                }
+            }
+            if (!updated) {
+                if (failOnNotUpdated) {
+                    throw new IllegalStateException("Unable to simplify the molecule");
+                }
+                break;
+            }
+        }
+        return new ReducedMolecule(currentMolecule, step);
     }
 
     public static MedicineFactory parseInput(BufferedReader in) throws IOException {
@@ -75,6 +91,9 @@ public class MedicineFactory {
             return new Replacement(Pattern.compile(target), source.toString());
         }
 
+    }
+
+    private static record ReducedMolecule(String molecule, long steps) {
     }
 
 }
