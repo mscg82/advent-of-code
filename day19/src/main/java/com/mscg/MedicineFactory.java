@@ -2,6 +2,7 @@ package com.mscg;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -33,6 +34,20 @@ public class MedicineFactory {
                                 .toString()));
     }
 
+    public static List<String> tokenizeMolecule(String molecule) {
+        List<String> tokens = new ArrayList<>();
+        int lastCut = 0;
+        for (int i = 1, l = molecule.length(); i < l; i++) {
+            char c = molecule.charAt(i);
+            if (Character.isUpperCase(c)) {
+                tokens.add(molecule.substring(lastCut, i));
+                lastCut = i;
+            }
+        }
+        tokens.add(molecule.substring(lastCut));
+        return List.copyOf(tokens);
+    }
+
     public long findSteps() {
         long step = 0;
         List<Replacement> inverseReplacements = replacements.stream() //
@@ -42,9 +57,7 @@ public class MedicineFactory {
                 .sorted(Comparator.comparingInt((Replacement r) -> r.source().toString().length()).reversed()) //
                 .collect(Collectors.toUnmodifiableList());
 
-        String currentMolecule = molecule;
-
-        var reducedMolecule = reduceMolecule(currentMolecule, inverseReplacements, true);
+        var reducedMolecule = reduceMolecule(molecule, inverseReplacements, true);
         step += reducedMolecule.steps();
 
         return step;
@@ -53,7 +66,41 @@ public class MedicineFactory {
     private ReducedMolecule reduceMolecule(String molecule, List<Replacement> inverseReplacements,
             boolean failOnNotUpdated) {
         long step = 0;
-        String currentMolecule = molecule;
+        List<String> simplifiedTokens = new ArrayList<>();
+        List<String> tokens = tokenizeMolecule(molecule);
+        for (int i = 0, l = tokens.size(); i < l; i++) {
+            String currentToken = tokens.get(i);
+            simplifiedTokens.add(currentToken);
+            if ("Rn".equals(currentToken)) {
+                int count = 1;
+                for (int j = i + 1; j < l; j++) {
+                    String secondToken = tokens.get(j);
+                    switch (secondToken) {
+                        case "Rn" -> count++;
+                        case "Ar" -> count--;
+                        default -> {}
+                    }
+                    if (count == 0) {
+                        String submolecule = tokens.subList(i + 1, j).stream().collect(Collectors.joining());
+                        String[] parts = submolecule.split("Y");
+                        for (int k = 0; k < parts.length; k++) {
+                            String part = parts[k];
+                            var reducedSubmolecule = reduceMolecule(part, inverseReplacements, false);
+                            step += reducedSubmolecule.steps();
+                            simplifiedTokens.add(reducedSubmolecule.molecule());
+                            if (k != parts.length - 1) {
+                                simplifiedTokens.add("Y");
+                            }
+                        }
+                        simplifiedTokens.add(secondToken);
+                        i = j;
+                        break;
+                    }
+                }
+            }
+        }
+
+        String currentMolecule = simplifiedTokens.stream().collect(Collectors.joining());
         while (!"e".equals(currentMolecule)) {
             boolean updated = false;
             for (Replacement replacement : inverseReplacements) {
@@ -66,7 +113,7 @@ public class MedicineFactory {
             }
             if (!updated) {
                 if (failOnNotUpdated) {
-                    throw new IllegalStateException("Unable to simplify the molecule");
+                    throw new IllegalStateException("Unable to simplify the molecule " + currentMolecule);
                 }
                 break;
             }

@@ -42,10 +42,17 @@ public class AdventDay19Test {
     }
 
     @Test
+    public void testTokenizeMolecule() {
+        Assertions.assertEquals(List.of("H", "O", "H"), MedicineFactory.tokenizeMolecule("HOH"));
+        Assertions.assertEquals(List.of("O", "Rn", "P", "B", "P", "Mg", "Ar", "Ca", "Ca", "Ca"),
+                MedicineFactory.tokenizeMolecule("ORnPBPMgArCaCaCa"));
+    }
+
+    @Test
     public void testFindSteps() throws Exception {
         var medicineFactory = MedicineFactory.parseInput(readInput());
         Assertions.assertEquals(3, medicineFactory.findSteps());
-        
+
         medicineFactory = new MedicineFactory(medicineFactory.getReplacements(), "HOHOHO");
         Assertions.assertEquals(6, medicineFactory.findSteps());
     }
