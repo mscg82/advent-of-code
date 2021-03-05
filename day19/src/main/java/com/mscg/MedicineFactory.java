@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -54,12 +55,29 @@ public class MedicineFactory {
                 .map(r -> "e".equals(r.target()) ? new Replacement(Pattern.compile("^" + r.source() + "$"), r.target())
                         : r) //
                 .collect(Collectors.toUnmodifiableList());
-        
-        List<Replacement> complexReplacements = inverseReplacements.stream() //
-            .filter(r -> r.source().toString().contains("Rn")) //
-            .collect(Collectors.toUnmodifiableList());
+
+        Map<Boolean, List<Replacement>> splittedReplacements = inverseReplacements.stream() //
+                .collect(Collectors.partitioningBy(r -> r.source().toString().contains("Rn"),
+                        Collectors.toUnmodifiableList()));
+
+        List<Replacement> complexReplacements = splittedReplacements.get(Boolean.TRUE);
+        List<Replacement> simpleReplacements = splittedReplacements.get(Boolean.FALSE);
 
         String currentMolecule = molecule;
+        while (!"e".equals(currentMolecule)) {
+            boolean updated = false;
+            for (Replacement replacement : simpleReplacements) {
+                var matcher = replacement.source().matcher(currentMolecule);
+                if (matcher.find()) {
+                    updated = true;
+                    step++;
+                    currentMolecule = matcher.replaceFirst(replacement.target());
+                }
+            }
+            if (!updated) {
+                break;
+            }
+        }
         while (!"e".equals(currentMolecule)) {
             boolean updated = false;
             for (Replacement replacement : complexReplacements) {
