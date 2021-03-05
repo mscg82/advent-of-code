@@ -3,8 +3,8 @@ package com.mscg;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -49,49 +49,32 @@ public class MedicineFactory {
     }
 
     public long findSteps() {
+        int i = 100;
+        while (true) {
+            try {
+                return doFindSteps(i != 0);
+            } catch (IllegalArgumentException e) {
+                i++;
+                if (i == 5) {
+                    throw e;
+                }
+            }
+        }
+    }
+
+    private long doFindSteps(boolean shuffle) {
         long step = 0;
         List<Replacement> inverseReplacements = replacements.stream() //
                 .map(Replacement::reverse) //
                 .map(r -> "e".equals(r.target()) ? new Replacement(Pattern.compile("^" + r.source() + "$"), r.target())
                         : r) //
-                .collect(Collectors.toUnmodifiableList());
-
-        Map<Boolean, List<Replacement>> splittedReplacements = inverseReplacements.stream() //
-                .collect(Collectors.partitioningBy(r -> r.source().toString().contains("Rn"),
-                        Collectors.toUnmodifiableList()));
-
-        List<Replacement> complexReplacements = splittedReplacements.get(Boolean.TRUE);
-        List<Replacement> simpleReplacements = splittedReplacements.get(Boolean.FALSE);
+                .collect(Collectors.toList());
+        if (shuffle) {
+            Collections.shuffle(inverseReplacements);
+        }
 
         String currentMolecule = molecule;
-        while (!"e".equals(currentMolecule)) {
-            boolean updated = false;
-            for (Replacement replacement : simpleReplacements) {
-                var matcher = replacement.source().matcher(currentMolecule);
-                if (matcher.find()) {
-                    updated = true;
-                    step++;
-                    currentMolecule = matcher.replaceFirst(replacement.target());
-                }
-            }
-            if (!updated) {
-                break;
-            }
-        }
-        while (!"e".equals(currentMolecule)) {
-            boolean updated = false;
-            for (Replacement replacement : complexReplacements) {
-                var matcher = replacement.source().matcher(currentMolecule);
-                if (matcher.find()) {
-                    updated = true;
-                    step++;
-                    currentMolecule = matcher.replaceFirst(replacement.target());
-                }
-            }
-            if (!updated) {
-                break;
-            }
-        }
+
         while (!"e".equals(currentMolecule)) {
             boolean updated = false;
             for (Replacement replacement : inverseReplacements) {
