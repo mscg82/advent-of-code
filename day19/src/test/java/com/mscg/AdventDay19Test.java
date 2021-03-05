@@ -19,11 +19,11 @@ public class AdventDay19Test {
 
         Assertions.assertEquals("HOH", medicineFactory.getMolecule());
         Assertions.assertEquals(List.of( //
-                Map.entry("e", "H"), //
-                Map.entry("e", "O"), //
                 Map.entry("H", "HO"), //
                 Map.entry("H", "OH"), //
-                Map.entry("O", "HH") //
+                Map.entry("O", "HH"), //
+                Map.entry("e", "H"), //
+                Map.entry("e", "O") //
         ), medicineFactory.getReplacements().stream() //
                 .map(r -> Map.entry(r.source().toString(), r.target())) //
                 .collect(Collectors.toList()));

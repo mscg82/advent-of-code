@@ -3,7 +3,6 @@ package com.mscg;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -54,53 +53,27 @@ public class MedicineFactory {
                 .map(Replacement::reverse) //
                 .map(r -> "e".equals(r.target()) ? new Replacement(Pattern.compile("^" + r.source() + "$"), r.target())
                         : r) //
-                .sorted(Comparator.comparingInt((Replacement r) -> r.source().toString().length()).reversed()) //
                 .collect(Collectors.toUnmodifiableList());
+        
+        List<Replacement> complexReplacements = inverseReplacements.stream() //
+            .filter(r -> r.source().toString().contains("Rn")) //
+            .collect(Collectors.toUnmodifiableList());
 
-        var reducedMolecule = reduceMolecule(molecule, inverseReplacements, true);
-        step += reducedMolecule.steps();
-
-        return step;
-    }
-
-    private ReducedMolecule reduceMolecule(String molecule, List<Replacement> inverseReplacements,
-            boolean failOnNotUpdated) {
-        long step = 0;
-        List<String> simplifiedTokens = new ArrayList<>();
-        List<String> tokens = tokenizeMolecule(molecule);
-        for (int i = 0, l = tokens.size(); i < l; i++) {
-            String currentToken = tokens.get(i);
-            simplifiedTokens.add(currentToken);
-            if ("Rn".equals(currentToken)) {
-                int count = 1;
-                for (int j = i + 1; j < l; j++) {
-                    String secondToken = tokens.get(j);
-                    switch (secondToken) {
-                        case "Rn" -> count++;
-                        case "Ar" -> count--;
-                        default -> {}
-                    }
-                    if (count == 0) {
-                        String submolecule = tokens.subList(i + 1, j).stream().collect(Collectors.joining());
-                        String[] parts = submolecule.split("Y");
-                        for (int k = 0; k < parts.length; k++) {
-                            String part = parts[k];
-                            var reducedSubmolecule = reduceMolecule(part, inverseReplacements, false);
-                            step += reducedSubmolecule.steps();
-                            simplifiedTokens.add(reducedSubmolecule.molecule());
-                            if (k != parts.length - 1) {
-                                simplifiedTokens.add("Y");
-                            }
-                        }
-                        simplifiedTokens.add(secondToken);
-                        i = j;
-                        break;
-                    }
+        String currentMolecule = molecule;
+        while (!"e".equals(currentMolecule)) {
+            boolean updated = false;
+            for (Replacement replacement : complexReplacements) {
+                var matcher = replacement.source().matcher(currentMolecule);
+                if (matcher.find()) {
+                    updated = true;
+                    step++;
+                    currentMolecule = matcher.replaceFirst(replacement.target());
                 }
             }
+            if (!updated) {
+                break;
+            }
         }
-
-        String currentMolecule = simplifiedTokens.stream().collect(Collectors.joining());
         while (!"e".equals(currentMolecule)) {
             boolean updated = false;
             for (Replacement replacement : inverseReplacements) {
@@ -112,13 +85,11 @@ public class MedicineFactory {
                 }
             }
             if (!updated) {
-                if (failOnNotUpdated) {
-                    throw new IllegalStateException("Unable to simplify the molecule " + currentMolecule);
-                }
-                break;
+                throw new IllegalArgumentException("Unable to simplify molecule " + currentMolecule);
             }
         }
-        return new ReducedMolecule(currentMolecule, step);
+
+        return step;
     }
 
     public static MedicineFactory parseInput(BufferedReader in) throws IOException {
@@ -138,9 +109,6 @@ public class MedicineFactory {
             return new Replacement(Pattern.compile(target), source.toString());
         }
 
-    }
-
-    private static record ReducedMolecule(String molecule, long steps) {
     }
 
 }
