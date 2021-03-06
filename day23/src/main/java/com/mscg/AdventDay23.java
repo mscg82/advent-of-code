@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
+import com.mscg.Computer.Register;
+
 public class AdventDay23 {
 
     public static void main(String[] args) throws Exception {
@@ -14,10 +16,10 @@ public class AdventDay23 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            // String input = in.lines() //
-            //         .collect(Collectors.joining());
+            var computer = Computer.parseInput(readInput());
+            computer.run();
 
-            // System.out.println("Part 1 - Answer %d".formatted(JsonCleaner.sumValues(input)));
+            System.out.println("Part 1 - Answer %d".formatted(computer.register(Register.b)));
         }
     }
 
