@@ -25,6 +25,10 @@ public class Computer implements Runnable {
         return registers[register.ordinal()];
     }
 
+    public void register(@NonNull Register register, long value) {
+        registers[register.ordinal()] = value;
+    }
+
     @Override
     public void run() {
         while (pic < instructions.size()) {
