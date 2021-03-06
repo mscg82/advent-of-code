@@ -14,19 +14,17 @@ public class AdventDay20 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            // String input = in.lines() //
-            //         .collect(Collectors.joining());
+            var giftDelivery = GiftDelivery.parseInput(readInput(), 1_000_000, 1_000_000, false);
 
-            // System.out.println("Part 1 - Answer %d".formatted(JsonCleaner.sumValues(input)));
+            System.out.println("Part 1 - Answer %s".formatted(giftDelivery.findHouseNumber()));
         }
     }
 
     private static void part2() throws Exception {
         try (BufferedReader in = readInput()) {
-            // String input = in.lines() //
-            //         .collect(Collectors.joining());
+            var giftDelivery = GiftDelivery.parseInput(readInput(), 1_000_000, 1_000_000, true);
 
-            // System.out.println("Part 2 - Answer %d".formatted(JsonCleaner.sumValues(JsonCleaner.cleanJson(input))));
+            System.out.println("Part 2 - Answer %s".formatted(giftDelivery.findHouseNumber()));
         }
     }
 
