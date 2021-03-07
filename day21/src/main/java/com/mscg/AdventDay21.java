@@ -23,10 +23,10 @@ public class AdventDay21 {
 
     private static void part2() throws Exception {
         try (BufferedReader in = readInput()) {
-            // String input = in.lines() //
-            //         .collect(Collectors.joining());
+            var battle = Battle.parseInput(readInput());
 
-            // System.out.println("Part 2 - Answer %d".formatted(JsonCleaner.sumValues(JsonCleaner.cleanJson(input))));
+            Equipment winningEquipment = battle.findLosingEquipment();
+            System.out.println("Part 2 - Answer %d, %s".formatted(winningEquipment.cost(), winningEquipment));
         }
     }
 

@@ -32,6 +32,25 @@ public class Battle {
                 .orElseThrow();
     }
 
+    public Equipment findLosingEquipment() {
+        return Equipment.generateAllEquipments().stream() //
+                .filter(eq -> {
+                    var playerStats = eq.stats();
+                    var bossStats = boss.stats();
+
+                    int playerDamage = Math.max(1, playerStats.damage() - bossStats.armor());
+                    int bossDamage = Math.max(1, bossStats.damage() - playerStats.armor());
+
+                    int playerTurns = (int) Math.ceil(((double) boss.hitPoints()) / playerDamage);
+                    int bossTurns = (int) Math.ceil(100.0 / bossDamage);
+
+                    return playerTurns > bossTurns;
+                }) //
+                .sorted(Comparator.comparingInt(Equipment::cost).reversed()) //
+                .findFirst() //
+                .orElseThrow();
+    }
+
     public static Battle parseInput(BufferedReader in) throws IOException {
         var boss = new Fighter(getNumber(in.readLine()), //
                 new Stats(getNumber(in.readLine()), getNumber(in.readLine())));
