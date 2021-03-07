@@ -3,6 +3,7 @@ package com.mscg;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
+import java.util.function.LongUnaryOperator;
 import java.util.stream.Collectors;
 
 import lombok.Getter;
@@ -26,7 +27,19 @@ public class Computer implements Runnable {
     }
 
     public void register(@NonNull Register register, long value) {
-        registers[register.ordinal()] = value;
+        registers[register.ordinal()] = validateRegisterValue(value, register);
+    }
+
+    public void register(@NonNull Register register, LongUnaryOperator valueTransformer) {
+        registers[register.ordinal()] = validateRegisterValue(
+                valueTransformer.applyAsLong(registers[register.ordinal()]), register);
+    }
+
+    private long validateRegisterValue(long value, @NonNull Register register) {
+        if (value < 0) {
+            throw new IllegalStateException("Value " + value + " in invalid for register " + register.name());
+        }
+        return value;
     }
 
     @Override
@@ -34,27 +47,25 @@ public class Computer implements Runnable {
         while (pic < instructions.size()) {
             var instruction = instructions.get(pic);
 
-            switch (instruction.code()) {
-                case hlf -> registers[instruction.register().ordinal()] /= 2;
-                case tpl -> registers[instruction.register().ordinal()] *= 3;
-                case inc -> registers[instruction.register().ordinal()] += 1;
-                case jmp, jie, jio -> {
+            int picIncrement = switch (instruction.code()) {
+                case hlf -> {
+                    register(instruction.register(), v -> v / 2);
+                    yield 1;
                 }
-            }
-
-            if (registers[Register.a.ordinal()] < 0) {
-                throw new IllegalStateException("Register a has an invalid value");
-            }
-            if (registers[Register.b.ordinal()] < 0) {
-                throw new IllegalStateException("Register b has an invalid value");
-            }
-
-            pic = switch (instruction.code()) {
-                case hlf, tpl, inc -> pic + 1;
-                case jmp -> pic + instruction.offset();
-                case jie -> pic + (register(instruction.register()) % 2 == 0 ? instruction.offset() : 1);
-                case jio -> pic + (register(instruction.register()) == 1 ? instruction.offset() : 1);
+                case tpl -> {
+                    register(instruction.register(), v -> v * 3);
+                    yield 1;
+                }
+                case inc -> {
+                    register(instruction.register(), v -> v + 1);
+                    yield 1;
+                }
+                case jmp -> instruction.offset();
+                case jie -> register(instruction.register()) % 2 == 0 ? instruction.offset() : 1;
+                case jio -> register(instruction.register()) == 1 ? instruction.offset() : 1;
             };
+
+            pic += picIncrement;
         }
     }
 
