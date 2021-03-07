@@ -14,10 +14,10 @@ public class AdventDay21 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            // String input = in.lines() //
-            //         .collect(Collectors.joining());
+            var battle = Battle.parseInput(readInput());
 
-            // System.out.println("Part 1 - Answer %d".formatted(JsonCleaner.sumValues(input)));
+            Equipment winningEquipment = battle.findWinningEquipment();
+            System.out.println("Part 1 - Answer %d, %s".formatted(winningEquipment.cost(), winningEquipment));
         }
     }
 
