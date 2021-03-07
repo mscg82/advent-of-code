@@ -30,6 +30,7 @@
         <module>day21</module>
         <module>day22</module>
         <module>day23</module>
+        <module>day24</module>
     </modules>
     <packaging>pom</packaging>
 
