@@ -14,9 +14,9 @@ public class AdventDay24 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            // var containers = ContainerList.parseInput(in);
+            var giftsBag = GiftsBag.parseInput(readInput());
 
-            // System.out.println("Part 1 - Answer %d".formatted(containers.computeCombinations()));
+            System.out.println("Part 1 - Answer %d".formatted(giftsBag.findQuantumEntanglement(3)));
         }
     }
 
