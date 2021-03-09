@@ -22,9 +22,9 @@ public class AdventDay24 {
 
     private static void part2() throws Exception {
         try (BufferedReader in = readInput()) {
-            // var containers = ContainerList.parseInput(in);
+            var giftsBag = GiftsBag.parseInput(readInput());
 
-            // System.out.println("Part 2 - Answer %d".formatted(containers.computeShorterCombinations()));
+            System.out.println("Part 1 - Answer %d".formatted(giftsBag.findQuantumEntanglement(4)));
         }
     }
 
