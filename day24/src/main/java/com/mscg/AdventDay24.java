@@ -24,7 +24,7 @@ public class AdventDay24 {
         try (BufferedReader in = readInput()) {
             var giftsBag = GiftsBag.parseInput(readInput());
 
-            System.out.println("Part 1 - Answer %d".formatted(giftsBag.findQuantumEntanglement(4)));
+            System.out.println("Part 2 - Answer %d".formatted(giftsBag.findQuantumEntanglement(4)));
         }
     }
 
