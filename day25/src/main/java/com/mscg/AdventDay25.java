@@ -14,10 +14,9 @@ public class AdventDay25 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            // String input = in.lines() //
-            //         .collect(Collectors.joining());
+            var wm = WeatherMachine.parseInput(readInput());
 
-            // System.out.println("Part 1 - Answer %d".formatted(JsonCleaner.sumValues(input)));
+            System.out.println("Part 1 - Answer %d".formatted(wm.getSecutiryValue()));
         }
     }
 
