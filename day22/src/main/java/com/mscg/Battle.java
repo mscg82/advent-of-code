@@ -22,7 +22,7 @@ public class Battle {
 
     private final Fighter boss;
 
-    public List<Spell> findGameWithMinimalMana(int turns) {
+    public List<Spell> findGameWithMinimalMana(int turns, boolean hardMode) {
         int minMana = Integer.MAX_VALUE;
         List<Spell> result = null;
         for (var it = generateAllGames(turns).iterator(); it.hasNext();) {
@@ -31,7 +31,7 @@ public class Battle {
                 continue;
             }
 
-            var gameResult = playGame(new ArrayList<>(game));
+            var gameResult = playGame(new ArrayList<>(game), hardMode);
             if (gameResult.result() == FightResult.PLAYER_WINS) {
                 int totalMana = game.stream() //
                         .mapToInt(Spell::cost) //
@@ -50,12 +50,25 @@ public class Battle {
         return result;
     }
 
-    public GameResult playGame(List<Spell> game) {
+    public GameResult playGame(List<Spell> game, boolean hardMode) {
         Contestants contestants = new Contestants(INITIAL_PLAYER_INFO, this.boss);
 
         List<Spell> activeSpells = new ArrayList<>(game.size());
 
         for (int i = 0; !game.isEmpty() || !activeSpells.isEmpty(); i++) {
+            if (hardMode) {
+                if (i % 2 == 0) {
+                    // player turn
+                    contestants = new Contestants(
+                            new Fighter(contestants.player().hitPoints() - 1, contestants.player().stats()),
+                            contestants.boss());
+    
+                    if (contestants.player().hitPoints() <= 0) {
+                        return new GameResult(FightResult.BOSS_WINS, contestants);
+                    }
+                }
+            }
+
             for (var it = activeSpells.listIterator(); it.hasNext();) {
                 Spell spell = it.next().tick();
                 it.set(spell);
@@ -77,11 +90,11 @@ public class Battle {
                 // player turn
                 if (!game.isEmpty()) {
                     Spell spell = game.remove(0);
-    
+
                     if (activeSpells.stream().anyMatch(s -> s.type() == spell.type())) {
                         return new GameResult(FightResult.INVALID, contestants);
                     }
-    
+
                     activeSpells.add(spell);
                     contestants = spell.onCast(contestants);
                 }

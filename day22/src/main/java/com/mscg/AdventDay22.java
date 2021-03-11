@@ -19,7 +19,7 @@ public class AdventDay22 {
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
             var battle = Battle.parseInput(readInput());
-            List<Spell> gameWithMinimalMana = battle.findGameWithMinimalMana(8);
+            List<Spell> gameWithMinimalMana = battle.findGameWithMinimalMana(8, false);
 
             System.out.println("Part 1 - Spells %s Answer %d".formatted(
                     gameWithMinimalMana.stream().map(Spell::type).collect(Collectors.toUnmodifiableList()),
@@ -29,11 +29,12 @@ public class AdventDay22 {
 
     private static void part2() throws Exception {
         try (BufferedReader in = readInput()) {
-            // String input = in.lines() //
-            // .collect(Collectors.joining());
+            var battle = Battle.parseInput(readInput());
+            List<Spell> gameWithMinimalMana = battle.findGameWithMinimalMana(8, true);
 
-            // System.out.println("Part 2 - Answer
-            // %d".formatted(JsonCleaner.sumValues(JsonCleaner.cleanJson(input))));
+            System.out.println("Part 2 - Spells %s Answer %d".formatted(
+                    gameWithMinimalMana.stream().map(Spell::type).collect(Collectors.toUnmodifiableList()),
+                    gameWithMinimalMana.stream().mapToLong(Spell::cost).sum()));
         }
     }
 

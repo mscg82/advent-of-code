@@ -82,7 +82,7 @@ public class AdventDay22Test {
                 spells.get(SpellType.MAGIC_MISSILE), //
                 spells.get(SpellType.MAGIC_MISSILE)));
         
-        GameResult result = battle.playGame(game);
+        GameResult result = battle.playGame(game, false);
         Assertions.assertEquals(FightResult.INVALID, result.result());
         Assertions.assertEquals(35, result.contestants().player().hitPoints());
         Assertions.assertEquals(39, result.contestants().boss().hitPoints());
