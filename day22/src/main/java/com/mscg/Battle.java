@@ -2,6 +2,7 @@ package com.mscg;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -17,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class Battle {
 
+    private static final Fighter INITIAL_PLAYER_INFO = new Fighter(50, new Stats(0, 0, 500));
+
     private final Fighter boss;
 
     public List<Spell> findGameWithMinimalMana(int turns) {
@@ -24,25 +27,88 @@ public class Battle {
         List<Spell> result = null;
         for (var it = generateAllGames(turns).iterator(); it.hasNext();) {
             List<Spell> game = it.next();
-            if (!isValidGame(game, minMana, this.boss)){
+            if (!isValidGame(game, minMana, this.boss, INITIAL_PLAYER_INFO.stats().mana())) {
                 continue;
             }
+
+            var gameResult = playGame(new ArrayList<>(game));
+            if (gameResult.result() == FightResult.PLAYER_WINS) {
+                int totalMana = game.stream() //
+                        .mapToInt(Spell::cost) //
+                        .sum();
+                if (totalMana < minMana) {
+                    minMana = totalMana;
+                    result = game;
+                }
+            }
         }
+
+        if (result == null) {
+            throw new IllegalStateException("Unable to solve the battle");
+        }
+
         return result;
     }
 
-    private static boolean isValidGame(List<Spell> game, int minMana, Fighter boss) {
+    public GameResult playGame(List<Spell> game) {
+        Contestants contestants = new Contestants(INITIAL_PLAYER_INFO, this.boss);
+
+        List<Spell> activeSpells = new ArrayList<>(game.size());
+
+        for (int i = 0; !game.isEmpty() || !activeSpells.isEmpty(); i++) {
+            for (var it = activeSpells.listIterator(); it.hasNext();) {
+                Spell spell = it.next().tick();
+                it.set(spell);
+                contestants = spell.apply(contestants);
+                if (spell.timer() <= 0) {
+                    it.remove();
+                    contestants = spell.onFade(contestants);
+                }
+            }
+
+            if (contestants.player().hitPoints() <= 0 || contestants.player().stats().mana() <= 0) {
+                return new GameResult(FightResult.BOSS_WINS, contestants);
+            }
+            if (contestants.boss().hitPoints() <= 0) {
+                return new GameResult(FightResult.PLAYER_WINS, contestants);
+            }
+
+            if (i % 2 == 0) {
+                // player turn
+                if (!game.isEmpty()) {
+                    Spell spell = game.remove(0);
+    
+                    if (activeSpells.stream().anyMatch(s -> s.type() == spell.type())) {
+                        return new GameResult(FightResult.INVALID, contestants);
+                    }
+    
+                    activeSpells.add(spell);
+                    contestants = spell.onCast(contestants);
+                }
+            } else {
+                // boss turn
+                int damage = contestants.boss().stats().damage() - contestants.player().stats().armor();
+                Fighter newPlayer = new Fighter(contestants.player().hitPoints() - Math.max(1, damage),
+                        contestants.player().stats());
+                contestants = new Contestants(newPlayer, contestants.boss());
+            }
+
+            if (contestants.player().hitPoints() <= 0 || contestants.player().stats().mana() <= 0) {
+                return new GameResult(FightResult.BOSS_WINS, contestants);
+            }
+            if (contestants.boss().hitPoints() <= 0) {
+                return new GameResult(FightResult.PLAYER_WINS, contestants);
+            }
+        }
+
+        return new GameResult(FightResult.INVALID, contestants);
+    }
+
+    private static boolean isValidGame(List<Spell> game, int minMana, Fighter boss, int initialPlayerMana) {
         int totalMana = game.stream() //
                 .mapToInt(Spell::cost) //
                 .sum();
         if (totalMana >= minMana) {
-            return false;
-        }
-
-        int totalDamage = game.stream() //
-                .mapToInt(spell -> spell.damage() * spell.timer()) //
-                .sum();
-        if (totalDamage < boss.hitPoints()) {
             return false;
         }
 
@@ -70,7 +136,7 @@ public class Battle {
                     return IntStream.range(0, length) //
                             .map(i -> s.charAt(i) - '0') //
                             .mapToObj(SpellShop.getSpells()::get) //
-                            .collect(Collectors.toList());
+                            .collect(Collectors.toUnmodifiableList());
                 });
     }
 
@@ -97,6 +163,16 @@ public class Battle {
     }
 
     public static record Fighter(int hitPoints, Stats stats) {
+    }
+
+    public static record Contestants(Fighter player, Fighter boss) {
+    }
+
+    public static record GameResult(FightResult result, Contestants contestants) {
+    }
+
+    public enum FightResult {
+        PLAYER_WINS, BOSS_WINS, INVALID;
     }
 
 }

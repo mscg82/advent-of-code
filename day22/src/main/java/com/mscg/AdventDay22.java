@@ -4,6 +4,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.mscg.SpellShop.Spell;
 
 public class AdventDay22 {
 
@@ -14,19 +18,22 @@ public class AdventDay22 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            // String input = in.lines() //
-            //         .collect(Collectors.joining());
+            var battle = Battle.parseInput(readInput());
+            List<Spell> gameWithMinimalMana = battle.findGameWithMinimalMana(8);
 
-            // System.out.println("Part 1 - Answer %d".formatted(JsonCleaner.sumValues(input)));
+            System.out.println("Part 1 - Spells %s Answer %d".formatted(
+                    gameWithMinimalMana.stream().map(Spell::type).collect(Collectors.toUnmodifiableList()),
+                    gameWithMinimalMana.stream().mapToLong(Spell::cost).sum()));
         }
     }
 
     private static void part2() throws Exception {
         try (BufferedReader in = readInput()) {
             // String input = in.lines() //
-            //         .collect(Collectors.joining());
+            // .collect(Collectors.joining());
 
-            // System.out.println("Part 2 - Answer %d".formatted(JsonCleaner.sumValues(JsonCleaner.cleanJson(input))));
+            // System.out.println("Part 2 - Answer
+            // %d".formatted(JsonCleaner.sumValues(JsonCleaner.cleanJson(input))));
         }
     }
 
