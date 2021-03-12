@@ -55,7 +55,7 @@ public class Battle {
 
         List<Spell> activeSpells = new ArrayList<>(game.size());
 
-        for (int i = 0; true; i++) {
+        for (int i = 0; !game.isEmpty(); i++) {
             if (hardMode) {
                 if (i % 2 == 0) {
                     // player turn
@@ -153,9 +153,12 @@ public class Battle {
                 return new GameResult(FightResult.BOSS_WINS, contestants);
             }
             if (contestants.boss().hitPoints() <= 0) {
-                return new GameResult(FightResult.PLAYER_WINS, contestants);
+                return new GameResult(game.isEmpty() ? FightResult.PLAYER_WINS : FightResult.INVALID, //
+                        contestants);
             }
         }
+
+        return new GameResult(FightResult.INVALID, contestants);
     }
 
     private static boolean isValidGame(List<Spell> game, int minMana, Fighter boss, int initialPlayerMana) {
