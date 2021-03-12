@@ -59,9 +59,7 @@ public class Battle {
             if (hardMode) {
                 if (i % 2 == 0) {
                     // player turn
-                    contestants = new Contestants(
-                            new Fighter(contestants.player().hitPoints() - 1, contestants.player().stats()),
-                            contestants.boss());
+                    contestants = new Contestants(contestants.player().damage(1), contestants.boss());
 
                     if (contestants.player().hitPoints() <= 0) {
                         return new GameResult(FightResult.BOSS_WINS, contestants);
@@ -76,12 +74,10 @@ public class Battle {
                 contestants = switch (spell.type()) {
                 case POISON -> new Contestants( //
                         contestants.player(), //
-                        new Fighter(contestants.boss().hitPoints() - spell.damage(), contestants.boss().stats()));
+                        contestants.boss().damage(spell.damage()));
 
                 case RECHARGE -> new Contestants( //
-                        new Fighter(contestants.player().hitPoints(), //
-                                new Stats(contestants.player().stats().damage(), contestants.player().stats().armor(),
-                                        contestants.player().stats().mana() + spell.recharge())), //
+                        contestants.player().recharge(spell.recharge()), //
                         contestants.boss());
 
                 case MAGIC_MISSILE, DRAIN, SHIELD -> contestants;
@@ -91,10 +87,7 @@ public class Battle {
                     it.remove();
                     contestants = switch (spell.type()) {
                     case SHIELD -> new Contestants( //
-                            new Fighter(contestants.player().hitPoints(), //
-                                    new Stats(contestants.player().stats().damage(),
-                                            contestants.player().stats().armor() - spell.armor(),
-                                            contestants.player().stats().mana())), //
+                            contestants.player().shield(-spell.armor()), //
                             contestants.boss());
 
                     case MAGIC_MISSILE, DRAIN, POISON, RECHARGE -> contestants;
@@ -125,19 +118,16 @@ public class Battle {
                     contestants = switch (spell.type()) {
                     case MAGIC_MISSILE -> new Contestants( //
                             contestants.player(), //
-                            new Fighter(contestants.boss().hitPoints() - spell.damage(), contestants.boss().stats()));
+                            contestants.boss().damage(spell.damage()));
 
                     case DRAIN -> new Contestants( //
-                            new Fighter(contestants.player().hitPoints() + spell.heal(), contestants.player().stats()), //
-                            new Fighter(contestants.boss().hitPoints() - spell.damage(), contestants.boss().stats()));
+                            contestants.player().heal(spell.heal()), //
+                            contestants.boss().damage(spell.damage()));
 
                     case SHIELD -> {
                         activeSpells.add(spell);
                         yield new Contestants( //
-                                new Fighter(contestants.player().hitPoints(), //
-                                        new Stats(contestants.player().stats().damage(),
-                                                contestants.player().stats().armor() + spell.armor(),
-                                                contestants.player().stats().mana())), //
+                                contestants.player().shield(spell.armor()), //
                                 contestants.boss());
                     }
 
@@ -148,18 +138,15 @@ public class Battle {
                     };
 
                     contestants = new Contestants( //
-                            new Fighter(contestants.player().hitPoints(), //
-                            new Stats(contestants.player().stats().damage(),
-                                    contestants.player().stats().armor(),
-                                    contestants.player().stats().mana() - spell.cost())), //
+                            contestants.player().discharge(spell.cost()), //
                             contestants.boss());
                 }
             } else {
                 // boss turn
                 int damage = contestants.boss().stats().damage() - contestants.player().stats().armor();
-                Fighter newPlayer = new Fighter(contestants.player().hitPoints() - Math.max(1, damage),
-                        contestants.player().stats());
-                contestants = new Contestants(newPlayer, contestants.boss());
+                contestants = new Contestants( //
+                        contestants.player().damage(Math.max(1, damage)), //
+                        contestants.boss());
             }
 
             if (contestants.player().hitPoints() <= 0 || contestants.player().stats().mana() <= 0) {
@@ -227,9 +214,35 @@ public class Battle {
     }
 
     public static record Stats(int damage, int armor, int mana) {
+        public Stats shield(int delta) {
+            return new Stats(damage, armor + delta, mana);
+        }
+
+        public Stats recharge(int delta) {
+            return new Stats(damage, armor, mana + delta);
+        }
     }
 
     public static record Fighter(int hitPoints, Stats stats) {
+        public Fighter damage(int damage) {
+            return new Fighter(hitPoints - damage, stats);
+        }
+
+        public Fighter heal(int hitPoints) {
+            return new Fighter(this.hitPoints + hitPoints, stats);
+        }
+
+        public Fighter shield(int armor) {
+            return new Fighter(hitPoints, stats.shield(armor));
+        }
+
+        public Fighter recharge(int mana) {
+            return new Fighter(hitPoints, stats.recharge(mana));
+        }
+
+        public Fighter discharge(int mana) {
+            return new Fighter(hitPoints, stats.recharge(-mana));
+        }
     }
 
     public static record Contestants(Fighter player, Fighter boss) {
