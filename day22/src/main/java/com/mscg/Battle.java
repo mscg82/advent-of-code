@@ -55,14 +55,14 @@ public class Battle {
 
         List<Spell> activeSpells = new ArrayList<>(game.size());
 
-        for (int i = 0; !game.isEmpty() || !activeSpells.isEmpty(); i++) {
+        for (int i = 0; true; i++) {
             if (hardMode) {
                 if (i % 2 == 0) {
                     // player turn
                     contestants = new Contestants(
                             new Fighter(contestants.player().hitPoints() - 1, contestants.player().stats()),
                             contestants.boss());
-    
+
                     if (contestants.player().hitPoints() <= 0) {
                         return new GameResult(FightResult.BOSS_WINS, contestants);
                     }
@@ -72,10 +72,33 @@ public class Battle {
             for (var it = activeSpells.listIterator(); it.hasNext();) {
                 Spell spell = it.next().tick();
                 it.set(spell);
-                contestants = spell.apply(contestants);
+
+                contestants = switch (spell.type()) {
+                case POISON -> new Contestants( //
+                        contestants.player(), //
+                        new Fighter(contestants.boss().hitPoints() - spell.damage(), contestants.boss().stats()));
+
+                case RECHARGE -> new Contestants( //
+                        new Fighter(contestants.player().hitPoints(), //
+                                new Stats(contestants.player().stats().damage(), contestants.player().stats().armor(),
+                                        contestants.player().stats().mana() + spell.recharge())), //
+                        contestants.boss());
+
+                case MAGIC_MISSILE, DRAIN, SHIELD -> contestants;
+                };
+
                 if (spell.timer() <= 0) {
                     it.remove();
-                    contestants = spell.onFade(contestants);
+                    contestants = switch (spell.type()) {
+                    case SHIELD -> new Contestants( //
+                            new Fighter(contestants.player().hitPoints(), //
+                                    new Stats(contestants.player().stats().damage(),
+                                            contestants.player().stats().armor() - spell.armor(),
+                                            contestants.player().stats().mana())), //
+                            contestants.boss());
+
+                    case MAGIC_MISSILE, DRAIN, POISON, RECHARGE -> contestants;
+                    };
                 }
             }
 
@@ -91,12 +114,45 @@ public class Battle {
                 if (!game.isEmpty()) {
                     Spell spell = game.remove(0);
 
+                    if (contestants.player().stats().mana() < spell.cost()) {
+                        return new GameResult(FightResult.BOSS_WINS, contestants);
+                    }
+
                     if (activeSpells.stream().anyMatch(s -> s.type() == spell.type())) {
                         return new GameResult(FightResult.INVALID, contestants);
                     }
 
-                    activeSpells.add(spell);
-                    contestants = spell.onCast(contestants);
+                    contestants = switch (spell.type()) {
+                    case MAGIC_MISSILE -> new Contestants( //
+                            contestants.player(), //
+                            new Fighter(contestants.boss().hitPoints() - spell.damage(), contestants.boss().stats()));
+
+                    case DRAIN -> new Contestants( //
+                            new Fighter(contestants.player().hitPoints() + spell.heal(), contestants.player().stats()), //
+                            new Fighter(contestants.boss().hitPoints() - spell.damage(), contestants.boss().stats()));
+
+                    case SHIELD -> {
+                        activeSpells.add(spell);
+                        yield new Contestants( //
+                                new Fighter(contestants.player().hitPoints(), //
+                                        new Stats(contestants.player().stats().damage(),
+                                                contestants.player().stats().armor() + spell.armor(),
+                                                contestants.player().stats().mana())), //
+                                contestants.boss());
+                    }
+
+                    case POISON, RECHARGE -> {
+                        activeSpells.add(spell);
+                        yield contestants;
+                    }
+                    };
+
+                    contestants = new Contestants( //
+                            new Fighter(contestants.player().hitPoints(), //
+                            new Stats(contestants.player().stats().damage(),
+                                    contestants.player().stats().armor(),
+                                    contestants.player().stats().mana() - spell.cost())), //
+                            contestants.boss());
                 }
             } else {
                 // boss turn
@@ -113,8 +169,6 @@ public class Battle {
                 return new GameResult(FightResult.PLAYER_WINS, contestants);
             }
         }
-
-        return new GameResult(FightResult.INVALID, contestants);
     }
 
     private static boolean isValidGame(List<Spell> game, int minMana, Fighter boss, int initialPlayerMana) {
