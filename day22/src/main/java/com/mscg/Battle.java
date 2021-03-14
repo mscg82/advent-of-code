@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
@@ -59,7 +60,7 @@ public class Battle {
             if (hardMode) {
                 if (i % 2 == 0) {
                     // player turn
-                    contestants = new Contestants(contestants.player().damage(1), contestants.boss());
+                    contestants = contestants.onPlayer(p -> p.damage(1));
 
                     if (contestants.player().hitPoints() <= 0) {
                         return new GameResult(FightResult.BOSS_WINS, contestants);
@@ -72,13 +73,9 @@ public class Battle {
                 it.set(spell);
 
                 contestants = switch (spell.type()) {
-                case POISON -> new Contestants( //
-                        contestants.player(), //
-                        contestants.boss().damage(spell.damage()));
+                case POISON -> contestants.onBoss(b -> b.damage(spell.damage()));
 
-                case RECHARGE -> new Contestants( //
-                        contestants.player().recharge(spell.recharge()), //
-                        contestants.boss());
+                case RECHARGE -> contestants.onPlayer(p -> p.recharge(spell.recharge()));
 
                 case MAGIC_MISSILE, DRAIN, SHIELD -> contestants;
                 };
@@ -86,9 +83,7 @@ public class Battle {
                 if (spell.timer() <= 0) {
                     it.remove();
                     contestants = switch (spell.type()) {
-                    case SHIELD -> new Contestants( //
-                            contestants.player().shield(-spell.armor()), //
-                            contestants.boss());
+                    case SHIELD -> contestants.onPlayer(p -> p.shield(-spell.armor()));
 
                     case MAGIC_MISSILE, DRAIN, POISON, RECHARGE -> contestants;
                     };
@@ -107,6 +102,7 @@ public class Battle {
                 if (game.isEmpty()) {
                     return new GameResult(FightResult.INVALID, contestants);
                 }
+
                 Spell spell = game.remove(0);
 
                 if (contestants.player().stats().mana() < spell.cost()) {
@@ -118,19 +114,13 @@ public class Battle {
                 }
 
                 contestants = switch (spell.type()) {
-                case MAGIC_MISSILE -> new Contestants( //
-                        contestants.player(), //
-                        contestants.boss().damage(spell.damage()));
+                case MAGIC_MISSILE -> contestants.onBoss(b -> b.damage(spell.damage()));
 
-                case DRAIN -> new Contestants( //
-                        contestants.player().heal(spell.heal()), //
-                        contestants.boss().damage(spell.damage()));
+                case DRAIN -> contestants.onBoth(p -> p.heal(spell.heal()), b -> b.damage(spell.damage()));
 
                 case SHIELD -> {
                     activeSpells.add(spell);
-                    yield new Contestants( //
-                            contestants.player().shield(spell.armor()), //
-                            contestants.boss());
+                    yield contestants.onPlayer(p -> p.shield(spell.armor()));
                 }
 
                 case POISON, RECHARGE -> {
@@ -139,15 +129,11 @@ public class Battle {
                 }
                 };
 
-                contestants = new Contestants( //
-                        contestants.player().discharge(spell.cost()), //
-                        contestants.boss());
+                contestants = contestants.onPlayer(p -> p.discharge(spell.cost()));
             } else {
                 // boss turn
                 int damage = contestants.boss().stats().damage() - contestants.player().stats().armor();
-                contestants = new Contestants( //
-                        contestants.player().damage(Math.max(1, damage)), //
-                        contestants.boss());
+                contestants = contestants.onPlayer(p -> p.damage(Math.max(1, damage)));
             }
 
             if (contestants.player().hitPoints() <= 0 || contestants.player().stats().mana() <= 0) {
@@ -262,6 +248,19 @@ public class Battle {
     }
 
     public static record Contestants(Fighter player, Fighter boss) {
+
+        public Contestants onPlayer(UnaryOperator<Fighter> op) {
+            return new Contestants(op.apply(player), boss);
+        }
+
+        public Contestants onBoss(UnaryOperator<Fighter> op) {
+            return new Contestants(player, op.apply(boss));
+        }
+
+        public Contestants onBoth(UnaryOperator<Fighter> playerOp, UnaryOperator<Fighter> bossOp) {
+            return new Contestants(playerOp.apply(player), bossOp.apply(boss));
+        }
+
     }
 
     public static record GameResult(FightResult result, Contestants contestants) {
