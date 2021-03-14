@@ -22,24 +22,20 @@ public class Battle {
 
     private final Fighter boss;
 
-    public List<Spell> findGameWithMinimalMana(int turns, boolean hardMode) {
-        int minMana = Integer.MAX_VALUE;
-        List<Spell> result = null;
+    public Game findGameWithMinimalMana(int turns, boolean hardMode) {
+        long minMana = Long.MAX_VALUE;
+        Game result = null;
         for (var it = generateAllGames(turns).iterator(); it.hasNext();) {
-            List<Spell> game = it.next();
-            if (!isValidGame(game, minMana, this.boss, INITIAL_PLAYER_INFO.stats().mana())) {
+            Game game = it.next();
+            if (game.totalMana() >= minMana) {
                 continue;
             }
 
-            var gameResult = playGame(new ArrayList<>(game), hardMode);
+            var gameResult = playGame(game, hardMode);
             if (gameResult.result() == FightResult.PLAYER_WINS) {
-                int totalMana = game.stream() //
-                        .mapToInt(Spell::cost) //
-                        .sum();
-                if (totalMana < minMana) {
-                    minMana = totalMana;
-                    result = game;
-                }
+                long totalMana = game.totalMana();
+                minMana = totalMana;
+                result = game;
             }
         }
 
@@ -48,6 +44,10 @@ public class Battle {
         }
 
         return result;
+    }
+
+    public GameResult playGame(Game game, boolean hardMode) {
+        return playGame(new ArrayList<>(game.spells()), hardMode);
     }
 
     public GameResult playGame(List<Spell> game, boolean hardMode) {
@@ -161,24 +161,13 @@ public class Battle {
         return new GameResult(FightResult.INVALID, contestants);
     }
 
-    private static boolean isValidGame(List<Spell> game, int minMana, Fighter boss, int initialPlayerMana) {
-        int totalMana = game.stream() //
-                .mapToInt(Spell::cost) //
-                .sum();
-        if (totalMana >= minMana) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public static Stream<List<Spell>> generateAllGames(int turns) {
+    public static Stream<Game> generateAllGames(int turns) {
         return IntStream.rangeClosed(1, turns) //
                 .mapToObj(Battle::generateAllGamesWithLength) //
                 .flatMap(s -> s);
     }
 
-    private static Stream<List<Spell>> generateAllGamesWithLength(int turns) {
+    private static Stream<Game> generateAllGamesWithLength(int turns) {
         int spellsNumber = SpellShop.getSpells().size();
         return LongStream.range(0L, pow(spellsNumber, turns)) //
                 .mapToObj(l -> Long.toString(l, spellsNumber)) //
@@ -194,7 +183,8 @@ public class Battle {
                             .map(i -> s.charAt(i) - '0') //
                             .mapToObj(SpellShop.getSpells()::get) //
                             .collect(Collectors.toUnmodifiableList());
-                });
+                }) //
+                .map(Game::new);
     }
 
     private static long pow(long base, int pow) {
@@ -245,6 +235,14 @@ public class Battle {
 
         public Fighter discharge(int mana) {
             return new Fighter(hitPoints, stats.recharge(-mana));
+        }
+    }
+
+    public static record Game(List<Spell> spells) {
+        public long totalMana() {
+            return spells.stream() //
+                    .mapToLong(Spell::cost) //
+                    .sum();
         }
     }
 
