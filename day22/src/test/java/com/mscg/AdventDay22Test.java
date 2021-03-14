@@ -107,8 +107,8 @@ public class AdventDay22Test {
 
         GameResult result = battle.playGame(game, true);
         Assertions.assertEquals(FightResult.INVALID, result.result());
-        Assertions.assertEquals(17, result.contestants().player().hitPoints());
-        Assertions.assertEquals(15, result.contestants().boss().hitPoints());
+        Assertions.assertEquals(14, result.contestants().player().hitPoints());
+        Assertions.assertEquals(9, result.contestants().boss().hitPoints());
     }
 
     @Test
@@ -134,6 +134,30 @@ public class AdventDay22Test {
         Assertions.assertEquals(FightResult.PLAYER_WINS, result.result());
         Assertions.assertEquals(1, result.contestants().player().hitPoints());
         Assertions.assertEquals(-1, result.contestants().boss().hitPoints());
+    }
+
+    @Test
+    public void testPlay4() {
+        var battle = new Battle(new Fighter(51, new Stats(9, 0, 0)));
+
+        Map<SpellType, Spell> spells = SpellShop.getSpells().stream() //
+                .collect(Collectors.toMap(Spell::type, s -> s));
+
+        List<Spell> game = new ArrayList<>(List.of( //
+                spells.get(SpellType.POISON), //
+                spells.get(SpellType.RECHARGE), //
+                spells.get(SpellType.SHIELD), //
+                spells.get(SpellType.POISON), //
+                spells.get(SpellType.RECHARGE), //
+                spells.get(SpellType.DRAIN), //
+                spells.get(SpellType.POISON), //
+                spells.get(SpellType.MAGIC_MISSILE) //
+        ));
+
+        GameResult result = battle.playGame(game, true);
+        Assertions.assertEquals(FightResult.PLAYER_WINS, result.result());
+        Assertions.assertEquals(2, result.contestants().player().hitPoints());
+        Assertions.assertEquals(0, result.contestants().boss().hitPoints());
     }
 
 }

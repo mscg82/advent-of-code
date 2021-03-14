@@ -30,7 +30,7 @@ public class AdventDay22 {
     private static void part2() throws Exception {
         try (BufferedReader in = readInput()) {
             var battle = Battle.parseInput(readInput());
-            Game gameWithMinimalMana = battle.findGameWithMinimalMana(10, true);
+            Game gameWithMinimalMana = battle.findGameWithMinimalMana(8, true);
 
             System.out.println("Part 2 - Spells %s Answer %d".formatted(
                     gameWithMinimalMana.spells().stream().map(Spell::type).collect(Collectors.toUnmodifiableList()),

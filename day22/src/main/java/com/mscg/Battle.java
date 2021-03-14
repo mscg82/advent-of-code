@@ -56,7 +56,7 @@ public class Battle {
 
         List<Spell> activeSpells = new ArrayList<>(game.size());
 
-        for (int i = 0; !game.isEmpty(); i++) {
+        for (int i = 0; !game.isEmpty() || !activeSpells.isEmpty(); i++) {
             if (hardMode) {
                 if (i % 2 == 0) {
                     // player turn
