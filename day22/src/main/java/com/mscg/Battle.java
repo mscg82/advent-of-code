@@ -27,7 +27,7 @@ public class Battle {
         Game result = null;
         for (var it = generateAllGames(turns).iterator(); it.hasNext();) {
             Game game = it.next();
-            if (game.totalMana() >= minMana) {
+            if (isGameInvalid(game, minMana, this.boss)) {
                 continue;
             }
 
@@ -104,43 +104,44 @@ public class Battle {
 
             if (i % 2 == 0) {
                 // player turn
-                if (!game.isEmpty()) {
-                    Spell spell = game.remove(0);
+                if (game.isEmpty()) {
+                    return new GameResult(FightResult.INVALID, contestants);
+                }
+                Spell spell = game.remove(0);
 
-                    if (contestants.player().stats().mana() < spell.cost()) {
-                        return new GameResult(FightResult.BOSS_WINS, contestants);
-                    }
+                if (contestants.player().stats().mana() < spell.cost()) {
+                    return new GameResult(FightResult.BOSS_WINS, contestants);
+                }
 
-                    if (activeSpells.stream().anyMatch(s -> s.type() == spell.type())) {
-                        return new GameResult(FightResult.INVALID, contestants);
-                    }
+                if (activeSpells.stream().anyMatch(s -> s.type() == spell.type())) {
+                    return new GameResult(FightResult.INVALID, contestants);
+                }
 
-                    contestants = switch (spell.type()) {
-                    case MAGIC_MISSILE -> new Contestants( //
-                            contestants.player(), //
-                            contestants.boss().damage(spell.damage()));
+                contestants = switch (spell.type()) {
+                case MAGIC_MISSILE -> new Contestants( //
+                        contestants.player(), //
+                        contestants.boss().damage(spell.damage()));
 
-                    case DRAIN -> new Contestants( //
-                            contestants.player().heal(spell.heal()), //
-                            contestants.boss().damage(spell.damage()));
+                case DRAIN -> new Contestants( //
+                        contestants.player().heal(spell.heal()), //
+                        contestants.boss().damage(spell.damage()));
 
-                    case SHIELD -> {
-                        activeSpells.add(spell);
-                        yield new Contestants( //
-                                contestants.player().shield(spell.armor()), //
-                                contestants.boss());
-                    }
-
-                    case POISON, RECHARGE -> {
-                        activeSpells.add(spell);
-                        yield contestants;
-                    }
-                    };
-
-                    contestants = new Contestants( //
-                            contestants.player().discharge(spell.cost()), //
+                case SHIELD -> {
+                    activeSpells.add(spell);
+                    yield new Contestants( //
+                            contestants.player().shield(spell.armor()), //
                             contestants.boss());
                 }
+
+                case POISON, RECHARGE -> {
+                    activeSpells.add(spell);
+                    yield contestants;
+                }
+                };
+
+                contestants = new Contestants( //
+                        contestants.player().discharge(spell.cost()), //
+                        contestants.boss());
             } else {
                 // boss turn
                 int damage = contestants.boss().stats().damage() - contestants.player().stats().armor();
@@ -153,12 +154,26 @@ public class Battle {
                 return new GameResult(FightResult.BOSS_WINS, contestants);
             }
             if (contestants.boss().hitPoints() <= 0) {
-                return new GameResult(game.isEmpty() ? FightResult.PLAYER_WINS : FightResult.INVALID, //
-                        contestants);
+                return new GameResult(FightResult.PLAYER_WINS, contestants);
             }
         }
 
         return new GameResult(FightResult.INVALID, contestants);
+    }
+
+    private static boolean isGameInvalid(Game game, long minMana, Fighter boss) {
+        if (game.totalMana() >= minMana) {
+            return true;
+        }
+
+        int totalDamage = game.spells().stream() //
+                .mapToInt(spell -> spell.damage() * Math.max(1, spell.timer())) //
+                .sum();
+        if (totalDamage < boss.hitPoints()) {
+            return true;
+        }
+
+        return false;
     }
 
     public static Stream<Game> generateAllGames(int turns) {
