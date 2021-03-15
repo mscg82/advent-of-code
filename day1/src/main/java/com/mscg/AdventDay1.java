@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
+import com.mscg.CityMap.Intersection;
+
 public class AdventDay1 {
-    
+
     public static void main(String[] args) throws Exception {
         part1();
         part2();
@@ -14,13 +16,17 @@ public class AdventDay1 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 1 - Answer %d".formatted(0));
+            var cityMap = CityMap.parseInput(readInput());
+            var finalPosition = cityMap.run();
+            System.out.println("Part 1 - Answer %d".formatted(finalPosition.intersection().distance()));
         }
     }
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 2 - Answer %d".formatted(0));
+            var cityMap = CityMap.parseInput(readInput());
+            Intersection hq = cityMap.findHQ().orElseThrow();
+            System.out.println("Part 2 - Answer %d".formatted(hq.distance()));
         }
     }
 
