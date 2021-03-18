@@ -21,7 +21,8 @@ public class AdventDay5 {
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 2 - Answer %d".formatted(0));
+            var keycodeDecrypter = KeycodeDecrypter.parseInput(readInput());
+            System.out.println("Part 2 - Answer %s".formatted(keycodeDecrypter.findPassword2()));
         }
     }
 
