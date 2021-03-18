@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 public class AdventDay4 {
-    
+
     public static void main(String[] args) throws Exception {
         part1();
         part2();
@@ -14,13 +14,21 @@ public class AdventDay4 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 1 - Answer %d".formatted(0));
+            var roomList = RoomList.parseInput(readInput());
+
+            System.out.println("Part 1 - Answer %d".formatted(roomList.validSectorsSum()));
         }
     }
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 2 - Answer %d".formatted(0));
+            var roomList = RoomList.parseInput(readInput());
+            var northPoleRoom = roomList.findValidRooms().stream() //
+                    .filter(room -> room.decodeName().contains("north")) //
+                    .findFirst() //
+                    .orElseThrow();
+
+            System.out.println("Part 2 - Answer %d".formatted(northPoleRoom.sector()));
         }
     }
 
