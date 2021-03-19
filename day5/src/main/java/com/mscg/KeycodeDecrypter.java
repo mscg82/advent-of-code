@@ -2,10 +2,16 @@ package com.mscg;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-import java.util.stream.LongStream;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
@@ -19,11 +25,34 @@ public class KeycodeDecrypter {
     private final String doorId;
 
     public String findPassword1() {
-        return LongStream.iterate(0L, l -> l +1) //
-                .mapToObj(l -> DigestUtils.md5Hex(doorId + l)) //
-                .filter(s -> "00000".equals(s.substring(0, 5))) //
-                .limit(8) //
-                .map(s -> String.valueOf(s.charAt(5))) //
+        var generator = new AtomicLong(0);
+        var results = new ConcurrentHashMap<Long, Character>();
+        int maxThreads = 6;
+        ExecutorService executor = Executors.newFixedThreadPool(maxThreads);
+        Runnable r = () -> {
+            while (!Thread.interrupted()) {
+                long l = generator.getAndIncrement();
+                String hash = DigestUtils.md5Hex(doorId + l);
+                if ("00000".equals(hash.substring(0, 5))) {
+                    results.put(l, hash.charAt(5));
+                }
+                if (results.size() >= 8) {
+                    break;
+                }
+            }
+        };
+        for (int i = 0; i < maxThreads; i++) {
+            executor.submit(r);
+        }
+        executor.shutdown();
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return results.entrySet().stream() //
+                .sorted(Comparator.comparing(Entry::getKey)) //
+                .map(e -> e.getValue().toString()) //
                 .collect(Collectors.joining());
     }
 
