@@ -14,14 +14,14 @@ public class AdventDay5 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            var keycodeDecrypter = KeycodeDecrypter.parseInput(readInput());
+            var keycodeDecrypter = KeycodeDecrypter.parseInput(in);
             System.out.println("Part 1 - Answer %s".formatted(keycodeDecrypter.findPassword1()));
         }
     }
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            var keycodeDecrypter = KeycodeDecrypter.parseInput(readInput());
+            var keycodeDecrypter = KeycodeDecrypter.parseInput(in);
             System.out.println("Part 2 - Answer %s".formatted(keycodeDecrypter.findPassword2()));
         }
     }

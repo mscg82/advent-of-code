@@ -57,11 +57,15 @@ public class KeycodeDecrypter {
     }
 
     public String findPassword2() {
-        Map<Integer, Character> password = new TreeMap<>();
-        
-        for (long l = 0; true; l++) {
-            String hash = DigestUtils.md5Hex(doorId + l);
-            if ("00000".equals(hash.substring(0, 5))) {
+        var generator = new AtomicLong(0);
+        var results = new ConcurrentHashMap<Integer, Character>();
+        int maxThreads = 6;
+        ExecutorService executor = Executors.newFixedThreadPool(maxThreads);
+        Runnable r = () -> {
+            while (!Thread.interrupted()) {
+                long l = generator.getAndIncrement();
+                String hash = DigestUtils.md5Hex(doorId + l);
+                if ("00000".equals(hash.substring(0, 5))) {
                 int position = switch (hash.charAt(5)) {
                     case '0' -> 0;
                     case '1' -> 1;
@@ -71,20 +75,30 @@ public class KeycodeDecrypter {
                     case '5' -> 5;
                     case '6' -> 6;
                     case '7' -> 7;
-                    default -> {
-                        continue;
-                    }
+                    default -> -1;
                 };
-                password.computeIfAbsent(position, __ -> hash.charAt(6));
+                if (position == -1) {
+                    continue;
+                }
+                results.computeIfAbsent(position, __ -> hash.charAt(6));
+                }
+                if (results.size() >= 8) {
+                    break;
+                }
             }
-
-            if (password.size() == 8) {
-                break;
-            }
+        };
+        for (int i = 0; i < maxThreads; i++) {
+            executor.submit(r);
         }
-
-        return password.values().stream() //
-                .map(String::valueOf) //
+        executor.shutdown();
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return results.entrySet().stream() //
+                .sorted(Comparator.comparing(Entry::getKey)) //
+                .map(e -> e.getValue().toString()) //
                 .collect(Collectors.joining());
     }
 
