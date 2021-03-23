@@ -16,7 +16,7 @@ public class AdventDay1 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            var cityMap = CityMap.parseInput(readInput());
+            var cityMap = CityMap.parseInput(in);
             var finalPosition = cityMap.run();
             System.out.println("Part 1 - Answer %d".formatted(finalPosition.intersection().distance()));
         }
@@ -24,7 +24,7 @@ public class AdventDay1 {
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            var cityMap = CityMap.parseInput(readInput());
+            var cityMap = CityMap.parseInput(in);
             Intersection hq = cityMap.findHQ().orElseThrow();
             System.out.println("Part 2 - Answer %d".formatted(hq.distance()));
         }

@@ -14,7 +14,7 @@ public class AdventDay4 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            var roomList = RoomList.parseInput(readInput());
+            var roomList = RoomList.parseInput(in);
 
             System.out.println("Part 1 - Answer %d".formatted(roomList.validSectorsSum()));
         }
@@ -22,7 +22,7 @@ public class AdventDay4 {
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            var roomList = RoomList.parseInput(readInput());
+            var roomList = RoomList.parseInput(in);
             var northPoleRoom = roomList.findValidRooms().stream() //
                     .filter(room -> room.decodeName().contains("north")) //
                     .findFirst() //
