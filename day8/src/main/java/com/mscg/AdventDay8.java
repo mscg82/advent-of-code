@@ -14,7 +14,9 @@ public class AdventDay8 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 1 - Answer %d".formatted(0));
+            var screen = Screen.parseInput(6, 50, in);
+            screen.run();
+            System.out.println("Part 1 - Answer %d".formatted(screen.countActivePixels()));
         }
     }
 
