@@ -24,7 +24,7 @@ public class AdventDay8 {
         try (BufferedReader in = readInput()) {
             var screen = Screen.parseInput(6, 50, in);
             screen.run();
-            System.out.println("Part 2 - Answer %n%s".formatted(screen));
+            System.out.println("Part 2 - Answer %n%s".formatted(screen.toString().replace(".", " ")));
         }
     }
 
