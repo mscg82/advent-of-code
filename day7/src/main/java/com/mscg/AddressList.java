@@ -20,6 +20,11 @@ public class AddressList {
                 .filter(Address::hasTLS) //
                 .count();
     }
+    public long countSSLAddresses() {
+        return addresses.stream() //
+                .filter(Address::hasSSL) //
+                .count();
+    }
 
     public static AddressList parseInput(BufferedReader in) throws IOException {
         List<Address> addresses = in.lines() //
@@ -59,6 +64,32 @@ public class AddressList {
                     && simpleParts.stream().anyMatch(AddressList::hasABBASequence);
         }
 
+        public boolean hasSSL() {
+            List<String> abas = new ArrayList<>();
+            for (String part : simpleParts) {
+                findABASequences(part, abas);
+            }
+            if (!abas.isEmpty()) {
+                List<String> babs = abas.stream() //
+                        .map(aba -> new String(new char[] { aba.charAt(1), aba.charAt(0), aba.charAt(1) } )) //
+                        .collect(Collectors.toUnmodifiableList());
+                return hypernets.stream() //
+                        .anyMatch(hypernet -> babs.stream().anyMatch(bab -> hypernet.contains(bab)));
+            }
+            return false;
+        }
+
+    }
+
+    private static void findABASequences(String string, List<String> abas) {
+        for (int i = 0, l = string.length(); i < l - 2; i++) {
+            char c1 = string.charAt(i);
+            char c2 = string.charAt(i + 1);
+            char c3 = string.charAt(i + 2);
+            if (c1 == c3 && c1 != c2) {
+                abas.add(string.substring(i, i + 3));
+            }
+        }
     }
 
     private static boolean hasABBASequence(String string) {
