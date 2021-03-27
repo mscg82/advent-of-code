@@ -22,7 +22,9 @@ public class AdventDay8 {
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 2 - Answer %d".formatted(0));
+            var screen = Screen.parseInput(6, 50, in);
+            screen.run();
+            System.out.println("Part 2 - Answer %n%s".formatted(screen));
         }
     }
 
