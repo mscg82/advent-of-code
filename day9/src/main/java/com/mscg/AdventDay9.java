@@ -14,7 +14,8 @@ public class AdventDay9 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 1 - Answer %d".formatted(0));
+            var unzipped = Unzipper.unzip(in);
+            System.out.println("Part 1 - Answer %d".formatted(Unzipper.countNonEmptyChars(unzipped)));
         }
     }
 
