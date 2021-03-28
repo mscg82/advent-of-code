@@ -20,6 +20,81 @@ public class Unzipper {
         return unzip(in.lines().collect(Collectors.joining()));
     }
 
+    public static CharSequence unzipRecursive(BufferedReader in) {
+        return unzipRecursive(in.lines().collect(Collectors.joining()));
+    }
+
+    public static long countUnzipRecursive(BufferedReader in) {
+        return countUnzipRecursive(in.lines().collect(Collectors.joining()));
+    }
+
+    public static CharSequence unzipRecursive(CharSequence input) {
+        StringBuilder result = new StringBuilder(input.length());
+        for (int i = 0, l = input.length(); i < l; i++) {
+            char c = input.charAt(i);
+            if (c != '(') {
+                result.append(c);
+            } else {
+                StringBuilder markerLength = new StringBuilder();
+                StringBuilder markerRepetition = new StringBuilder();
+                StringBuilder marker = markerLength;
+                for (int j = i + 1; j < l; j++) {
+                    char mc = input.charAt(j);
+                    if (mc == ')') {
+                        i = j + 1;
+                        break;
+                    }
+                    if (mc == 'x') {
+                        marker = markerRepetition;
+                        continue;
+                    }
+                    marker.append(mc);
+                }
+                int length = Integer.parseInt(markerLength.toString());
+                int repetition = Integer.parseInt(markerRepetition.toString());
+                CharSequence token = input.subSequence(i, i + length);
+                CharSequence unzipped = unzipRecursive(token);
+                IntStream.range(0, repetition).forEach(__ -> result.append(unzipped));
+                i += (length - 1);
+            }
+        }
+        return result;
+    }
+
+    public static long countUnzipRecursive(CharSequence input) {
+        long result = 0L;
+        for (int i = 0, l = input.length(); i < l; i++) {
+            char c = input.charAt(i);
+            if (c != '(') {
+                if (!Character.isWhitespace(c)) {
+                    result++;
+                }
+            } else {
+                StringBuilder markerLength = new StringBuilder();
+                StringBuilder markerRepetition = new StringBuilder();
+                StringBuilder marker = markerLength;
+                for (int j = i + 1; j < l; j++) {
+                    char mc = input.charAt(j);
+                    if (mc == ')') {
+                        i = j + 1;
+                        break;
+                    }
+                    if (mc == 'x') {
+                        marker = markerRepetition;
+                        continue;
+                    }
+                    marker.append(mc);
+                }
+                int length = Integer.parseInt(markerLength.toString());
+                int repetition = Integer.parseInt(markerRepetition.toString());
+                CharSequence token = input.subSequence(i, i + length);
+                result += repetition * countUnzipRecursive(token);
+                i += (length - 1);
+            }
+        }
+        return result;
+    }
+
     public static CharSequence unzip(CharSequence input) {
         StringBuilder result = new StringBuilder(input.length());
         for (int i = 0, l = input.length(); i < l; i++) {

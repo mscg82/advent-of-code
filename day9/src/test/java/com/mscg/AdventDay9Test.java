@@ -15,4 +15,20 @@ public class AdventDay9Test {
         Assertions.assertEquals("X(3x3)ABC(3x3)ABCY", Unzipper.unzip("X(8x2)(3x3)ABCY").toString());
     }
 
+    @Test
+    public void testUnzipRecursive() {
+        Assertions.assertEquals("XYZXYZXYZ", Unzipper.unzipRecursive("(3x3)XYZ").toString());
+        Assertions.assertEquals("XABCABCABCABCABCABCY", Unzipper.unzipRecursive("X(8x2)(3x3)ABCY").toString());
+        Assertions.assertEquals(241920, Unzipper.unzipRecursive("(27x12)(20x12)(13x14)(7x10)(1x12)A").length());
+        Assertions.assertEquals(445, Unzipper.unzipRecursive("(25x3)(3x3)ABC(2x3)XY(5x2)PQRSTX(18x9)(3x2)TWO(5x7)SEVEN").length());
+    }
+
+    @Test
+    public void testCountUnzipRecursive() {
+        Assertions.assertEquals(9L, Unzipper.countUnzipRecursive("(3x3)XYZ"));
+        Assertions.assertEquals(20L, Unzipper.countUnzipRecursive("X(8x2)(3x3)ABCY"));
+        Assertions.assertEquals(241920L, Unzipper.countUnzipRecursive("(27x12)(20x12)(13x14)(7x10)(1x12)A"));
+        Assertions.assertEquals(445L, Unzipper.countUnzipRecursive("(25x3)(3x3)ABC(2x3)XY(5x2)PQRSTX(18x9)(3x2)TWO(5x7)SEVEN"));
+    }
+
 }

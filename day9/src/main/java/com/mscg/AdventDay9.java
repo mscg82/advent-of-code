@@ -21,7 +21,7 @@ public class AdventDay9 {
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 2 - Answer %d".formatted(0));
+            System.out.println("Part 2 - Answer %d".formatted(Unzipper.countUnzipRecursive(in)));
         }
     }
 
