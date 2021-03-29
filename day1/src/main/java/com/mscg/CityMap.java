@@ -1,5 +1,9 @@
 package com.mscg;
 
+import static com.mscg.CityMapInstructionBuilder.Instruction;
+import static com.mscg.CityMapIntersectionBuilder.Intersection;
+import static com.mscg.CityMapPositionBuilder.Position;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Arrays;
@@ -10,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import io.soabase.recordbuilder.core.RecordBuilder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +25,7 @@ public class CityMap {
     private final List<Instruction> instructions;
 
     public Position run() {
-        var position = new Position(Intersection.origin(), Facing.NORTH);
+        var position = Position(Intersection.origin(), Facing.NORTH);
         for (var instruction : instructions) {
             position = position.advance(instruction);
         }
@@ -29,7 +34,7 @@ public class CityMap {
 
     public Optional<Intersection> findHQ() {
         Set<Intersection> visitedIntersections = new HashSet<>();
-        var position = new Position(Intersection.origin(), Facing.NORTH);
+        var position = Position(Intersection.origin(), Facing.NORTH);
         visitedIntersections.add(position.intersection());
 
         for (var instruction : instructions) {
@@ -55,51 +60,54 @@ public class CityMap {
         return new CityMap(instructions);
     }
 
-    public static record Position(Intersection intersection, Facing facing) {
+    @RecordBuilder
+    public static record Position(Intersection intersection, Facing facing) implements CityMapPositionBuilder.With {
 
         public Position advance(Instruction instruction) {
             var newFacing = facing.rotate(instruction.direction());
             var newIntersection = switch (newFacing) {
-            case NORTH -> new Intersection(intersection.x() + instruction.amount(), intersection.y());
-            case EAST -> new Intersection(intersection.x(), intersection.y() + instruction.amount());
-            case SOUTH -> new Intersection(intersection.x() - instruction.amount(), intersection.y());
-            case WEST -> new Intersection(intersection.x(), intersection.y() - instruction.amount());
+            case NORTH -> intersection.withX(intersection.x() + instruction.amount());
+            case EAST -> intersection.withY(intersection.y() + instruction.amount());
+            case SOUTH -> intersection.withX(intersection.x() - instruction.amount());
+            case WEST -> intersection.withY(intersection.y() - instruction.amount());
             };
 
-            return new Position(newIntersection, newFacing);
+            return Position(newIntersection, newFacing);
         }
 
         public List<Position> advanceInSteps(Instruction instruction) {
             var newFacing = facing.rotate(instruction.direction());
             return IntStream.rangeClosed(1, instruction.amount()) //
                     .mapToObj(amount -> switch (newFacing) {
-                    case NORTH -> new Intersection(intersection.x() + amount, intersection.y());
-                    case EAST -> new Intersection(intersection.x(), intersection.y() + amount);
-                    case SOUTH -> new Intersection(intersection.x() - amount, intersection.y());
-                    case WEST -> new Intersection(intersection.x(), intersection.y() - amount);
+                    case NORTH -> intersection.withX(intersection.x() + amount);
+                    case EAST -> intersection.withY(intersection.y() + amount);
+                    case SOUTH -> intersection.withX(intersection.x() - amount);
+                    case WEST -> intersection.withY(intersection.y() - amount);
                     }) //
-                    .map(intersection -> new Position(intersection, newFacing)) //
+                    .map(intersection -> Position(intersection, newFacing)) //
                     .collect(Collectors.toUnmodifiableList());
         }
 
     }
 
-    public static record Intersection(int x, int y) {
+    @RecordBuilder
+    public static record Intersection(int x, int y) implements CityMapIntersectionBuilder.With {
 
         public int distance() {
             return Math.abs(x) + Math.abs(y);
         }
 
         public static Intersection origin() {
-            return new Intersection(0, 0);
+            return Intersection(0, 0);
         }
 
     }
 
-    public static record Instruction(Direction direction, int amount) {
+    @RecordBuilder
+    public static record Instruction(Direction direction, int amount) implements CityMapInstructionBuilder.With {
 
         public static Instruction parse(String value) {
-            return new Instruction(Direction.fromChar(value.charAt(0)), Integer.parseInt(value.substring(1)));
+            return Instruction(Direction.fromChar(value.charAt(0)), Integer.parseInt(value.substring(1)));
         }
 
     }
