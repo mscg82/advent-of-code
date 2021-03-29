@@ -1,5 +1,9 @@
 package com.mscg;
 
+import static com.mscg.ScreenRectBuilder.Rect;
+import static com.mscg.ScreenRotateRowBuilder.RotateRow;
+import static com.mscg.ScreenRotateColBuilder.RotateCol;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Arrays;
@@ -8,6 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import io.soabase.recordbuilder.core.RecordBuilder;
 import lombok.Getter;
 
 @Getter
@@ -55,11 +60,11 @@ public class Screen {
                 .map(line -> {
                     Matcher matcher;
                     if ((matcher = rectPattern.matcher(line)).matches()) {
-                        return new Rect(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
+                        return Rect(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
                     } else if ((matcher = rotateRowPattern.matcher(line)).matches()) {
-                        return new RotateRow(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
+                        return RotateRow(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
                     } else if ((matcher = rotateColPattern.matcher(line)).matches()) {
-                        return new RotateCol(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
+                        return RotateCol(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
                     } else {
                         throw new IllegalArgumentException("Unsupported instruction " + line);
                     }
@@ -72,7 +77,8 @@ public class Screen {
         void executeOnScreen(Pixel[][] screen);
     }
 
-    public static record Rect(int width, int height) implements Instruction {
+    @RecordBuilder
+    public static record Rect(int width, int height) implements Instruction, ScreenRectBuilder.With {
         @Override
         public void executeOnScreen(Pixel[][] screen) {
             for (int i = 0; i < height; i++) {
@@ -83,7 +89,8 @@ public class Screen {
         }
     }
 
-    public static record RotateRow(int row, int amount) implements Instruction {
+    @RecordBuilder
+    public static record RotateRow(int row, int amount) implements Instruction, ScreenRotateRowBuilder.With {
         @Override
         public void executeOnScreen(Pixel[][] screen) {
             Pixel[] row = screen[this.row];
@@ -95,7 +102,8 @@ public class Screen {
         }
     }
 
-    public static record RotateCol(int col, int amount) implements Instruction {
+    @RecordBuilder
+    public static record RotateCol(int col, int amount) implements Instruction, ScreenRotateColBuilder.With {
         @Override
         public void executeOnScreen(Pixel[][] screen) {
             int rows = screen.length;

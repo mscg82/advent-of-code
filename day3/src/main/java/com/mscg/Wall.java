@@ -1,5 +1,7 @@
 package com.mscg;
 
+import static com.mscg.WallTriangleBuilder.Triangle;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,6 +11,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.soabase.recordbuilder.core.RecordBuilder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -30,7 +33,7 @@ public class Wall {
         List<Triangle> triangles = in.lines() //
                 .map(PATTERN::matcher) //
                 .filter(Matcher::find) //
-                .map(matcher -> new Triangle(Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(4)),
+                .map(matcher -> Triangle(Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(4)),
                         Integer.parseInt(matcher.group(6)))) //
                 .collect(Collectors.toUnmodifiableList());
 
@@ -47,15 +50,16 @@ public class Wall {
                 .toArray();
         List<Triangle> triangles = new ArrayList<>(values.length / 3);
         for (int i = 0; i < values.length; i += 9) {
-            triangles.add(new Triangle(values[i], values[i + 3], values[i + 6]));
-            triangles.add(new Triangle(values[i + 1], values[i + 4], values[i + 7]));
-            triangles.add(new Triangle(values[i + 2], values[i + 5], values[i + 8]));
+            triangles.add(Triangle(values[i], values[i + 3], values[i + 6]));
+            triangles.add(Triangle(values[i + 1], values[i + 4], values[i + 7]));
+            triangles.add(Triangle(values[i + 2], values[i + 5], values[i + 8]));
         }
 
         return new Wall(List.copyOf(triangles));
     }
 
-    public static record Triangle(int a, int b, int c) {
+    @RecordBuilder
+    public static record Triangle(int a, int b, int c) implements WallTriangleBuilder.With {
 
         public boolean isValid() {
             return (a + b > c) && (a + c > b) && (b + c > a);

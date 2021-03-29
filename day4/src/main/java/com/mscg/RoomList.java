@@ -1,5 +1,7 @@
 package com.mscg;
 
+import static com.mscg.RoomListRoomBuilder.Room;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Comparator;
@@ -11,6 +13,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import io.soabase.recordbuilder.core.RecordBuilder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -38,13 +41,14 @@ public class RoomList {
         List<Room> rooms = in.lines() //
                 .map(pattern::matcher) //
                 .filter(Matcher::find) //
-                .map(matcher -> new Room(matcher.group(1), Integer.parseInt(matcher.group(2)), matcher.group(3))) //
+                .map(matcher -> Room(matcher.group(1), Integer.parseInt(matcher.group(2)), matcher.group(3))) //
                 .collect(Collectors.toUnmodifiableList());
 
         return new RoomList(rooms);
     }
 
-    public static record Room(String name, int sector, String checksum) {
+    @RecordBuilder
+    public static record Room(String name, int sector, String checksum) implements RoomListRoomBuilder.With {
 
         public boolean isValid() {
             Map<Character, Long> frequency = IntStream.range(0, name.length()) //

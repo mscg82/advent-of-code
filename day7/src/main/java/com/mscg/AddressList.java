@@ -1,11 +1,14 @@
 package com.mscg;
 
+import static com.mscg.AddressListAddressBuilder.Address;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.soabase.recordbuilder.core.RecordBuilder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -51,13 +54,14 @@ public class AddressList {
                         simpleParts.add(part.toString());
                     }
 
-                    return new Address(List.copyOf(simpleParts), List.copyOf(hypernets));
+                    return Address(List.copyOf(simpleParts), List.copyOf(hypernets));
                 }) //
                 .collect(Collectors.toUnmodifiableList());
         return new AddressList(addresses);
     }
 
-    public static record Address(List<String> simpleParts, List<String> hypernets) {
+    @RecordBuilder
+    public static record Address(List<String> simpleParts, List<String> hypernets) implements AddressListAddressBuilder.With {
 
         public boolean hasTLS() {
             return hypernets.stream().noneMatch(AddressList::hasABBASequence)
