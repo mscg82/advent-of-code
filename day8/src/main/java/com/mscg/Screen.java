@@ -73,7 +73,7 @@ public class Screen {
         return new Screen(rows, cols, instructions);
     }
 
-    public sealed interface Instruction {
+    public interface Instruction {
         void executeOnScreen(Pixel[][] screen);
     }
 
