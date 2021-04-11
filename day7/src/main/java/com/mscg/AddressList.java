@@ -6,7 +6,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import io.soabase.recordbuilder.core.RecordBuilder;
 import lombok.Getter;
@@ -23,6 +22,7 @@ public class AddressList {
                 .filter(Address::hasTLS) //
                 .count();
     }
+
     public long countSSLAddresses() {
         return addresses.stream() //
                 .filter(Address::hasSSL) //
@@ -34,7 +34,7 @@ public class AddressList {
                 .map(line -> {
                     List<String> simpleParts = new ArrayList<>();
                     List<String> hypernets = new ArrayList<>();
-                    
+
                     StringBuilder part = new StringBuilder();
                     for (int i = 0, l = line.length(); i < l; i++) {
                         char c = line.charAt(i);
@@ -56,7 +56,7 @@ public class AddressList {
 
                     return Address(List.copyOf(simpleParts), List.copyOf(hypernets));
                 }) //
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
         return new AddressList(addresses);
     }
 
@@ -75,8 +75,8 @@ public class AddressList {
             }
             if (!abas.isEmpty()) {
                 List<String> babs = abas.stream() //
-                        .map(aba -> new String(new char[] { aba.charAt(1), aba.charAt(0), aba.charAt(1) } )) //
-                        .collect(Collectors.toUnmodifiableList());
+                        .map(aba -> new String(new char[] { aba.charAt(1), aba.charAt(0), aba.charAt(1) })) //
+                        .toList();
                 return hypernets.stream() //
                         .anyMatch(hypernet -> babs.stream().anyMatch(bab -> hypernet.contains(bab)));
             }

@@ -6,7 +6,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public class Descrambler {
-    
+
     public final List<String> messages;
 
     public String clean1() {
@@ -24,6 +23,7 @@ public class Descrambler {
     public String clean2() {
         return clean(Comparator.comparingInt((Map.Entry<Character, Integer> e) -> e.getValue()));
     }
+
     private String clean(Comparator<Map.Entry<Character, Integer>> frequencySorter) {
         Map<Character, Integer> frequencyMap = new HashMap<>();
         int length = messages.get(0).length();
@@ -45,7 +45,7 @@ public class Descrambler {
 
     public static Descrambler parseInput(BufferedReader in) throws IOException {
         List<String> messages = in.lines() //
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
         return new Descrambler(messages);
     }
 }

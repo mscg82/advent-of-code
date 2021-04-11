@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.soabase.recordbuilder.core.RecordBuilder;
@@ -35,7 +34,7 @@ public class Wall {
                 .filter(Matcher::find) //
                 .map(matcher -> Triangle(Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(4)),
                         Integer.parseInt(matcher.group(6)))) //
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
 
         return new Wall(triangles);
     }

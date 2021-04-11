@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import io.soabase.recordbuilder.core.RecordBuilder;
@@ -55,7 +54,7 @@ public class CityMap {
                 .flatMap(line -> Arrays.stream(line.split(","))) //
                 .map(String::trim) //
                 .map(Instruction::parse) //
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
 
         return new CityMap(instructions);
     }
@@ -85,7 +84,7 @@ public class CityMap {
                     case WEST -> intersection.withY(intersection.y() - amount);
                     }) //
                     .map(intersection -> Position(intersection, newFacing)) //
-                    .collect(Collectors.toUnmodifiableList());
+                    .toList();
         }
 
     }

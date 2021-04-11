@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -137,8 +136,8 @@ public class Keypad {
         List<List<Direction>> instructions = in.lines() //
                 .map(line -> line.chars() //
                         .mapToObj(c -> Direction.fromChar((char) c)) //
-                        .collect(Collectors.toUnmodifiableList())) //
-                .collect(Collectors.toUnmodifiableList());
+                        .toList()) //
+                .toList();
 
         return new Keypad(instructions);
     }

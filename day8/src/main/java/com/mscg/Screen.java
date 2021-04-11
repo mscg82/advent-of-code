@@ -1,8 +1,8 @@
 package com.mscg;
 
 import static com.mscg.ScreenRectBuilder.Rect;
-import static com.mscg.ScreenRotateRowBuilder.RotateRow;
 import static com.mscg.ScreenRotateColBuilder.RotateCol;
+import static com.mscg.ScreenRotateRowBuilder.RotateRow;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,9 +19,9 @@ import lombok.Getter;
 public class Screen {
 
     private final Pixel[][] screen;
-    private final List<Instruction> instructions;
+    private final List<? extends Instruction> instructions;
 
-    public Screen(int rows, int cols, List<Instruction> instructions) {
+    public Screen(int rows, int cols, List<? extends Instruction> instructions) {
         this.screen = new Pixel[rows][cols];
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
@@ -56,7 +56,7 @@ public class Screen {
         var rotateRowPattern = Pattern.compile("rotate row y=(\\d+) by (\\d+)");
         var rotateColPattern = Pattern.compile("rotate column x=(\\d+) by (\\d+)");
 
-        List<Instruction> instructions = in.lines() //
+        List<? extends Instruction> instructions = in.lines() //
                 .map(line -> {
                     Matcher matcher;
                     if ((matcher = rectPattern.matcher(line)).matches()) {
@@ -69,7 +69,7 @@ public class Screen {
                         throw new IllegalArgumentException("Unsupported instruction " + line);
                     }
                 }) //
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
         return new Screen(rows, cols, instructions);
     }
 
@@ -127,8 +127,8 @@ public class Screen {
         @Override
         public String toString() {
             return switch (this) {
-            case ON -> "#";
-            case OFF -> ".";
+                case ON -> "#";
+                case OFF -> ".";
             };
         }
     }

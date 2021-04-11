@@ -26,7 +26,7 @@ public class RoomList {
     public List<Room> findValidRooms() {
         return rooms.stream() //
                 .filter(Room::isValid) //
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
     }
 
     public long validSectorsSum() {
@@ -42,7 +42,7 @@ public class RoomList {
                 .map(pattern::matcher) //
                 .filter(Matcher::find) //
                 .map(matcher -> Room(matcher.group(1), Integer.parseInt(matcher.group(2)), matcher.group(3))) //
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
 
         return new RoomList(rooms);
     }
@@ -71,8 +71,8 @@ public class RoomList {
             return IntStream.range(0, name.length()) //
                     .mapToObj(i -> name.charAt(i)) //
                     .mapToInt(c -> switch (c.charValue()) {
-                    case '-' -> (int) ' ';
-                    default -> (c.charValue() - 'a' + shift) % range + 'a';
+                        case '-' -> (int) ' ';
+                        default -> (c.charValue() - 'a' + shift) % range + 'a';
                     }) //
                     .mapToObj(c -> (char) c) //
                     .map(String::valueOf) //
