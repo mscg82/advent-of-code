@@ -27,7 +27,7 @@ public class AdventDay10Test {
                     MoveRule(1, Target(TargetType.OUTPUT, 1), Target(TargetType.BOT, 0)), //
                     MoveRule(0, Target(TargetType.OUTPUT, 2), Target(TargetType.OUTPUT, 0)), //
                     SetRule(2, 2) //
-                    ), chipFactory.getRules());
+            ), chipFactory.getRules());
         }
     }
 
@@ -42,7 +42,7 @@ public class AdventDay10Test {
                     0, 5, //
                     1, 2, //
                     2, 3 //
-                    ), chipFactory.getOutputs());
+            ), chipFactory.getOutputs());
         }
     }
 
@@ -56,6 +56,7 @@ public class AdventDay10Test {
             Assertions.assertEquals(2, index);
         }
     }
+
     private BufferedReader readInput() {
         return new BufferedReader(
                 new InputStreamReader(this.getClass().getResourceAsStream("/test-input.txt"), StandardCharsets.UTF_8));
