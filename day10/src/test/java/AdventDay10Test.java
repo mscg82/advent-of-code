@@ -10,8 +10,6 @@ import java.util.Map;
 
 import com.mscg.ChipFactory;
 import com.mscg.ChipFactory.TargetType;
-import com.mscg.ChipFactoryMoveRuleBuilder;
-import com.mscg.ChipFactoryTargetBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
