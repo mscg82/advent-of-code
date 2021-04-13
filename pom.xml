@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.mscg</groupId>
@@ -19,6 +19,7 @@
         <module>day10</module>
         <module>day11</module>
         <module>day12</module>
+        <module>day13</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -65,7 +66,7 @@
                 <version>3.8.1</version>
                 <configuration>
                     <release>${java.version}</release>
-<!--                    <compilerArgs>&#45;&#45;enable-preview</compilerArgs>-->
+                    <!--                    <compilerArgs>&#45;&#45;enable-preview</compilerArgs>-->
                     <annotationProcessorPaths>
                         <annotationProcessorPath>
                             <groupId>org.projectlombok</groupId>
@@ -85,7 +86,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.22.2</version>
                 <configuration>
-<!--                    <argLine>&#45;&#45;enable-preview</argLine>-->
+                    <!--                    <argLine>&#45;&#45;enable-preview</argLine>-->
                 </configuration>
             </plugin>
         </plugins>
