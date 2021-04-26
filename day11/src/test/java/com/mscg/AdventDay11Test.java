@@ -49,7 +49,7 @@ public class AdventDay11Test {
             Assertions.assertEquals(3, next2.size());
             final var nextRoom2_1 = next2.get(0);
             Assertions.assertEquals(Map.of( //
-                    Floor.FIRST, List.of(Component("lithium", ComponentType.CHIP), Component("hydrogen", ComponentType.CHIP)), //
+                    Floor.FIRST, List.of(Component("hydrogen", ComponentType.CHIP), Component("lithium", ComponentType.CHIP)), //
                     Floor.SECOND, List.of(Component("hydrogen", ComponentType.GENERATOR)), //
                     Floor.THIRD, List.of(Component("lithium", ComponentType.GENERATOR)), //
                     Floor.FOURTH, List.of() //
@@ -60,7 +60,7 @@ public class AdventDay11Test {
             Assertions.assertEquals(Map.of( //
                     Floor.FIRST, List.of(Component("lithium", ComponentType.CHIP)), //
                     Floor.SECOND, List.of(Component("hydrogen", ComponentType.CHIP)), //
-                    Floor.THIRD, List.of(Component("lithium", ComponentType.GENERATOR), Component("hydrogen", ComponentType.GENERATOR)), //
+                    Floor.THIRD, List.of(Component("hydrogen", ComponentType.GENERATOR), Component("lithium", ComponentType.GENERATOR)), //
                     Floor.FOURTH, List.of() //
             ), nextRoom2_2.floors());
             Assertions.assertEquals(Floor.THIRD, nextRoom2_2.elevatorPosition());
@@ -69,10 +69,21 @@ public class AdventDay11Test {
             Assertions.assertEquals(Map.of( //
                     Floor.FIRST, List.of(Component("lithium", ComponentType.CHIP)), //
                     Floor.SECOND, List.of(), //
-                    Floor.THIRD, List.of(Component("lithium", ComponentType.GENERATOR), Component("hydrogen", ComponentType.GENERATOR), Component("hydrogen", ComponentType.CHIP)), //
+                    Floor.THIRD, List.of(Component("hydrogen", ComponentType.GENERATOR), Component("lithium", ComponentType.GENERATOR), Component("hydrogen", ComponentType.CHIP)), //
                     Floor.FOURTH, List.of() //
             ), nextRoom2_3.floors());
             Assertions.assertEquals(Floor.THIRD, nextRoom2_3.elevatorPosition());
+        }
+    }
+
+    @Test
+    public void testBringEverythingToTop() throws Exception {
+        try (BufferedReader in = readInput()) {
+            final var room = ChipFactoryRoom.parseInput(in);
+
+            final List<ChipFactoryRoom> steps = room.bringEverythingToTop();
+
+            Assertions.assertEquals(12, steps.size());
         }
     }
 

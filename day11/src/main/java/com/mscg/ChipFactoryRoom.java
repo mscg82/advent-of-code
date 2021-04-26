@@ -3,11 +3,18 @@ package com.mscg;
 import static com.mscg.ChipFactoryRoomComponentBuilder.Component;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Deque;
 import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -17,6 +24,21 @@ import io.soabase.recordbuilder.core.RecordBuilder;
 import lombok.NonNull;
 
 public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevatorPosition) {
+
+    public ChipFactoryRoom withAdditionalComponents(final List<Component> components) {
+        final Map<Floor, List<Component>> newFloors = floors.entrySet().stream() //
+                .map(entry -> {
+                    if (entry.getKey() != Floor.FIRST) {
+                        return entry;
+                    }
+                    final var newComponents = new ArrayList<>(entry.getValue());
+                    newComponents.addAll(components);
+                    Collections.sort(newComponents);
+                    return Map.entry(entry.getKey(), List.copyOf(newComponents));
+                }) //
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1, () -> new EnumMap<>(Floor.class)));
+        return new ChipFactoryRoom(newFloors, elevatorPosition);
+    }
 
     public List<ChipFactoryRoom> generateNextStates() {
         record ElevatorContent(Component first, Component second) {
@@ -65,7 +87,11 @@ public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevator
                     }
 
                     newFloors = newFloors.entrySet().stream() //
-                            .map(entry -> Map.entry(entry.getKey(), List.copyOf(entry.getValue()))) //
+                            .map(entry -> {
+                                final List<Component> newComponents = entry.getValue();
+                                Collections.sort(newComponents);
+                                return Map.entry(entry.getKey(), List.copyOf(newComponents));
+                            }) //
                             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1, () -> new EnumMap<>(Floor.class)));
                     nextPossibleRooms.add(new ChipFactoryRoom(Collections.unmodifiableMap(newFloors), nextFloor));
                 }
@@ -75,6 +101,41 @@ public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevator
         return nextPossibleRooms;
     }
 
+    public List<ChipFactoryRoom> bringEverythingToTop() {
+        record Step(ChipFactoryRoom current, Step previous, int depth) {
+        }
+
+        final Set<ChipFactoryRoom> seenStates = new HashSet<>();
+        final Deque<Step> queue = new LinkedList<>();
+        queue.add(new Step(this, null, 0));
+        seenStates.add(this);
+
+        while (!queue.isEmpty()) {
+            final var step = queue.pop();
+            final ChipFactoryRoom current = step.current();
+
+            if (current.floors().get(Floor.FIRST).isEmpty() && current.floors().get(Floor.SECOND).isEmpty() && current.floors().get(Floor.THIRD).isEmpty()) {
+                final List<ChipFactoryRoom> steps = Arrays.asList(new ChipFactoryRoom[step.depth() + 1]);
+                var currentStep = step;
+                do {
+                    steps.set(currentStep.depth(), currentStep.current());
+                    currentStep = currentStep.previous();
+                }
+                while (currentStep != null);
+                return List.copyOf(steps);
+            }
+
+            for (final ChipFactoryRoom next : current.generateNextStates()) {
+                if (!seenStates.contains(next)) {
+                    queue.add(new Step(next, step, step.depth() + 1));
+                    seenStates.add(next);
+                }
+            }
+        }
+
+        throw new IllegalArgumentException("Unable to bring all components to top floor");
+    }
+
     @Override
     public String toString() {
         return floors.entrySet().stream() //
@@ -82,7 +143,7 @@ public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevator
                 .collect(Collectors.joining("\n"));
     }
 
-    public static ChipFactoryRoom parseInput(final BufferedReader in) throws Exception {
+    public static ChipFactoryRoom parseInput(final BufferedReader in) throws IOException {
         final var pattern = Pattern.compile("([a-z]+?)( generator|-compatible microchip)");
 
         final Map<Floor, List<Component>> floors = StreamUtils.zipWithIndex(in.lines()) //
@@ -103,6 +164,7 @@ public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevator
                         components.add(Component(element, type));
                     }
 
+                    Collections.sort(components);
                     return Map.entry(floor, List.copyOf(components));
                 }) //
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1, () -> new EnumMap<>(Floor.class)));
@@ -136,7 +198,13 @@ public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevator
     }
 
     @RecordBuilder
-    public record Component(@NonNull String element, @NonNull ComponentType type) {
+    public record Component(@NonNull String element, @NonNull ComponentType type) implements Comparable<Component> {
+
+        @Override
+        public int compareTo(final Component other) {
+            final var comparator = Comparator.comparing(Component::type).thenComparing(Component::element);
+            return comparator.compare(this, other);
+        }
 
         public boolean isCompatibleWith(final Component other) {
             return other == null || type == other.type() || element.equals(other.element());
