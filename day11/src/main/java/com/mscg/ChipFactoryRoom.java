@@ -10,12 +10,70 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.codepoetics.protonpack.StreamUtils;
 import io.soabase.recordbuilder.core.RecordBuilder;
 import lombok.NonNull;
 
 public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevatorPosition) {
+
+    public List<ChipFactoryRoom> generateNextStates() {
+        record ElevatorContent(Component first, Component second) {
+
+            Stream<Component> stream() {
+                if (second == null) {
+                    return Stream.of(first);
+                }
+                return Stream.of(first, second);
+            }
+
+        }
+
+        final var components = floors.get(elevatorPosition);
+        final var possibleElevatorContents = new ArrayList<ElevatorContent>();
+        components.forEach(comp -> possibleElevatorContents.add(new ElevatorContent(comp, null)));
+        for (int i = 0, l = components.size(); i < l - 1; i++) {
+            for (int j = i + 1; j < l; j++) {
+                final Component first = components.get(i);
+                final Component second = components.get(j);
+                if (first.isCompatibleWith(second)) {
+                    possibleElevatorContents.add(new ElevatorContent(first, second));
+                }
+            }
+        }
+
+        final List<ChipFactoryRoom> nextPossibleRooms = new ArrayList<>();
+        for (final var nextFloor : elevatorPosition.adjacentFloors()) {
+            final var nextComponents = floors.get(nextFloor);
+            for (final var content : possibleElevatorContents) {
+                final Map<ComponentType, List<Component>> typeToComponents = Stream.concat(nextComponents.stream(), content.stream()) //
+                        .collect(Collectors.groupingBy(Component::type));
+
+                final List<Component> generators = typeToComponents.getOrDefault(ComponentType.GENERATOR, List.of());
+                final List<Component> chips = typeToComponents.getOrDefault(ComponentType.CHIP, List.of());
+
+                if (generators.isEmpty() || chips.stream().allMatch(chip -> generators.stream().anyMatch(generator -> generator.element().equals(chip.element())))) {
+                    Map<Floor, List<Component>> newFloors = this.floors.entrySet().stream() //
+                            .map(entry -> Map.entry(entry.getKey(), new ArrayList<>(entry.getValue()))) //
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1, () -> new EnumMap<>(Floor.class)));
+                    newFloors.get(elevatorPosition).remove(content.first());
+                    newFloors.get(nextFloor).add(content.first());
+                    if (content.second() != null) {
+                        newFloors.get(elevatorPosition).remove(content.second());
+                        newFloors.get(nextFloor).add(content.second());
+                    }
+
+                    newFloors = newFloors.entrySet().stream() //
+                            .map(entry -> Map.entry(entry.getKey(), List.copyOf(entry.getValue()))) //
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1, () -> new EnumMap<>(Floor.class)));
+                    nextPossibleRooms.add(new ChipFactoryRoom(Collections.unmodifiableMap(newFloors), nextFloor));
+                }
+            }
+        }
+
+        return nextPossibleRooms;
+    }
 
     @Override
     public String toString() {
@@ -81,7 +139,7 @@ public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevator
     public record Component(@NonNull String element, @NonNull ComponentType type) {
 
         public boolean isCompatibleWith(final Component other) {
-            return type == other.type() || element.equals(other.element());
+            return other == null || type == other.type() || element.equals(other.element());
         }
 
         @Override

@@ -29,6 +29,53 @@ public class AdventDay11Test {
         }
     }
 
+    @Test
+    public void testNextStates() throws Exception {
+        try (BufferedReader in = readInput()) {
+            final var room = ChipFactoryRoom.parseInput(in);
+
+            final List<ChipFactoryRoom> next1 = room.generateNextStates();
+            Assertions.assertEquals(1, next1.size());
+            final var nextRoom = next1.get(0);
+            Assertions.assertEquals(Map.of( //
+                    Floor.FIRST, List.of(Component("lithium", ComponentType.CHIP)), //
+                    Floor.SECOND, List.of(Component("hydrogen", ComponentType.GENERATOR), Component("hydrogen", ComponentType.CHIP)), //
+                    Floor.THIRD, List.of(Component("lithium", ComponentType.GENERATOR)), //
+                    Floor.FOURTH, List.of() //
+            ), nextRoom.floors());
+            Assertions.assertEquals(Floor.SECOND, nextRoom.elevatorPosition());
+
+            final List<ChipFactoryRoom> next2 = nextRoom.generateNextStates();
+            Assertions.assertEquals(3, next2.size());
+            final var nextRoom2_1 = next2.get(0);
+            Assertions.assertEquals(Map.of( //
+                    Floor.FIRST, List.of(Component("lithium", ComponentType.CHIP), Component("hydrogen", ComponentType.CHIP)), //
+                    Floor.SECOND, List.of(Component("hydrogen", ComponentType.GENERATOR)), //
+                    Floor.THIRD, List.of(Component("lithium", ComponentType.GENERATOR)), //
+                    Floor.FOURTH, List.of() //
+            ), nextRoom2_1.floors());
+            Assertions.assertEquals(Floor.FIRST, nextRoom2_1.elevatorPosition());
+
+            final var nextRoom2_2 = next2.get(1);
+            Assertions.assertEquals(Map.of( //
+                    Floor.FIRST, List.of(Component("lithium", ComponentType.CHIP)), //
+                    Floor.SECOND, List.of(Component("hydrogen", ComponentType.CHIP)), //
+                    Floor.THIRD, List.of(Component("lithium", ComponentType.GENERATOR), Component("hydrogen", ComponentType.GENERATOR)), //
+                    Floor.FOURTH, List.of() //
+            ), nextRoom2_2.floors());
+            Assertions.assertEquals(Floor.THIRD, nextRoom2_2.elevatorPosition());
+
+            final var nextRoom2_3 = next2.get(2);
+            Assertions.assertEquals(Map.of( //
+                    Floor.FIRST, List.of(Component("lithium", ComponentType.CHIP)), //
+                    Floor.SECOND, List.of(), //
+                    Floor.THIRD, List.of(Component("lithium", ComponentType.GENERATOR), Component("hydrogen", ComponentType.GENERATOR), Component("hydrogen", ComponentType.CHIP)), //
+                    Floor.FOURTH, List.of() //
+            ), nextRoom2_3.floors());
+            Assertions.assertEquals(Floor.THIRD, nextRoom2_3.elevatorPosition());
+        }
+    }
+
     private BufferedReader readInput() {
         return new BufferedReader(
                 new InputStreamReader(this.getClass().getResourceAsStream("/test-input.txt"), StandardCharsets.UTF_8));
