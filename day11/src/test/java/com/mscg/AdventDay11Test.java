@@ -34,7 +34,7 @@ public class AdventDay11Test {
         try (BufferedReader in = readInput()) {
             final var room = ChipFactoryRoom.parseInput(in);
 
-            final List<ChipFactoryRoom> next1 = room.generateNextStates();
+            final List<ChipFactoryRoom> next1 = room.generateNextStates(false);
             Assertions.assertEquals(1, next1.size());
             final var nextRoom = next1.get(0);
             Assertions.assertEquals(Map.of( //
@@ -45,7 +45,7 @@ public class AdventDay11Test {
             ), nextRoom.floors());
             Assertions.assertEquals(Floor.SECOND, nextRoom.elevatorPosition());
 
-            final List<ChipFactoryRoom> next2 = nextRoom.generateNextStates();
+            final List<ChipFactoryRoom> next2 = nextRoom.generateNextStates(false);
             Assertions.assertEquals(3, next2.size());
             final var nextRoom2_1 = next2.get(0);
             Assertions.assertEquals(Map.of( //

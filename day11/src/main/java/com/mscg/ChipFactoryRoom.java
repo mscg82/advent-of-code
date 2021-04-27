@@ -40,8 +40,12 @@ public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevator
         return new ChipFactoryRoom(newFloors, elevatorPosition);
     }
 
-    public List<ChipFactoryRoom> generateNextStates() {
+    public List<ChipFactoryRoom> generateNextStates(final boolean optimized) {
         record ElevatorContent(Component first, Component second) {
+
+            public boolean isCouple() {
+                return second != null && first.isCompatibleWith(second) && first.type() != second.type();
+            }
 
             Stream<Component> stream() {
                 if (second == null) {
@@ -65,8 +69,25 @@ public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevator
             }
         }
 
+        boolean skipLowerFloor = false;
+        if (optimized) {
+            possibleElevatorContents.stream() //
+                    .filter(ElevatorContent::isCouple) //
+                    .findFirst() //
+                    .ifPresent(firstCouple -> possibleElevatorContents.removeIf(content -> content.isCouple() && content != firstCouple));
+
+            skipLowerFloor = Arrays.stream(Floor.values()) //
+                    .filter(floor -> floor.ordinal() < elevatorPosition.ordinal()) //
+                    .map(floors::get) //
+                    .allMatch(List::isEmpty);
+        }
+
         final List<ChipFactoryRoom> nextPossibleRooms = new ArrayList<>();
         for (final var nextFloor : elevatorPosition.adjacentFloors()) {
+            if (skipLowerFloor && nextFloor.ordinal() < elevatorPosition.ordinal()) {
+                continue;
+            }
+
             final var nextComponents = floors.get(nextFloor);
             for (final var content : possibleElevatorContents) {
                 final Map<ComponentType, List<Component>> typeToComponents = Stream.concat(nextComponents.stream(), content.stream()) //
@@ -76,21 +97,24 @@ public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevator
                 final List<Component> chips = typeToComponents.getOrDefault(ComponentType.CHIP, List.of());
 
                 if (generators.isEmpty() || chips.stream().allMatch(chip -> generators.stream().anyMatch(generator -> generator.element().equals(chip.element())))) {
-                    Map<Floor, List<Component>> newFloors = this.floors.entrySet().stream() //
-                            .map(entry -> Map.entry(entry.getKey(), new ArrayList<>(entry.getValue()))) //
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1, () -> new EnumMap<>(Floor.class)));
-                    newFloors.get(elevatorPosition).remove(content.first());
-                    newFloors.get(nextFloor).add(content.first());
+                    final var elevatorNewFloor = new ArrayList<>(floors.get(elevatorPosition));
+                    final var nextNewFloor = new ArrayList<>(floors.get(nextFloor));
+
+                    elevatorNewFloor.remove(content.first());
+                    nextNewFloor.add(content.first());
                     if (content.second() != null) {
-                        newFloors.get(elevatorPosition).remove(content.second());
-                        newFloors.get(nextFloor).add(content.second());
+                        elevatorNewFloor.remove(content.second());
+                        nextNewFloor.add(content.second());
                     }
 
-                    newFloors = newFloors.entrySet().stream() //
+                    final Map<Floor, List<Component>> newFloors = this.floors.entrySet().stream() //
                             .map(entry -> {
-                                final List<Component> newComponents = entry.getValue();
-                                Collections.sort(newComponents);
-                                return Map.entry(entry.getKey(), List.copyOf(newComponents));
+                                if (entry.getKey() == elevatorPosition || entry.getKey() == nextFloor) {
+                                    final List<Component> newComponents = entry.getKey() == elevatorPosition ? elevatorNewFloor : nextNewFloor;
+                                    Collections.sort(newComponents);
+                                    return Map.entry(entry.getKey(), List.copyOf(newComponents));
+                                }
+                                return entry;
                             }) //
                             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1, () -> new EnumMap<>(Floor.class)));
                     nextPossibleRooms.add(new ChipFactoryRoom(Collections.unmodifiableMap(newFloors), nextFloor));
@@ -125,11 +149,12 @@ public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevator
                 return List.copyOf(steps);
             }
 
-            for (final ChipFactoryRoom next : current.generateNextStates()) {
-                if (!seenStates.contains(next)) {
-                    queue.add(new Step(next, step, step.depth() + 1));
-                    seenStates.add(next);
+            for (final ChipFactoryRoom next : current.generateNextStates(true)) {
+                if (seenStates.contains(next)) {
+                    continue;
                 }
+                seenStates.add(next);
+                queue.add(new Step(next, step, step.depth() + 1));
             }
         }
 
