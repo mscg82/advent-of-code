@@ -30,7 +30,7 @@ public record MazeRoom(int seed) {
             final var step = queue.pop();
             final var current = step.current();
 
-            if (step.depth() > maxDepth) {
+            if (step.depth() >= maxDepth) {
                 return new Path(null, seenPositions.size());
             }
 
