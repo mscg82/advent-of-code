@@ -4,6 +4,7 @@ import static com.mscg.ChipFactoryRoomComponentBuilder.Component;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -47,11 +48,8 @@ public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevator
                 return second != null && first.isCompatibleWith(second) && first.type() != second.type();
             }
 
-            Stream<Component> stream() {
-                if (second == null) {
-                    return Stream.of(first);
-                }
-                return Stream.of(first, second);
+            public Stream<Component> stream() {
+                return second == null ? Stream.of(first) : Stream.of(first, second);
             }
 
         }
@@ -169,32 +167,37 @@ public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevator
     }
 
     public static ChipFactoryRoom parseInput(final BufferedReader in) throws IOException {
-        final var pattern = Pattern.compile("([a-z]+?)( generator|-compatible microchip)");
+        try {
+            final var pattern = Pattern.compile("([a-z]+?)( generator|-compatible microchip)");
 
-        final Map<Floor, List<Component>> floors = StreamUtils.zipWithIndex(in.lines()) //
-                .map(indexAndLine -> {
-                    final int index = (int) indexAndLine.getIndex();
-                    final var floor = Floor.values()[index];
+            final Map<Floor, List<Component>> floors = StreamUtils.zipWithIndex(in.lines()) //
+                    .map(indexAndLine -> {
+                        final int index = (int) indexAndLine.getIndex();
+                        final var floor = Floor.values()[index];
 
-                    final String line = indexAndLine.getValue();
+                        final String line = indexAndLine.getValue();
 
-                    final var matcher = pattern.matcher(line);
-                    final List<Component> components = new ArrayList<>();
-                    while (matcher.find()) {
-                        final String element = matcher.group(1);
-                        final ComponentType type = switch (matcher.group(2).trim()) {
-                            case "generator" -> ComponentType.GENERATOR;
-                            default -> ComponentType.CHIP;
-                        };
-                        components.add(Component(element, type));
-                    }
+                        final var matcher = pattern.matcher(line);
+                        final List<Component> components = new ArrayList<>();
+                        while (matcher.find()) {
+                            final String element = matcher.group(1);
+                            final ComponentType type = switch (matcher.group(2).trim()) {
+                                case "generator" -> ComponentType.GENERATOR;
+                                default -> ComponentType.CHIP;
+                            };
+                            components.add(Component(element, type));
+                        }
 
-                    Collections.sort(components);
-                    return Map.entry(floor, List.copyOf(components));
-                }) //
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1, () -> new EnumMap<>(Floor.class)));
+                        Collections.sort(components);
+                        return Map.entry(floor, List.copyOf(components));
+                    }) //
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1, () -> new EnumMap<>(Floor.class)));
 
-        return new ChipFactoryRoom(Collections.unmodifiableMap(floors), Floor.FIRST);
+            return new ChipFactoryRoom(Collections.unmodifiableMap(floors), Floor.FIRST);
+        }
+        catch (final UncheckedIOException e) {
+            throw e.getCause();
+        }
     }
 
     public enum Floor {
