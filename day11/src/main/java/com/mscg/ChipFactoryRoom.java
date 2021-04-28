@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -25,6 +26,29 @@ import io.soabase.recordbuilder.core.RecordBuilder;
 import lombok.NonNull;
 
 public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevatorPosition) {
+
+    public Footprint getFootprint() {
+        final Map<String, ChipFactoryRoomFootprintElementBuilder> elementToFootprint = new HashMap<>();
+        for (final var entry : floors.entrySet()) {
+            for (final var component : entry.getValue()) {
+                elementToFootprint.compute(component.element(), (__, footprint) -> {
+                    if (footprint == null) {
+                        footprint = ChipFactoryRoomFootprintElementBuilder.builder();
+                    }
+                    return switch (component.type()) {
+                        case CHIP -> footprint.chipPosition(entry.getKey());
+                        case GENERATOR -> footprint.generatorPosition(entry.getKey());
+                    };
+                });
+            }
+        }
+
+        final List<FootprintElement> footPrint = elementToFootprint.values().stream() //
+                .map(ChipFactoryRoomFootprintElementBuilder::build) //
+                .sorted() //
+                .toList();
+        return new Footprint(footPrint, elevatorPosition);
+    }
 
     public ChipFactoryRoom withAdditionalComponents(final List<Component> components) {
         final Map<Floor, List<Component>> newFloors = floors.entrySet().stream() //
@@ -127,10 +151,10 @@ public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevator
         record Step(ChipFactoryRoom current, Step previous, int depth) {
         }
 
-        final Set<ChipFactoryRoom> seenStates = new HashSet<>();
+        final Set<Footprint> seenStates = new HashSet<>();
         final Deque<Step> queue = new LinkedList<>();
         queue.add(new Step(this, null, 0));
-        seenStates.add(this);
+        seenStates.add(this.getFootprint());
 
         while (!queue.isEmpty()) {
             final var step = queue.pop();
@@ -148,10 +172,11 @@ public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevator
             }
 
             for (final ChipFactoryRoom next : current.generateNextStates(true)) {
-                if (seenStates.contains(next)) {
+                final Footprint footprint = next.getFootprint();
+                if (seenStates.contains(footprint)) {
                     continue;
                 }
-                seenStates.add(next);
+                seenStates.add(footprint);
                 queue.add(new Step(next, step, step.depth() + 1));
             }
         }
@@ -228,10 +253,11 @@ public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevator
     @RecordBuilder
     public record Component(@NonNull String element, @NonNull ComponentType type) implements Comparable<Component> {
 
+        private static final Comparator<Component> COMPARATOR = Comparator.comparing(Component::type).thenComparing(Component::element);
+
         @Override
         public int compareTo(final Component other) {
-            final var comparator = Comparator.comparing(Component::type).thenComparing(Component::element);
-            return comparator.compare(this, other);
+            return COMPARATOR.compare(this, other);
         }
 
         public boolean isCompatibleWith(final Component other) {
@@ -246,6 +272,21 @@ public record ChipFactoryRoom(Map<Floor, List<Component>> floors, Floor elevator
             };
         }
 
+    }
+
+    @RecordBuilder
+    public record FootprintElement(Floor generatorPosition, Floor chipPosition) implements Comparable<FootprintElement>, ChipFactoryRoomFootprintElementBuilder.With {
+
+        private final static Comparator<FootprintElement> COMPARATOR = Comparator.<FootprintElement>comparingInt(f -> f.generatorPosition().ordinal())
+                .thenComparingInt(f -> f.chipPosition().ordinal());
+
+        @Override
+        public int compareTo(final FootprintElement o) {
+            return COMPARATOR.compare(this, o);
+        }
+    }
+
+    public record Footprint(List<FootprintElement> footPrint, Floor elevatorPosition) {
     }
 
 }
