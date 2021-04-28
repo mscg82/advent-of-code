@@ -1,5 +1,7 @@
 package com.mscg;
 
+import static com.mscg.MazeRoomPositionBuilder.Position;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -14,13 +16,18 @@ public class AdventDay13 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 1 - Answer %d".formatted(0));
+            final var maze = MazeRoom.parseInput(in);
+            final var path = maze.findPath(Position(1, 1), Position(31, 39), 100);
+
+            System.out.println("Part 1 - Answer %d".formatted(path.positions().size() - 1));
         }
     }
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 2 - Answer %d".formatted(0));
+            final var maze = MazeRoom.parseInput(in);
+            final var path = maze.findPath(Position(1, 1), Position(-1, -1), 50);
+            System.out.println("Part 2 - Answer %d".formatted(path.seenPositions()));
         }
     }
 
