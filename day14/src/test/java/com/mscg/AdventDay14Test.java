@@ -13,7 +13,7 @@ public class AdventDay14Test {
     public void testFirstIndex() throws Exception {
         try (BufferedReader in = readInput()) {
             final var padGenerator = OnePadGenerator.parseInput(in, 30);
-            final long index = padGenerator.findNthPad(1);
+            final long index = padGenerator.findNthPad(1, false);
             Assertions.assertEquals(39, index);
         }
     }
@@ -22,7 +22,7 @@ public class AdventDay14Test {
     public void testSecondIndex() throws Exception {
         try (BufferedReader in = readInput()) {
             final var padGenerator = OnePadGenerator.parseInput(in, 30);
-            final long index = padGenerator.findNthPad(2);
+            final long index = padGenerator.findNthPad(2, false);
             Assertions.assertEquals(92, index);
         }
     }
@@ -31,8 +31,26 @@ public class AdventDay14Test {
     public void test64thIndex() throws Exception {
         try (BufferedReader in = readInput()) {
             final var padGenerator = OnePadGenerator.parseInput(in, 30);
-            final long index = padGenerator.findNthPad(64);
+            final long index = padGenerator.findNthPad(64, false);
             Assertions.assertEquals(22728, index);
+        }
+    }
+
+    @Test
+    public void testFirstIndexStretched() throws Exception {
+        try (BufferedReader in = readInput()) {
+            final var padGenerator = OnePadGenerator.parseInput(in, 30);
+            final long index = padGenerator.findNthPad(1, true);
+            Assertions.assertEquals(10, index);
+        }
+    }
+
+    @Test
+    public void test64thIndexStretched() throws Exception {
+        try (BufferedReader in = readInput()) {
+            final var padGenerator = OnePadGenerator.parseInput(in, 30);
+            final long index = padGenerator.findNthPad(64, true);
+            Assertions.assertEquals(22551, index);
         }
     }
 

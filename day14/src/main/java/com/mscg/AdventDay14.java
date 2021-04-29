@@ -14,8 +14,8 @@ public class AdventDay14 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            var padGenerator = OnePadGenerator.parseInput(in, 30);
-            long nthPad = padGenerator.findNthPad(64);
+            final var padGenerator = OnePadGenerator.parseInput(in, 30);
+            final long nthPad = padGenerator.findNthPad(64, false);
             System.out.println("Part 1 - Answer %d".formatted(nthPad));
         }
     }
