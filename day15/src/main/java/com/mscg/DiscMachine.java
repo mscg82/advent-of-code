@@ -9,10 +9,15 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.codepoetics.protonpack.StreamUtils;
 
 public record DiscMachine(List<Disc> discs) {
+
+    public DiscMachine addDisc(final Disc disc) {
+        return new DiscMachine(Stream.concat(discs.stream(), Stream.of(disc)).toList());
+    }
 
     public int findFirstSolution() {
         record Sieve(int n, int a) {

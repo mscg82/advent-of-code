@@ -21,7 +21,8 @@ public class AdventDay15 {
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 2 - Answer %d".formatted(0));
+            final var machine = DiscMachine.parseInput(in).addDisc(new DiscMachine.Disc(11, 0));
+            System.out.println("Part 2 - Answer %d".formatted(machine.findFirstSolution()));
         }
     }
 
