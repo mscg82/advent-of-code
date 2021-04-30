@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -25,8 +24,8 @@ public record DiscMachine(List<Disc> discs) {
                     final int index = (int) idx.getIndex();
                     return new Sieve(disc.positions(), (2 * disc.positions() - (disc.offset() + index + 1)) % disc.positions());
                 }) //
+                .sorted(Comparator.comparingInt(Sieve::n).reversed()) //
                 .collect(Collectors.toCollection(ArrayList::new));
-        Collections.sort(sieves, Comparator.comparingInt(Sieve::n).reversed());
 
         var sieve = sieves.remove(0);
         int t = sieve.a();
