@@ -1,17 +1,17 @@
 package com.mscg;
 
+import lombok.SneakyThrows;
+import org.apache.commons.codec.binary.Hex;
+
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Arrays;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.IntStream;
 
-import lombok.SneakyThrows;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.codec.digest.DigestUtils;
-
-public record OnePadGenerator(byte[] seed, int offset) {
+public record OnePadGenerator(byte[] seed) {
 
     private static final Map<String, byte[]> md5Cache = new ConcurrentHashMap<>();
 
@@ -30,7 +30,6 @@ public record OnePadGenerator(byte[] seed, int offset) {
                         .anyMatch(nextPad -> has5InARow(nextPad, c));
                 if (isKey) {
                     padsFound++;
-                    System.out.println("Found pad: " + padsFound + " " + index + ", elapsed: " + (System.currentTimeMillis() - start) + "ms");
                 }
             }
             index++;
@@ -66,29 +65,37 @@ public record OnePadGenerator(byte[] seed, int offset) {
 
     @SneakyThrows
     private String generatePad(final long index, final boolean stretched) {
+        final MessageDigest md5Digest;
+        try {
+            md5Digest = MessageDigest.getInstance("MD5");
+        } catch (final NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException(e);
+        }
+
         var md5 = md5Cache.computeIfAbsent(String.valueOf(index), strIndex -> {
-            final byte[] indexBytes = strIndex.getBytes();
-            final byte[] seedCopy = Arrays.copyOf(seed, offset + indexBytes.length);
-            System.arraycopy(indexBytes, 0, seedCopy, offset, indexBytes.length);
-            return DigestUtils.md5(seedCopy);
+            md5Digest.update(seed);
+            md5Digest.update(strIndex.getBytes());
+            byte[] digest = md5Digest.digest();
+            md5Digest.reset();
+
+            return digest;
         });
 
         if (stretched) {
             final byte[] md5Bytes = new byte[md5.length * 2];
             HexEncoder.encodeHex(md5, 0, md5.length, md5Bytes, 0);
             for (int i = 0; i < 2016; i++) {
-                md5 = DigestUtils.md5(md5Bytes);
+                md5 = md5Digest.digest(md5Bytes);
+                md5Digest.reset();
                 HexEncoder.encodeHex(md5, 0, md5.length, md5Bytes, 0);
             }
         }
         return Hex.encodeHexString(md5);
     }
 
-    public static OnePadGenerator parseInput(final BufferedReader in, final int maxPadding) throws IOException {
-        final byte[] seedStr = in.readLine().getBytes();
-        final byte[] seed = new byte[seedStr.length + maxPadding];
-        System.arraycopy(seedStr, 0, seed, 0, seedStr.length);
-        return new OnePadGenerator(seed, seedStr.length);
+    public static OnePadGenerator parseInput(final BufferedReader in) throws IOException {
+        final byte[] seed = in.readLine().getBytes();
+        return new OnePadGenerator(seed);
     }
 
     private static final class HexEncoder {
