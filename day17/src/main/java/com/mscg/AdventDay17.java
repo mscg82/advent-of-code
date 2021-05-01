@@ -14,13 +14,15 @@ public class AdventDay17 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 1 - Answer %d".formatted(0));
+            final var maze = Md5Maze.parseInput(in);
+            System.out.println("Part 1 - Answer %s".formatted(maze.findPath()));
         }
     }
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 2 - Answer %d".formatted(0));
+            final var maze = Md5Maze.parseInput(in);
+            System.out.println("Part 2 - Answer %d".formatted(maze.findLongestPath().length()));
         }
     }
 
