@@ -17,4 +17,10 @@ public class AdventDay19Test {
         Assertions.assertEquals(5, game.playGame());
     }
 
+    @Test
+    public void testVariant() {
+        final var game = new ElfGame(5);
+        Assertions.assertEquals(2, game.playVariant());
+    }
+
 }
