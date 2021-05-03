@@ -14,7 +14,7 @@ import io.soabase.recordbuilder.core.RecordBuilder;
 public record Firewall(SortedSet<Range> ranges) {
 
     public long firstAllowedAddress() {
-        return LongStream.rangeClosed(0, 2L * Integer.MAX_VALUE) //
+        return LongStream.rangeClosed(0x00000000L, 0xFFFFFFFFL) //
                 .filter(address -> ranges.stream().noneMatch(range -> range.contains(address))) //
                 .findFirst() //
                 .orElseThrow();
