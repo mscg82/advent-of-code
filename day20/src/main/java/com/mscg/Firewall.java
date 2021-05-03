@@ -7,17 +7,50 @@ import java.util.Comparator;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-import java.util.stream.LongStream;
 
+import com.codepoetics.protonpack.StreamUtils;
 import io.soabase.recordbuilder.core.RecordBuilder;
 
 public record Firewall(SortedSet<Range> ranges) {
 
     public long firstAllowedAddress() {
-        return LongStream.rangeClosed(0x00000000L, 0xFFFFFFFFL) //
-                .filter(address -> ranges.stream().noneMatch(range -> range.contains(address))) //
-                .findFirst() //
-                .orElseThrow();
+        final SortedSet<Range> mergedRanges = mergeRanges();
+        return mergedRanges.first().end() + 1;
+    }
+
+    public long allowedAddresses() {
+        final SortedSet<Range> mergedRanges = mergeRanges();
+
+        final long internalCount = StreamUtils.windowed(mergedRanges.stream(), 2) //
+                .mapToLong(window -> measureHole(window.get(0), window.get(1))) //
+                .sum();
+        final long firstGap = measureHole(new Range(0, 0), mergedRanges.first());
+        final long lastGap = measureHole(mergedRanges.last(), new Range(0xFFFFFFFFL, 0xFFFFFFFFL));
+
+        return firstGap + internalCount + lastGap;
+    }
+
+    private long measureHole(final Range left, final Range right) {
+        return Math.max(0L, right.start() - left.end() - 1);
+    }
+
+    private SortedSet<Range> mergeRanges() {
+        final SortedSet<Range> mergedRanges = new TreeSet<>();
+        Range rangeHead = null;
+        for (final Range range : ranges) {
+            if (rangeHead == null || range.start() > rangeHead.end()) {
+                if (rangeHead != null) {
+                    mergedRanges.add(rangeHead);
+                }
+                rangeHead = range;
+                continue;
+            }
+            if (range.end() > rangeHead.end()) {
+                rangeHead = rangeHead.withEnd(range.end());
+            }
+        }
+        mergedRanges.add(rangeHead);
+        return mergedRanges;
     }
 
     public static Firewall parseInput(final BufferedReader in) throws IOException {
@@ -36,10 +69,6 @@ public record Firewall(SortedSet<Range> ranges) {
     public static record Range(long start, long end) implements Comparable<Range>, FirewallRangeBuilder.With {
 
         private static final Comparator<Range> COMPARATOR = Comparator.comparingLong(Range::start).thenComparingLong(Range::end);
-
-        public boolean contains(final long address) {
-            return address >= start && address <= end;
-        }
 
         @Override
         public int compareTo(final Range o) {
