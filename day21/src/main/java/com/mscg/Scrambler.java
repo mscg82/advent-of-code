@@ -17,6 +17,15 @@ public record Scrambler(List<Operation> operations) {
         return i.toString();
     }
 
+    public String reverse(final String input) {
+        final var i = new StringBuilder(input);
+        for (final var it = operations.listIterator(operations.size()); it.hasPrevious(); ) {
+            final var op = it.previous();
+            op.reverse(i);
+        }
+        return i.toString();
+    }
+
     public static Scrambler parseInput(final BufferedReader in) throws IOException {
         try {
             final List<Operation> operations = in.lines() //
@@ -32,6 +41,10 @@ public record Scrambler(List<Operation> operations) {
     public interface Operation {
 
         void execute(StringBuilder input);
+
+        default void reverse(final StringBuilder input) {
+            execute(input);
+        }
 
         static Operation parseLine(final String line) {
             final var patternSwapPos = Pattern.compile("swap position (\\d+) with position (\\d+)");
@@ -107,6 +120,15 @@ public record Scrambler(List<Operation> operations) {
             }
         }
 
+        @Override
+        public void reverse(final StringBuilder input) {
+            if (!right) {
+                rotateRight(input, steps);
+            } else {
+                rotateLeft(input, steps);
+            }
+        }
+
         static void rotateRight(final StringBuilder input, int steps) {
             steps = steps % input.length();
             if (steps == 0) {
@@ -135,6 +157,20 @@ public record Scrambler(List<Operation> operations) {
             final int steps = 1 + index + (index >= 4 ? 1 : 0);
             Rotate.rotateRight(input, steps);
         }
+
+        @Override
+        public void reverse(final StringBuilder input) {
+            final String s = input.toString();
+            for (int i = 1, l = s.length(); i < l; i++) {
+                final var tmp = new StringBuilder(s);
+                Rotate.rotateLeft(tmp, i);
+                execute(tmp);
+                if (tmp.toString().equals(s)) {
+                    Rotate.rotateLeft(input, i);
+                    break;
+                }
+            }
+        }
     }
 
     static record Reverse(int x, int y) implements Operation {
@@ -152,6 +188,13 @@ public record Scrambler(List<Operation> operations) {
             final var charX = input.charAt(x);
             input.deleteCharAt(x);
             input.insert(y, charX);
+        }
+
+        @Override
+        public void reverse(final StringBuilder input) {
+            final var charY = input.charAt(y);
+            input.deleteCharAt(y);
+            input.insert(x, charY);
         }
     }
 }
