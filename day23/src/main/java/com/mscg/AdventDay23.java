@@ -18,7 +18,7 @@ public class AdventDay23 {
         try (BufferedReader in = readInput()) {
             final var cpu = AssembunnyCPU2.parseInput(in);
             cpu.register(Register.A, 7);
-            cpu.run();
+            cpu.run(false);
             System.out.println("Part 1 - Answer %d".formatted(cpu.register(Register.A)));
         }
     }
@@ -27,7 +27,7 @@ public class AdventDay23 {
         try (BufferedReader in = readInput()) {
             final var cpu = AssembunnyCPU2.parseInput(in);
             cpu.register(Register.A, 12);
-            cpu.run();
+            cpu.run(true);
             System.out.println("Part 2 - Answer %d".formatted(cpu.register(Register.A)));
         }
     }

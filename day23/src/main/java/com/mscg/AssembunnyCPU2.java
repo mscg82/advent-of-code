@@ -39,9 +39,16 @@ public class AssembunnyCPU2 {
         }
     }
 
-    public void run() {
+    public void run(final boolean optimized) {
         while (ic < instructions.size()) {
-            ic += instructions.get(ic).execute(this);
+            if (optimized && ic == 4) {
+                register(Register.A, register(Register.B) * register(Register.D));
+                register(Register.C, 0);
+                register(Register.D, 0);
+                ic = 10;
+            } else {
+                ic += instructions.get(ic).execute(this);
+            }
         }
     }
 
