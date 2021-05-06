@@ -7,9 +7,11 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.LongUnaryOperator;
 
 import com.codepoetics.protonpack.StreamUtils;
 
+@SuppressWarnings("SpellCheckingInspection")
 public class AssembunnyCPU2 {
 
     private final List<? extends Instruction> instructions;
@@ -23,8 +25,15 @@ public class AssembunnyCPU2 {
         reset();
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public AssembunnyCPU2 register(final Register register, final long value) {
         registers.put(register, value);
+        return this;
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    public AssembunnyCPU2 register(final Register register, final LongUnaryOperator valueComputer) {
+        registers.compute(register, (__, val) -> valueComputer.applyAsLong(val == null ? 0L : val));
         return this;
     }
 
@@ -61,7 +70,7 @@ public class AssembunnyCPU2 {
                         final String[] parts = line.split(" ");
                         return switch (parts[0].toLowerCase()) {
                             case "cpy" -> {
-                                Value source = null;
+                                Value source;
                                 try {
                                     source = new ConstValue(Long.parseLong(parts[1]));
                                 }
@@ -73,14 +82,14 @@ public class AssembunnyCPU2 {
                             case "inc" -> new Inc(lineNumber, Register.fromString(parts[1]));
                             case "dec" -> new Dec(lineNumber, Register.fromString(parts[1]));
                             case "jnz" -> {
-                                Value source = null;
+                                Value source;
                                 try {
                                     source = new ConstValue(Long.parseLong(parts[1]));
                                 }
                                 catch (final NumberFormatException e) {
                                     source = new RegisterValue(Register.fromString(parts[1]));
                                 }
-                                Value delta = null;
+                                Value delta;
                                 try {
                                     delta = new ConstValue(Long.parseLong(parts[2]));
                                 }
@@ -153,7 +162,7 @@ public class AssembunnyCPU2 {
         @Override
         public int execute(final AssembunnyCPU2 cpu) {
             if (isNotSwitched(cpu)) {
-                cpu.registers.put(target, source.getValue(cpu));
+                cpu.register(target, source.getValue(cpu));
                 return 1;
             } else {
                 return source.getValue(cpu) != 0 ? (int) cpu.register(target) : 1;
@@ -167,9 +176,9 @@ public class AssembunnyCPU2 {
         @Override
         public int execute(final AssembunnyCPU2 cpu) {
             if (isNotSwitched(cpu)) {
-                cpu.registers.compute(target, (__, val) -> val == null ? 1 : val + 1);
+                cpu.register(target, val -> val + 1);
             } else {
-                cpu.registers.compute(target, (__, val) -> val == null ? 1 : val - 1);
+                cpu.register(target, val -> val - 1);
             }
             return 1;
         }
@@ -181,9 +190,9 @@ public class AssembunnyCPU2 {
         @Override
         public int execute(final AssembunnyCPU2 cpu) {
             if (isNotSwitched(cpu)) {
-                cpu.registers.compute(target, (__, val) -> val == null ? -1 : val - 1);
+                cpu.register(target, val -> val - 1);
             } else {
-                cpu.registers.compute(target, (__, val) -> val == null ? -1 : val + 1);
+                cpu.register(target, val -> val + 1);
             }
             return 1;
         }
@@ -198,7 +207,7 @@ public class AssembunnyCPU2 {
                 return source.getValue(cpu) != 0 ? (int) delta.getValue(cpu) : 1;
             } else {
                 if (delta instanceof RegisterValue target) {
-                    cpu.registers.put(target.register(), source.getValue(cpu));
+                    cpu.register(target.register(), source.getValue(cpu));
                 }
                 return 1;
             }
@@ -217,7 +226,7 @@ public class AssembunnyCPU2 {
                     cpu.switches.compute(instruction, (__, s) -> s == null ? Boolean.TRUE : !s);
                 }
             } else {
-                cpu.registers.compute(delta, (__, val) -> val == null ? -1 : val + 1);
+                cpu.register(delta, val -> val + 1);
             }
             return 1;
         }
