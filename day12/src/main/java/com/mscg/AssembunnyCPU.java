@@ -6,7 +6,9 @@ import java.io.UncheckedIOException;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.LongUnaryOperator;
 
+@SuppressWarnings("SpellCheckingInspection")
 public class AssembunnyCPU {
 
     private final List<? extends Instruction> instructions;
@@ -19,8 +21,15 @@ public class AssembunnyCPU {
         reset();
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public AssembunnyCPU register(final Register register, final long value) {
         registers.put(register, value);
+        return this;
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    public AssembunnyCPU register(final Register register, final LongUnaryOperator valueComputer) {
+        registers.compute(register, (__, val) -> valueComputer.applyAsLong(val == null ? 0L : val));
         return this;
     }
 
@@ -37,7 +46,7 @@ public class AssembunnyCPU {
 
     public void run() {
         while (ic < instructions.size()) {
-            ic += instructions.get(ic).execute(registers);
+            ic += instructions.get(ic).execute(this);
         }
     }
 
@@ -48,22 +57,33 @@ public class AssembunnyCPU {
                         final String[] parts = line.split(" ");
                         return switch (parts[0].toLowerCase()) {
                             case "cpy" -> {
+                                Value source;
                                 try {
-                                    yield new CpyConst(Integer.parseInt(parts[1]), Register.fromString(parts[2]));
+                                    source = new ConstValue(Long.parseLong(parts[1]));
                                 }
                                 catch (final NumberFormatException e) {
-                                    yield new CpyReg(Register.fromString(parts[1]), Register.fromString(parts[2]));
+                                    source = new RegisterValue(Register.fromString(parts[1]));
                                 }
+                                yield new Cpy(source, Register.fromString(parts[2]));
                             }
                             case "inc" -> new Inc(Register.fromString(parts[1]));
                             case "dec" -> new Dec(Register.fromString(parts[1]));
                             case "jnz" -> {
+                                Value source;
                                 try {
-                                    yield new JnzConst(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+                                    source = new ConstValue(Long.parseLong(parts[1]));
                                 }
                                 catch (final NumberFormatException e) {
-                                    yield new JnzReg(Register.fromString(parts[1]), Integer.parseInt(parts[2]));
+                                    source = new RegisterValue(Register.fromString(parts[1]));
                                 }
+                                Value delta;
+                                try {
+                                    delta = new ConstValue(Long.parseLong(parts[2]));
+                                }
+                                catch (final NumberFormatException e) {
+                                    delta = new RegisterValue(Register.fromString(parts[2]));
+                                }
+                                yield new Jnz(source, delta);
                             }
                             default -> throw new IllegalArgumentException("Invalid instruction " + line);
                         };
@@ -90,25 +110,39 @@ public class AssembunnyCPU {
         }
     }
 
-    public interface Instruction {
-        int execute(Map<Register, Long> registers);
+    public interface Value {
+
+        long getValue(AssembunnyCPU cpu);
+
     }
 
-    public record CpyConst(long source, Register target) implements Instruction {
+    public record RegisterValue(Register register) implements Value {
 
         @Override
-        public int execute(final Map<Register, Long> registers) {
-            registers.put(target, source);
-            return 1;
+        public long getValue(final AssembunnyCPU cpu) {
+            return cpu.register(register);
         }
 
     }
 
-    public record CpyReg(Register source, Register target) implements Instruction {
+    public record ConstValue(long value) implements Value {
 
         @Override
-        public int execute(final Map<Register, Long> registers) {
-            registers.put(target, registers.get(source));
+        public long getValue(final AssembunnyCPU cpu) {
+            return value;
+        }
+
+    }
+
+    public interface Instruction {
+        int execute(AssembunnyCPU cpu);
+    }
+
+    public record Cpy(Value source, Register target) implements Instruction {
+
+        @Override
+        public int execute(final AssembunnyCPU cpu) {
+            cpu.register(target, source.getValue(cpu));
             return 1;
         }
 
@@ -117,8 +151,8 @@ public class AssembunnyCPU {
     public record Inc(Register target) implements Instruction {
 
         @Override
-        public int execute(final Map<Register, Long> registers) {
-            registers.compute(target, (__, val) -> val == null ? 1 : val + 1);
+        public int execute(final AssembunnyCPU cpu) {
+            cpu.register(target, val -> val + 1);
             return 1;
         }
 
@@ -127,27 +161,18 @@ public class AssembunnyCPU {
     public record Dec(Register target) implements Instruction {
 
         @Override
-        public int execute(final Map<Register, Long> registers) {
-            registers.compute(target, (__, val) -> val == null ? -1 : val - 1);
+        public int execute(final AssembunnyCPU cpu) {
+            cpu.register(target, val -> val - 1);
             return 1;
         }
 
     }
 
-    public record JnzConst(int source, int delta) implements Instruction {
+    public record Jnz(Value source, Value delta) implements Instruction {
 
         @Override
-        public int execute(final Map<Register, Long> registers) {
-            return source != 0 ? delta : 1;
-        }
-
-    }
-
-    public record JnzReg(Register source, int delta) implements Instruction {
-
-        @Override
-        public int execute(final Map<Register, Long> registers) {
-            return registers.get(source) != 0 ? delta : 1;
+        public int execute(final AssembunnyCPU cpu) {
+            return source.getValue(cpu) != 0 ? (int) delta.getValue(cpu) : 1;
         }
 
     }
