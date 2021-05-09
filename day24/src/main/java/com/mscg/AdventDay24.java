@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
+@SuppressWarnings("SpellCheckingInspection")
 public class AdventDay24 {
 
     public static void main(final String[] args) throws Exception {
@@ -14,7 +15,8 @@ public class AdventDay24 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 1 - Answer %d".formatted(0));
+            final var airduct = AirductMap.parseInput(in);
+            System.out.println("Part 1 - Answer %s".formatted(airduct.findShortestPath()));
         }
     }
 
