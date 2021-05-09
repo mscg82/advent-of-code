@@ -61,12 +61,7 @@ public class AssembunnyCPU3 {
         for (int a = 0; a < 1_000_000; a++) {
             reset();
             register(Register.A, a);
-            run(cpu -> {
-                if (cpu.outputs.size() > 20) {
-                    return false;
-                }
-                return isCorrectClock();
-            });
+            run(cpu -> cpu.outputs.size() <= 20 && cpu.isCorrectClock());
             if (isCorrectClock()) {
                 return a;
             }
