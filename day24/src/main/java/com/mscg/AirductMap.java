@@ -3,6 +3,7 @@ package com.mscg;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,11 +15,76 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.codepoetics.protonpack.StreamUtils;
+import io.soabase.recordbuilder.core.RecordBuilder;
 
 @SuppressWarnings("SpellCheckingInspection")
 public record AirductMap(List<List<Tile>> map, Map<Character, Position> poiToPosition, Map<Position, Character> positionToPoi) {
 
     public Path findShortestPath() {
+        return findAllPaths().stream() //
+                .min(Comparator.comparingInt(Path::length))
+                .orElseThrow();
+    }
+
+    public Path findShortestPathReturningHome() {
+        final List<Path> paths = findAllPaths();
+
+        final Map<Position, List<Position>> adjacencyMap = computeAdjacencyMap();
+
+        return paths.stream() //
+                .map(path -> {
+                    final Character lastPoi = path.pois().get(path.pois().size() - 1);
+                    final Position lastPosition = poiToPosition.get(lastPoi);
+                    final Position homePosition = poiToPosition.get('0');
+                    final Map<Position, Integer> pathToOtherPois = findPathToOtherPois(adjacencyMap, lastPosition, Set.of(homePosition));
+                    return path.with(b -> b.length(b.length() + pathToOtherPois.get(homePosition)));
+                }) //
+                .min(Comparator.comparingInt(Path::length))
+                .orElseThrow();
+    }
+
+    private List<Path> findAllPaths() {
+        final Map<Position, List<Position>> adjacencyMap = computeAdjacencyMap();
+
+        record Step(Position position, Set<Position> poisToConsider, List<Character> visitedPois, int length) {
+        }
+
+        final Set<List<Character>> visitedChains = new HashSet<>();
+        final Deque<Step> queue = new LinkedList<>();
+        final List<Path> paths = new ArrayList<>();
+
+        final Position start = poiToPosition.get('0');
+        final Set<Position> poisToConsider = new HashSet<>(positionToPoi.keySet());
+        poisToConsider.remove(start);
+
+        final List<Character> initialChain = List.of('0');
+        queue.add(new Step(start, poisToConsider, initialChain, 0));
+        visitedChains.add(initialChain);
+
+        while (!queue.isEmpty()) {
+            final var step = queue.pop();
+            if (step.poisToConsider().isEmpty()) {
+                paths.add(new Path(step.visitedPois(), step.length()));
+                continue;
+            }
+
+            final Map<Position, Integer> nearestPois = findPathToOtherPois(adjacencyMap, step.position(), step.poisToConsider());
+            nearestPois.forEach((pos, distance) -> {
+                final char poi = positionToPoi.get(pos);
+                final List<Character> newChain = Stream.concat(step.visitedPois().stream(), Stream.of(poi)).toList();
+                if (!visitedChains.contains(newChain)) {
+                    final Set<Position> newPoisToConsider = new HashSet<>(step.poisToConsider());
+                    newPoisToConsider.remove(pos);
+                    queue.add(new Step(pos, newPoisToConsider, newChain, step.length() + distance));
+                    visitedChains.add(newChain);
+                }
+            });
+        }
+
+        return List.copyOf(paths);
+    }
+
+    private Map<Position, List<Position>> computeAdjacencyMap() {
         final Map<Position, List<Position>> adjacencyMap = new HashMap<>();
         for (int y = 0, rows = map.size(); y < rows; y++) {
             final List<Tile> row = map.get(y);
@@ -34,48 +100,10 @@ public record AirductMap(List<List<Tile>> map, Map<Character, Position> poiToPos
                 adjacencyMap.put(new Position(x, y), neighbours);
             }
         }
-
-        record Step(Position position, Set<Position> poisToConsider, List<Character> visitedPois, int length) {
-        }
-
-        final Set<List<Character>> visitedChains = new HashSet<>();
-        final Deque<Step> queue = new LinkedList<>();
-        Path shortestPath = new Path(List.of(), Integer.MAX_VALUE);
-
-        final Position start = poiToPosition.get('0');
-        final Set<Position> poisToConsider = new HashSet<>(positionToPoi.keySet());
-        poisToConsider.remove(start);
-
-        final List<Character> initialChain = List.of('0');
-        queue.add(new Step(start, poisToConsider, initialChain, 0));
-        visitedChains.add(initialChain);
-
-        while (!queue.isEmpty()) {
-            final var step = queue.pop();
-            if (step.poisToConsider().isEmpty()) {
-                if (step.length() < shortestPath.length()) {
-                    shortestPath = new Path(step.visitedPois(), step.length());
-                }
-                continue;
-            }
-
-            final Map<Position, Integer> nearestPois = findPathToNearestPois(adjacencyMap, step.position(), step.poisToConsider());
-            nearestPois.forEach((pos, distance) -> {
-                final char poi = positionToPoi.get(pos);
-                final List<Character> newChain = Stream.concat(step.visitedPois().stream(), Stream.of(poi)).toList();
-                if (!visitedChains.contains(newChain)) {
-                    final Set<Position> newPoisToConsider = new HashSet<>(step.poisToConsider());
-                    newPoisToConsider.remove(pos);
-                    queue.add(new Step(pos, newPoisToConsider, newChain, step.length() + distance));
-                    visitedChains.add(newChain);
-                }
-            });
-        }
-
-        return shortestPath;
+        return adjacencyMap;
     }
 
-    private Map<Position, Integer> findPathToNearestPois(final Map<Position, List<Position>> adjacencyMap, final Position start, final Set<Position> poisToConsider) {
+    private Map<Position, Integer> findPathToOtherPois(final Map<Position, List<Position>> adjacencyMap, final Position start, final Set<Position> poisToConsider) {
         record Step(Position position, int distance) {
         }
 
@@ -152,7 +180,8 @@ public record AirductMap(List<List<Tile>> map, Map<Character, Position> poiToPos
                 .collect(Collectors.joining("\n"));
     }
 
-    public static record Path(List<Character> pois, int length) {
+    @RecordBuilder
+    public static record Path(List<Character> pois, int length) implements AirductMapPathBuilder.With {
     }
 
     public static record Position(int x, int y) {
