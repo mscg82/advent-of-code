@@ -14,9 +14,7 @@ public class AdventDay25 {
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
             final var cpu = AssembunnyCPU3.parseInput(in);
-            final long before = System.currentTimeMillis();
             System.out.println("Part 1 - Answer %d".formatted(cpu.findInitValue()));
-            System.out.println("Elapsed " + (System.currentTimeMillis() - before) + "ms");
         }
     }
 
