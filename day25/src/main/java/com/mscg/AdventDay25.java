@@ -9,18 +9,14 @@ public class AdventDay25 {
 
     public static void main(final String[] args) throws Exception {
         part1();
-        part2();
     }
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 1 - Answer %d".formatted(0));
-        }
-    }
-
-    private static void part2() throws IOException {
-        try (BufferedReader in = readInput()) {
-            System.out.println("Part 2 - Answer %d".formatted(0));
+            final var cpu = AssembunnyCPU3.parseInput(in);
+            final long before = System.currentTimeMillis();
+            System.out.println("Part 1 - Answer %d".formatted(cpu.findInitValue()));
+            System.out.println("Elapsed " + (System.currentTimeMillis() - before) + "ms");
         }
     }
 
