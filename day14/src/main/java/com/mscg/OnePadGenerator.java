@@ -16,7 +16,6 @@ public record OnePadGenerator(byte[] seed) {
     private static final Map<String, byte[]> md5Cache = new ConcurrentHashMap<>();
 
     public long findNthPad(final int n, final boolean stretched) {
-        final long start = System.currentTimeMillis();
         long index = 0;
         int padsFound = 0;
         while (padsFound != n) {
