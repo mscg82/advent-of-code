@@ -6,22 +6,23 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 public class AdventDay3 {
-    
-    public static void main(String[] args) throws Exception {
+
+    public static void main(final String[] args) throws Exception {
         part1();
         part2();
     }
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            var memory = SpiralMemory.parseInput(in);
+            final var memory = SpiralMemory.parseInput(in);
             System.out.println("Part 1 - Answer %d".formatted(memory.findDistance()));
         }
     }
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 2 - Answer %d".formatted(0));
+            final var memory = SpiralMemory.parseInput(in);
+            System.out.println("Part 2 - Answer %d".formatted(memory.findValue()));
         }
     }
 
