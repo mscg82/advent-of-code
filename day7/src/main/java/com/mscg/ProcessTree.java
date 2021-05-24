@@ -59,8 +59,7 @@ public record ProcessTree(List<Process> processes) {
                 .map(nameToProcess::get) //
                 .orElseThrow();
 
-        final var balancedProcess = unbalancedProcess.with(p -> p.weight(p.weight() - delta));
-        return balancedProcess;
+        return unbalancedProcess.with(p -> p.weight(p.weight() - delta));
     }
 
     private void computeWeight(final Process process, final Map<String, Process> nameToProcess, final Map<String, Long> processToTotalWeight) {
