@@ -14,13 +14,16 @@ public class AdventDay8 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 1 - Answer %d".formatted(0));
+            final var cpu = CPU.parseInput(in);
+            cpu.run();
+            System.out.println("Part 1 - Answer %d".formatted(cpu.getLargestValue()));
         }
     }
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 2 - Answer %d".formatted(0));
+            final var cpu = CPU.parseInput(in);
+            System.out.println("Part 2 - Answer %d".formatted(cpu.run()));
         }
     }
 
