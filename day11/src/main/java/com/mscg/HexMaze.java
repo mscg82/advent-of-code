@@ -26,11 +26,32 @@ public final class HexMaze {
     }
 
     public int findDistance() {
+        final Diagonals diagonals = computeDiagonals();
+
         Tile targetTile = initedTiles.startingTile();
         for (final var direction : directions) {
             targetTile = targetTile.getNeighbours().get(direction);
         }
 
+        return computeDistanceFromStart(targetTile, diagonals);
+    }
+
+    public int findMaxDistance() {
+        final Diagonals diagonals = computeDiagonals();
+
+        int maxDistance = 0;
+        Tile targetTile = initedTiles.startingTile();
+        for (final var direction : directions) {
+            targetTile = targetTile.getNeighbours().get(direction);
+            final int distance = computeDistanceFromStart(targetTile, diagonals);
+            if (maxDistance < distance) {
+                maxDistance = distance;
+            }
+        }
+        return maxDistance;
+    }
+
+    private Diagonals computeDiagonals() {
         final Stream<Tile> upperDescDiagonal = Stream.iterate(initedTiles.startingTile(), Objects::nonNull, t -> t.getNeighbours().get(Direction.NW));
         final Stream<Tile> lowerDescDiagonal = Stream.iterate(initedTiles.startingTile(), Objects::nonNull, t -> t.getNeighbours().get(Direction.SE));
         final Set<Integer> idsInDescDiagonal = Stream.concat(upperDescDiagonal, lowerDescDiagonal) //
@@ -43,9 +64,13 @@ public final class HexMaze {
                 .map(Tile::getId) //
                 .collect(Collectors.toUnmodifiableSet());
 
+        return new Diagonals(idsInDescDiagonal, idsInAscDiagonal);
+    }
+
+    private int computeDistanceFromStart(final Tile targetTile, final Diagonals diagonals) {
         Tile currentTile = targetTile;
         int steps = 0;
-        while (!idsInDescDiagonal.contains(currentTile.getId()) && !idsInAscDiagonal.contains(currentTile.getId())) {
+        while (!diagonals.idsInDescDiagonal().contains(currentTile.getId()) && !diagonals.idsInAscDiagonal().contains(currentTile.getId())) {
             if (currentTile.getId() > initedTiles.startingTile().getId()) {
                 currentTile = currentTile.getNeighbours().get(Direction.S);
             } else {
@@ -54,7 +79,7 @@ public final class HexMaze {
             steps++;
         }
 
-        if (idsInDescDiagonal.contains(currentTile.getId())) {
+        if (diagonals.idsInDescDiagonal().contains(currentTile.getId())) {
             return steps + Math.abs(currentTile.getId() - initedTiles.startingTile().getId());
         } else {
             while (!currentTile.equals(initedTiles.startingTile())) {
@@ -170,4 +195,7 @@ public final class HexMaze {
 
     }
 
+    private record Diagonals(Set<Integer> idsInDescDiagonal, Set<Integer> idsInAscDiagonal) {
+
+    }
 }

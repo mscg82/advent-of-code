@@ -21,7 +21,8 @@ public class AdventDay11 {
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 2 - Answer %d".formatted(0));
+            final var hex = HexMaze.parseInput(in, 2205);
+            System.out.println("Part 2 - Answer %d".formatted(hex.findMaxDistance()));
         }
     }
 
