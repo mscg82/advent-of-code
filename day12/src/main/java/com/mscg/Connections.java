@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
@@ -28,6 +29,21 @@ public record Connections(Map<Integer, Node> nodes) {
         }
 
         return Set.copyOf(nodes);
+    }
+
+    public int countGroups() {
+        int groups = 0;
+
+        final Map<Integer, Node> nodes = new HashMap<>(this.nodes);
+        while (!nodes.isEmpty()) {
+            groups++;
+            final Set<Integer> nodeIds = nodes.keySet();
+            final int firstNode = nodeIds.iterator().next();
+            final Set<Integer> connectedNodes = findConnectedNodes(firstNode);
+            nodeIds.removeAll(connectedNodes);
+        }
+
+        return groups;
     }
 
     public static Connections parseInput(final BufferedReader in) throws IOException {
