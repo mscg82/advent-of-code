@@ -39,16 +39,19 @@ public final class HexMaze {
     public int findMaxDistance() {
         final Diagonals diagonals = computeDiagonals();
 
-        int maxDistance = 0;
+        final List<Tile> targetTiles = new ArrayList<>(directions.size());
         Tile targetTile = initedTiles.startingTile();
+        targetTiles.add(targetTile);
         for (final var direction : directions) {
             targetTile = targetTile.getNeighbours().get(direction);
-            final int distance = computeDistanceFromStart(targetTile, diagonals);
-            if (maxDistance < distance) {
-                maxDistance = distance;
-            }
+            targetTiles.add(targetTile);
         }
-        return maxDistance;
+
+        return targetTiles.stream() //
+                .parallel() //
+                .mapToInt(tile -> computeDistanceFromStart(tile, diagonals)) //
+                .max() //
+                .orElseThrow();
     }
 
     private Diagonals computeDiagonals() {
