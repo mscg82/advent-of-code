@@ -76,28 +76,27 @@ public record DiskGrid(String seed) {
             bytes[15 - (i / 2)] = (byte) ((bh << 4) + bl);
         }
 
-        final BitSet bitSet = BitSet.valueOf(bytes);
-        return bitSet;
+        return BitSet.valueOf(bytes);
     }
 
     private static byte charToByte(final char c) {
-        return switch (c) {
-            case '0' -> (byte) 0;
-            case '1' -> (byte) 1;
-            case '2' -> (byte) 2;
-            case '3' -> (byte) 3;
-            case '4' -> (byte) 4;
-            case '5' -> (byte) 5;
-            case '6' -> (byte) 6;
-            case '7' -> (byte) 7;
-            case '8' -> (byte) 8;
-            case '9' -> (byte) 9;
-            case 'a' -> (byte) 10;
-            case 'b' -> (byte) 11;
-            case 'c' -> (byte) 12;
-            case 'd' -> (byte) 13;
-            case 'e' -> (byte) 14;
-            case 'f' -> (byte) 15;
+        return (byte) switch (c) {
+            case '0' -> 0;
+            case '1' -> 1;
+            case '2' -> 2;
+            case '3' -> 3;
+            case '4' -> 4;
+            case '5' -> 5;
+            case '6' -> 6;
+            case '7' -> 7;
+            case '8' -> 8;
+            case '9' -> 9;
+            case 'a' -> 10;
+            case 'b' -> 11;
+            case 'c' -> 12;
+            case 'd' -> 13;
+            case 'e' -> 14;
+            case 'f' -> 15;
             default -> throw new IllegalStateException("Unsupported value " + c);
         };
     }
