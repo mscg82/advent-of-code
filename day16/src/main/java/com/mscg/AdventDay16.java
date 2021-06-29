@@ -14,13 +14,15 @@ public class AdventDay16 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 1 - Answer %d".formatted(0));
+            final var programList = ProgramsList.parseInput(in);
+            System.out.println("Part 1 - Answer %s".formatted(programList.dance(ProgramsList.initialState())));
         }
     }
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 2 - Answer %d".formatted(0));
+            final var programList = ProgramsList.parseInput(in);
+            System.out.println("Part 2 - Answer %s".formatted(programList.multiDance(ProgramsList.initialState(), 1_000_000_000)));
         }
     }
 
