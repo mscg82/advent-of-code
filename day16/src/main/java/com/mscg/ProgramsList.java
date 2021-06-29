@@ -22,13 +22,18 @@ public record ProgramsList(List<Instruction> instructions) {
     }
 
     public String multiDance(final char[] start, final int runs) {
-        char[] status = new char[start.length];
+        final char[] status = new char[start.length];
         System.arraycopy(start, 0, status, 0, start.length);
 
         final Map<char[], char[]> results = new HashMap<>();
 
         for (int i = 0; i < runs; i++) {
-            status = results.computeIfAbsent(status, s -> dance(s).toCharArray());
+            for (final var instruction : instructions) {
+                instruction.execute(status);
+            }
+            if (Arrays.equals(status, start)) {
+                i += ((runs / (i + 1)) - 1) * (i + 1);
+            }
         }
 
         return new String(status);
