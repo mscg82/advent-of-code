@@ -7,14 +7,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.naming.Name;
-
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class DuettoCPU {
 
-    private final Map<Register, Integer> registers = new HashMap<>();
+    private final Map<Register, Long> registers = new HashMap<>();
     private final List<Instruction> instructions;
     private int pc;
 
@@ -22,11 +20,11 @@ public class DuettoCPU {
         registers.clear();
     }
 
-    public int retrieveSound() {
+    public long retrieveSound() {
         pc = 0;
         while (pc < instructions.size()) {
-            var currentInstruction = instructions.get(pc);
-            int jump = currentInstruction.execute(registers);
+            final var currentInstruction = instructions.get(pc);
+            final int jump = currentInstruction.execute(registers);
             pc += jump;
             if (currentInstruction instanceof Rcv && registers.get(SoundRegister.RETRIEVED) != null) {
                 return registers.get(SoundRegister.RETRIEVED);
@@ -35,14 +33,14 @@ public class DuettoCPU {
         throw new IllegalStateException("Can't retrieve sound");
     }
 
-    public static DuettoCPU parseInput(BufferedReader in) throws IOException {
+    public static DuettoCPU parseInput(final BufferedReader in) throws IOException {
         try {
-            List<Instruction> instructions = in.lines() //
+            final List<Instruction> instructions = in.lines() //
                     .map(Instruction::parse) //
                     .toList();
             return new DuettoCPU(instructions);
         }
-        catch (UncheckedIOException e) {
+        catch (final UncheckedIOException e) {
             throw e.getCause();
         }
     }
@@ -59,13 +57,13 @@ public class DuettoCPU {
     }
 
     public interface Value {
-        int get(Map<Register, Integer> registers);
+        long get(Map<Register, Long> registers);
 
-        static Value parse(String val) {
+        static Value parse(final String val) {
             try {
                 return new Constant(Integer.parseInt(val));
             }
-            catch (NumberFormatException e) {
+            catch (final NumberFormatException e) {
                 return new RegisterVal(new NamedRegister(val.charAt(0)));
             }
         }
@@ -73,23 +71,23 @@ public class DuettoCPU {
 
     public static record Constant(int value) implements Value {
         @Override
-        public int get(Map<Register, Integer> registers) {
+        public long get(final Map<Register, Long> registers) {
             return value;
         }
     }
 
     public static record RegisterVal(NamedRegister register) implements Value {
         @Override
-        public int get(Map<Register, Integer> registers) {
-            return registers.computeIfAbsent(register, __ -> 0);
+        public long get(final Map<Register, Long> registers) {
+            return registers.computeIfAbsent(register, __ -> 0L);
         }
     }
 
     public interface Instruction {
-        int execute(Map<Register, Integer> registers);
+        int execute(Map<Register, Long> registers);
 
-        static Instruction parse(String line) {
-            String[] parts = line.split(" ");
+        static Instruction parse(final String line) {
+            final String[] parts = line.split(" ");
             return switch (parts[0]) {
                 case "snd" -> new Snd(Value.parse(parts[1]));
                 case "set" -> new Set(new NamedRegister(parts[1].charAt(0)), Value.parse(parts[2]));
@@ -105,7 +103,7 @@ public class DuettoCPU {
 
     public static record Snd(Value value) implements Instruction {
         @Override
-        public int execute(Map<Register, Integer> registers) {
+        public int execute(final Map<Register, Long> registers) {
             registers.put(SoundRegister.OUTPUT, value.get(registers));
             return 1;
         }
@@ -113,7 +111,7 @@ public class DuettoCPU {
 
     public static record Set(NamedRegister target, Value value) implements Instruction {
         @Override
-        public int execute(Map<Register, Integer> registers) {
+        public int execute(final Map<Register, Long> registers) {
             registers.put(target, value.get(registers));
             return 1;
         }
@@ -121,7 +119,7 @@ public class DuettoCPU {
 
     public static record Add(NamedRegister target, Value amount) implements Instruction {
         @Override
-        public int execute(Map<Register, Integer> registers) {
+        public int execute(final Map<Register, Long> registers) {
             registers.compute(target, (__, value) -> (value == null ? 0 : value) + amount.get(registers));
             return 1;
         }
@@ -129,7 +127,7 @@ public class DuettoCPU {
 
     public static record Mul(NamedRegister target, Value amount) implements Instruction {
         @Override
-        public int execute(Map<Register, Integer> registers) {
+        public int execute(final Map<Register, Long> registers) {
             registers.compute(target, (__, value) -> (value == null ? 0 : value) * amount.get(registers));
             return 1;
         }
@@ -137,7 +135,7 @@ public class DuettoCPU {
 
     public static record Mod(NamedRegister target, Value amount) implements Instruction {
         @Override
-        public int execute(Map<Register, Integer> registers) {
+        public int execute(final Map<Register, Long> registers) {
             registers.compute(target, (__, value) -> (value == null ? 0 : value) % amount.get(registers));
             return 1;
         }
@@ -145,7 +143,7 @@ public class DuettoCPU {
 
     public static record Rcv(Value trigger) implements Instruction {
         @Override
-        public int execute(Map<Register, Integer> registers) {
+        public int execute(final Map<Register, Long> registers) {
             if (trigger.get(registers) != 0) {
                 registers.put(SoundRegister.RETRIEVED, registers.get(SoundRegister.OUTPUT));
             }
@@ -155,11 +153,11 @@ public class DuettoCPU {
 
     public static record Jgz(Value trigger, Value amount) implements Instruction {
         @Override
-        public int execute(Map<Register, Integer> registers) {
+        public int execute(final Map<Register, Long> registers) {
             if (trigger.get(registers) <= 0) {
                 return 1;
             }
-            return amount.get(registers);
+            return (int) amount.get(registers);
         }
     }
 }
