@@ -21,7 +21,8 @@ public class AdventDay17 {
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 2 - Answer %d".formatted(0));
+            final var buffer = CircularBuffer.parseInput(in);
+            System.out.println("Part 2 - Answer %d".formatted(buffer.findShortcircuit2(50_000_000)));
         }
     }
 
