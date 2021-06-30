@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,27 +14,36 @@ public record ProgramsList(List<Instruction> instructions) {
         final char[] status = new char[start.length];
         System.arraycopy(start, 0, status, 0, start.length);
 
-        for (final var instruction : instructions) {
-            instruction.execute(status);
-        }
+        executeDance(status);
 
         return new String(status);
     }
 
+    private char[] executeDance(final char[] status) {
+        for (final var instruction : instructions) {
+            instruction.execute(status);
+        }
+
+        return status;
+    }
+
     public String multiDance(final char[] start, final int runs) {
-        final char[] status = new char[start.length];
+        char[] status = new char[start.length];
         System.arraycopy(start, 0, status, 0, start.length);
 
-        final Map<char[], char[]> results = new HashMap<>();
-
-        for (int i = 0; i < runs; i++) {
-            for (final var instruction : instructions) {
-                instruction.execute(status);
-            }
-            if (Arrays.equals(status, start)) {
-                i += ((runs / (i + 1)) - 1) * (i + 1);
-            }
+        final Map<String, char[]> results = new LinkedHashMap<>();
+        do {
+            status = results.computeIfAbsent(new String(status), s -> executeDance(s.toCharArray()));
         }
+        while (!Arrays.equals(status, start));
+
+        final int loopLength = results.size();
+        final int remainder = runs % loopLength;
+        status = results.entrySet().stream() //
+                .skip(remainder - 1) //
+                .findFirst() //
+                .map(Map.Entry::getValue) //
+                .orElseThrow();
 
         return new String(status);
     }
