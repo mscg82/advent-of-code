@@ -14,7 +14,8 @@ public class AdventDay18 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 1 - Answer %d".formatted(0));
+            var cpu = DuettoCPU.parseInput(in);
+            System.out.println("Part 1 - Answer %d".formatted(cpu.retrieveSound()));
         }
     }
 
