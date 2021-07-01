@@ -14,14 +14,15 @@ public class AdventDay18 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            var cpu = DuettoCPU.parseInput(in);
+            final var cpu = DuettoCPU.parseInput(in, false);
             System.out.println("Part 1 - Answer %d".formatted(cpu.retrieveSound()));
         }
     }
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 2 - Answer %d".formatted(0));
+            final var cpu = DuettoCPU.parseInput(in, true);
+            System.out.println("Part 2 - Answer %d".formatted(cpu.runDuetto()));
         }
     }
 
