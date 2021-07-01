@@ -14,14 +14,13 @@ public class DuettoCPU {
 
     private final Map<Register, Long> registers = new HashMap<>();
     private final List<Instruction> instructions;
-    private int pc;
 
     public void reset() {
         registers.clear();
     }
 
     public long retrieveSound() {
-        pc = 0;
+        int pc = 0;
         while (pc < instructions.size()) {
             final var currentInstruction = instructions.get(pc);
             final int jump = currentInstruction.execute(registers);
