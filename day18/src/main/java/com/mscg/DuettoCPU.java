@@ -41,8 +41,8 @@ public class DuettoCPU implements ToLongFunction<DuettoCPU.Register> {
             final var currentInstruction = instructions.get(pc);
             final int jump = currentInstruction.execute(this);
             pc += jump;
-            if (currentInstruction instanceof Rcv && registers.get(SoundRegister.RETRIEVED) != null) {
-                return register(SoundRegister.RETRIEVED);
+            if (currentInstruction instanceof Rcv && registers.get(SpecialRegister.RETRIEVED) != null) {
+                return register(SpecialRegister.RETRIEVED);
             }
         }
         throw new IllegalStateException("Can't retrieve sound");
@@ -63,8 +63,8 @@ public class DuettoCPU implements ToLongFunction<DuettoCPU.Register> {
 
     }
 
-    public enum SoundRegister implements Register {
-        OUTPUT, RETRIEVED
+    public enum SpecialRegister implements Register {
+        OUTPUT, RETRIEVED, SEND_COUNT
     }
 
     public static record NamedRegister(char name) implements Register {
@@ -127,7 +127,7 @@ public class DuettoCPU implements ToLongFunction<DuettoCPU.Register> {
 
         @Override
         public int execute(final DuettoCPU cpu) {
-            cpu.register(SoundRegister.OUTPUT, value.get(cpu));
+            cpu.register(SpecialRegister.OUTPUT, value.get(cpu));
             return 1;
         }
 
@@ -178,7 +178,7 @@ public class DuettoCPU implements ToLongFunction<DuettoCPU.Register> {
         @Override
         public int execute(final DuettoCPU cpu) {
             if (trigger.get(cpu) != 0) {
-                cpu.register(SoundRegister.RETRIEVED, cpu.registers.get(SoundRegister.OUTPUT));
+                cpu.register(SpecialRegister.RETRIEVED, cpu.registers.get(SpecialRegister.OUTPUT));
             }
             return 1;
         }
