@@ -1,8 +1,5 @@
 package com.mscg;
 
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -15,6 +12,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.ToLongFunction;
+
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 
 @RequiredArgsConstructor
 public class DuettoCPU implements ToLongFunction<DuettoCPU.Register> {
@@ -41,6 +41,7 @@ public class DuettoCPU implements ToLongFunction<DuettoCPU.Register> {
         return registers.computeIfAbsent(register, __ -> 0L);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public long register(final Register register, final long value) {
         final Long oldValue = registers.put(register, value);
         return oldValue == null ? 0 : oldValue;
@@ -88,7 +89,8 @@ public class DuettoCPU implements ToLongFunction<DuettoCPU.Register> {
                     .map(line -> Instruction.parse(line, duettoMode)) //
                     .toList();
             return new DuettoCPU(instructions);
-        } catch (final UncheckedIOException e) {
+        }
+        catch (final UncheckedIOException e) {
             throw e.getCause();
         }
     }
@@ -116,7 +118,8 @@ public class DuettoCPU implements ToLongFunction<DuettoCPU.Register> {
         static Value parse(final String val) {
             try {
                 return new Constant(Integer.parseInt(val));
-            } catch (final NumberFormatException e) {
+            }
+            catch (final NumberFormatException e) {
                 return new RegisterVal(new NamedRegister(val.charAt(0)));
             }
         }
@@ -241,7 +244,7 @@ public class DuettoCPU implements ToLongFunction<DuettoCPU.Register> {
         public int execute(final DuettoCPU cpu) {
             if (cpu.receivedData.data().isEmpty()) {
                 cpu.receivedData.blocked().set(true);
-                if (cpu.sendChannel.blocked().get()) {
+                if (cpu.sendChannel.blocked().get() && cpu.sendChannel.data().isEmpty()) {
                     cpu.sendChannel.data().add(Long.MIN_VALUE);
                     return cpu.instructions.size();
                 }
