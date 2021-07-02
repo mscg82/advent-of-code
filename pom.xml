@@ -27,6 +27,8 @@
         <module>day18</module>
         <module>day19</module>
         <module>day20</module>
+        <module>day21</module>
+        <module>day22</module>
     </modules>
     <packaging>pom</packaging>
 
