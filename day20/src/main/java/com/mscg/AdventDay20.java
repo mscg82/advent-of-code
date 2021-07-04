@@ -15,13 +15,20 @@ public class AdventDay20 {
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
             final var gpu = GPU.parseInput(in);
+            final var p0 = gpu.particles().get(0);
+            final var p1 = p0.simulate(1);
+            final var p2 = p1.simulate(1);
+            final var p22 = p0.simulate(2);
+            System.out.println(p1);
+            System.out.println(p2 + " -> " + p22);
             System.out.println("Part 1 - Answer %d".formatted(gpu.getClosestParticle()));
         }
     }
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 2 - Answer %d".formatted(0));
+            final var gpu = GPU.parseInput(in);
+            System.out.println("Part 2 - Answer %d".formatted(gpu.simulateCollisions()));
         }
     }
 

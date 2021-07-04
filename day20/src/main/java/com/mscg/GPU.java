@@ -3,6 +3,7 @@ package com.mscg;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -24,6 +25,32 @@ public record GPU(List<Particle> particles) {
                 .findFirst() //
                 .orElseThrow() //
                 .id();
+    }
+
+    public int simulateCollisions() {
+        List<Particle> curParticles = particles;
+        int unchangedCount = 0;
+        for (int t = 10; t < 1_000_000; t++) {
+            final int numParticles = curParticles.size();
+            final List<Particle> simulated = curParticles.stream() //
+                    .map(p -> p.simulate(1)) //
+                    .collect(Collectors.toCollection(() -> new ArrayList<>(numParticles)));
+            final Map<Vector3D, List<Particle>> grouped = simulated.stream() //
+                    .collect(Collectors.groupingBy(Particle::p));
+            final List<Particle> survivedParticles = grouped.values().stream() //
+                    .filter(l -> l.size() == 1) //
+                    .flatMap(List::stream) //
+                    .toList();
+            if (survivedParticles.size() == curParticles.size()) {
+                unchangedCount++;
+            }
+            curParticles = survivedParticles;
+
+            if (unchangedCount > 100) {
+                break;
+            }
+        }
+        return curParticles.size();
     }
 
     public static record Vector3D(long x, long y, long z) {
@@ -49,7 +76,7 @@ public record GPU(List<Particle> particles) {
         }
 
         public Particle simulate(final long t) {
-            return new Particle(id, a.scale((t * t) / 2).add(v.scale(t)).add(p), a.scale(t).add(v), a);
+            return new Particle(id, a.scale((t * (t + 1)) / 2).add(v.scale(t)).add(p), a.scale(t).add(v), a);
         }
 
     }
