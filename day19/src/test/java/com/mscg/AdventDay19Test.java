@@ -13,7 +13,7 @@ public class AdventDay19Test {
     public void testRun() throws Exception {
         try (BufferedReader in = readInput()) {
             final var router = PacketRouter.parseInput(in);
-            Assertions.assertEquals("ABCDEF", router.run());
+            Assertions.assertEquals(new PacketRouter.Result("ABCDEF", 38), router.run());
         }
     }
 

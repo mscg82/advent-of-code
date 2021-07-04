@@ -10,12 +10,14 @@ import java.util.stream.Collectors;
 
 public record PacketRouter(List<List<Character>> routes) {
 
-    public String run() {
+    public Result run() {
         var pos = findStartPosition().orElseThrow();
         var dir = Direction.DOWN;
 
+        int length = 0;
         final StringBuilder path = new StringBuilder();
         do {
+            length++;
             final char current = routes.get(pos.x()).get(pos.y());
             if (current != '-' && current != '|' && current != '+') {
                 path.append(current);
@@ -44,7 +46,7 @@ public record PacketRouter(List<List<Character>> routes) {
         }
         while (pos.isValid(routes));
 
-        return path.toString();
+        return new Result(path.toString(), length);
     }
 
     private Optional<Position> findStartPosition() {
@@ -85,6 +87,10 @@ public record PacketRouter(List<List<Character>> routes) {
             final int cols = routes.get(0).size();
             return x >= 0 && x < rows && y >= 0 && y < cols && routes.get(x).get(y) != ' ';
         }
+
+    }
+
+    public static record Result(String path, int length) {
 
     }
 
