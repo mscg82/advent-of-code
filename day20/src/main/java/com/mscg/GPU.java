@@ -30,7 +30,7 @@ public record GPU(List<Particle> particles) {
     public int simulateCollisions() {
         List<Particle> curParticles = particles;
         int unchangedCount = 0;
-        for (int t = 10; t < 1_000_000; t++) {
+        for (int t = 1; t < 1_000_000; t++) {
             final int numParticles = curParticles.size();
             final List<Particle> simulated = curParticles.stream() //
                     .map(p -> p.simulate(1)) //
