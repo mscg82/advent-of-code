@@ -16,7 +16,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <lombok.version>1.18.20</lombok.version>
-        <record.builder.version>1.19</record.builder.version>
+        <record.builder.version>22</record.builder.version>
         <java.version>16</java.version>
     </properties>
 
