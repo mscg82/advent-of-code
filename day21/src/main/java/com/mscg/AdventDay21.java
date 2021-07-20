@@ -16,7 +16,7 @@ public class AdventDay21 {
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
             final var generator = ArtGenerator.parseInput(in);
-            final ArtGenerator.Pattern image = generator.generateImage(5);
+            final var image = generator.generateImage(5);
             System.out.println("Part 1 - Answer %d".formatted(image.pixels().stream() //
                     .flatMap(List::stream)
                     .filter(p -> p == ArtGenerator.PixelStatus.ON)
@@ -27,7 +27,7 @@ public class AdventDay21 {
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
             final var generator = ArtGenerator.parseInput(in);
-            final ArtGenerator.Pattern image = generator.generateImage(18);
+            final var image = generator.generateImage(18);
             System.out.println("Part 2 - Answer %d".formatted(image.pixels().stream() //
                     .flatMap(List::stream)
                     .filter(p -> p == ArtGenerator.PixelStatus.ON)
