@@ -30,6 +30,15 @@ public class AdventDay22Test {
         }
     }
 
+    @Test
+    public void testCountInfections2() throws Exception {
+        try (BufferedReader in = readInput()) {
+            final var grid = NetworkGrid.parseInput(in);
+            Assertions.assertEquals(26, grid.countInfections2(100, 50));
+            // Assertions.assertEquals(2_511_944, grid.countInfections2(10_000_000, 5000));
+        }
+    }
+
     private BufferedReader readInput() {
         return new BufferedReader(
                 new InputStreamReader(this.getClass().getResourceAsStream("/test-input.txt"), StandardCharsets.UTF_8));
