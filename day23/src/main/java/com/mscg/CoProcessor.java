@@ -3,6 +3,7 @@ package com.mscg;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.math.BigInteger;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -32,12 +33,29 @@ public class CoProcessor implements ToLongFunction<CoProcessor.Register> {
         return register(register);
     }
 
-    public void run() {
+    public void run(final boolean optimized) {
         int pc = 0;
-        while (pc < instructions.size() && !Thread.currentThread().isInterrupted()) {
-            final var currentInstruction = instructions.get(pc);
-            final int jump = currentInstruction.execute(this);
-            pc += jump;
+        if (!optimized) {
+            while (pc < instructions.size() && !Thread.currentThread().isInterrupted()) {
+                final var currentInstruction = instructions.get(pc);
+                final int jump = currentInstruction.execute(this);
+                pc += jump;
+            }
+        } else {
+            while (pc < instructions.size() && pc <= 8 && !Thread.currentThread().isInterrupted()) {
+                final var currentInstruction = instructions.get(pc);
+                final int jump = currentInstruction.execute(this);
+                pc += jump;
+            }
+
+            final long c = register(Register.C);
+            for (long b = register(Register.B); b <= c; b += 17) {
+                register(Register.B, b);
+                final BigInteger big = new BigInteger(String.valueOf(b), 10);
+                if (!big.isProbablePrime(5)) {
+                    register(Register.H, register(Register.H) + 1);
+                }
+            }
         }
     }
 
@@ -69,6 +87,11 @@ public class CoProcessor implements ToLongFunction<CoProcessor.Register> {
                 default -> throw new IllegalArgumentException("Unknown register name " + c);
             };
         }
+
+        @Override
+        public String toString() {
+            return name().toLowerCase();
+        }
     }
 
     public interface Value {
@@ -93,6 +116,10 @@ public class CoProcessor implements ToLongFunction<CoProcessor.Register> {
             return value;
         }
 
+        @Override
+        public String toString() {
+            return String.valueOf(value);
+        }
     }
 
     public static record RegisterVal(Register register) implements Value {
@@ -102,6 +129,10 @@ public class CoProcessor implements ToLongFunction<CoProcessor.Register> {
             return valueExtractor.applyAsLong(register);
         }
 
+        @Override
+        public String toString() {
+            return register.toString();
+        }
     }
 
     public interface Instruction {
@@ -129,6 +160,10 @@ public class CoProcessor implements ToLongFunction<CoProcessor.Register> {
             return 1;
         }
 
+        @Override
+        public String toString() {
+            return "set " + target + " " + value;
+        }
     }
 
     public static record Sub(Register target, Value amount) implements Instruction {
@@ -139,6 +174,10 @@ public class CoProcessor implements ToLongFunction<CoProcessor.Register> {
             return 1;
         }
 
+        @Override
+        public String toString() {
+            return "sub " + target + " " + amount;
+        }
     }
 
     public static record Mul(Register target, Value amount) implements Instruction {
@@ -150,6 +189,10 @@ public class CoProcessor implements ToLongFunction<CoProcessor.Register> {
             return 1;
         }
 
+        @Override
+        public String toString() {
+            return "mul " + target + " " + amount;
+        }
     }
 
     public static record Jnz(Value trigger, Value amount) implements Instruction {
@@ -162,6 +205,10 @@ public class CoProcessor implements ToLongFunction<CoProcessor.Register> {
             return (int) amount.get(cpu);
         }
 
+        @Override
+        public String toString() {
+            return "jnz " + trigger + " " + amount;
+        }
     }
 
 }
