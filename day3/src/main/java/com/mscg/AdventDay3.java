@@ -21,7 +21,8 @@ public class AdventDay3 {
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 2 - Answer %d".formatted(0));
+            final var sheet = Sheet.parseInput(in);
+            System.out.println("Part 2 - Answer %d".formatted(sheet.findNonOverlappingArea()));
         }
     }
 
