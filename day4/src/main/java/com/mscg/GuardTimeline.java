@@ -1,17 +1,89 @@
 package com.mscg;
 
+import com.codepoetics.protonpack.StreamUtils;
+import io.soabase.recordbuilder.core.RecordBuilder;
+import lombok.NonNull;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import io.soabase.recordbuilder.core.RecordBuilder;
+import java.util.stream.Collectors;
 
 public record GuardTimeline(List<TimelineEntry> entries) {
+
+    public int computeStrategy1() {
+        final Map<Integer, List<TimelineEntry>> guardToEntries = entries.stream() //
+                .collect(Collectors.groupingBy(TimelineEntry::guard, LinkedHashMap::new, Collectors.toList()));
+
+        final Map<Integer, Map<Day, List<TimelineEntry>>> guardToDayToEntries = guardToEntries.entrySet().stream() //
+                .map(entry -> {
+                    final Map<Day, List<TimelineEntry>> dayToEntries = entry.getValue().stream() //
+                            .collect(Collectors.groupingBy(entry2 -> entry2.time().day(), LinkedHashMap::new, Collectors.toList()));
+                    return Map.entry(entry.getKey(), dayToEntries);
+                }) //
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        final Map<Integer, Integer> guardToMinutesAsleep = new HashMap<>();
+        final Map<Integer, Map<Day, boolean[]>> guardToDayToMinuteToAsleep = new HashMap<>();
+        guardToDayToEntries.forEach((guard, dayToEntries) -> {
+            final Map<Day, boolean[]> dayToMinuteToAsleep = guardToDayToMinuteToAsleep.computeIfAbsent(guard, __ -> new HashMap<>());
+            dayToEntries.forEach((day, entries) -> {
+                final boolean[] minuteToAsleep = dayToMinuteToAsleep.computeIfAbsent(day, __ -> new boolean[60]);
+                StreamUtils.windowed(entries.stream(), 2) //
+                        .filter(window -> window.get(0).action() == TimelineAction.FALLS_ASLEEP) //
+                        .forEach(window -> {
+                            final var asleepEntry = window.get(0);
+                            final var awakeEntry = window.get(1);
+                            for (int m = asleepEntry.time().min(), max = awakeEntry.time().min(); m < max; m++) {
+                                minuteToAsleep[m] = true;
+                                guardToMinutesAsleep.merge(guard, 1, Integer::sum);
+                            }
+                        });
+            });
+        });
+
+        final int maxMinutesAsleep = guardToMinutesAsleep.values().stream() //
+                .mapToInt(Integer::intValue) //
+                .max() //
+                .orElseThrow();
+
+        final int[] guardsWithMaxMinutesAsleep = guardToMinutesAsleep.entrySet().stream() //
+                .filter(entry -> entry.getValue() == maxMinutesAsleep) //
+                .mapToInt(Map.Entry::getKey) //
+                .toArray();
+
+        return Arrays.stream(guardsWithMaxMinutesAsleep) //
+                .map(guardWithMaxMinutesAsleep -> {
+                    final Map<Day, boolean[]> dayToMinuteToAsleep = guardToDayToMinuteToAsleep.get(guardWithMaxMinutesAsleep);
+                    final Map<Integer, Integer> minuteToHowMuchAsleep = new HashMap<>();
+                    dayToMinuteToAsleep.values() //
+                            .forEach(minuteToAsleep -> {
+                                for (int i = 0; i < 60; i++) {
+                                    if (minuteToAsleep[i]) {
+                                        minuteToHowMuchAsleep.merge(i, 1, Integer::sum);
+                                    }
+                                }
+                            });
+
+                    final int minuteWithMaxAsleep = minuteToHowMuchAsleep.entrySet().stream() //
+                            .max(Map.Entry.comparingByValue()) //
+                            .map(Map.Entry::getKey) //
+                            .orElseThrow();
+
+                    return guardWithMaxMinutesAsleep * minuteWithMaxAsleep;
+                }) //
+                .max() //
+                .orElseThrow();
+    }
 
     public static GuardTimeline parseInput(final BufferedReader in) throws IOException {
         try {
@@ -63,25 +135,41 @@ public record GuardTimeline(List<TimelineEntry> entries) {
                     .toList();
 
             return new GuardTimeline(fixedTimelineEntries);
-        }
-        catch (final UncheckedIOException e) {
+        } catch (final UncheckedIOException e) {
             throw e.getCause();
         }
     }
 
-    public static record Timestamp(int year, int month, int day, int hour, int min) implements Comparable<Timestamp> {
+    public static record Day(int year, int month, int day) implements Comparable<Day> {
+
+        private static final Comparator<Day> COMPARATOR = Comparator //
+                .comparingInt(Day::year) //
+                .thenComparing(Day::month) //
+                .thenComparing(Day::day);
+
+        @Override
+        public int compareTo(@NonNull final Day other) {
+            return COMPARATOR.compare(this, other);
+        }
+
+    }
+
+    public static record Timestamp(Day day, int hour, int min) implements Comparable<Timestamp> {
+
+        public Timestamp(final int year, final int month, final int day, final int hour, final int min) {
+            this(new Day(year, month, day), hour, min);
+        }
 
         private static final Comparator<Timestamp> COMPARATOR = Comparator //
-                .comparingInt(Timestamp::year) //
-                .thenComparing(Timestamp::month) //
-                .thenComparing(Timestamp::day) //
+                .comparing(Timestamp::day) //
                 .thenComparing(Timestamp::hour) //
                 .thenComparing(Timestamp::min);
 
         @Override
-        public int compareTo(final Timestamp other) {
+        public int compareTo(@NonNull final Timestamp other) {
             return COMPARATOR.compare(this, other);
         }
+
     }
 
     public enum TimelineAction {
@@ -89,7 +177,9 @@ public record GuardTimeline(List<TimelineEntry> entries) {
     }
 
     @RecordBuilder
-    public static record TimelineEntry(Timestamp time, int guard, TimelineAction action) implements GuardTimelineTimelineEntryBuilder.With {
+    public static record TimelineEntry(Timestamp time, int guard,
+                                       TimelineAction action) implements GuardTimelineTimelineEntryBuilder.With {
 
     }
+
 }
