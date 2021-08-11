@@ -47,6 +47,14 @@ public class AdventDay4Test {
         }
     }
 
+    @Test
+    public void testStrategy2() throws Exception {
+        try (var in = readInput()) {
+            final var timeline = GuardTimeline.parseInput(in);
+            Assertions.assertEquals(4455, timeline.computeStrategy2());
+        }
+    }
+
     private BufferedReader readInput() {
         return new BufferedReader(
                 new InputStreamReader(this.getClass().getResourceAsStream("/test-input.txt"), StandardCharsets.UTF_8));

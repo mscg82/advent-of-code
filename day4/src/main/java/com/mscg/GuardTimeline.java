@@ -85,6 +85,60 @@ public record GuardTimeline(List<TimelineEntry> entries) {
                 .orElseThrow();
     }
 
+    public int computeStrategy2() {
+        final Map<Integer, List<TimelineEntry>> guardToEntries = entries.stream() //
+                .collect(Collectors.groupingBy(TimelineEntry::guard, LinkedHashMap::new, Collectors.toList()));
+
+        final Map<Integer, Map<Day, List<TimelineEntry>>> guardToDayToEntries = guardToEntries.entrySet().stream() //
+                .map(entry -> {
+                    final Map<Day, List<TimelineEntry>> dayToEntries = entry.getValue().stream() //
+                            .collect(Collectors.groupingBy(entry2 -> entry2.time().day(), LinkedHashMap::new, Collectors.toList()));
+                    return Map.entry(entry.getKey(), dayToEntries);
+                }) //
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        final Map<Integer, Map<Day, boolean[]>> guardToDayToMinuteToAsleep = new HashMap<>();
+        guardToDayToEntries.forEach((guard, dayToEntries) -> {
+            final Map<Day, boolean[]> dayToMinuteToAsleep = guardToDayToMinuteToAsleep.computeIfAbsent(guard, __ -> new HashMap<>());
+            dayToEntries.forEach((day, entries) -> {
+                final boolean[] minuteToAsleep = dayToMinuteToAsleep.computeIfAbsent(day, __ -> new boolean[60]);
+                StreamUtils.windowed(entries.stream(), 2) //
+                        .filter(window -> window.get(0).action() == TimelineAction.FALLS_ASLEEP) //
+                        .forEach(window -> {
+                            final var asleepEntry = window.get(0);
+                            final var awakeEntry = window.get(1);
+                            for (int m = asleepEntry.time().min(), max = awakeEntry.time().min(); m < max; m++) {
+                                minuteToAsleep[m] = true;
+                            }
+                        });
+            });
+        });
+
+        final Map<Integer, Map<Integer, Integer>> guardToMinuteToFrequency = new HashMap<>();
+        guardToDayToMinuteToAsleep.forEach((guard, dayToMinutesAsleep) -> {
+            final Map<Integer, Integer> minuteToFrequency = guardToMinuteToFrequency.computeIfAbsent(guard, __ -> new HashMap<>());
+            dayToMinutesAsleep.forEach((day, minutesAsleep) -> {
+                for (int m = 0; m < 60; m++) {
+                    if (minutesAsleep[m]) {
+                        minuteToFrequency.merge(m, 1, Integer::sum);
+                    }
+                }
+            });
+        });
+
+        record Triple(int guard, int minute, int frequency) {
+
+        }
+
+        final Triple maxTriple = guardToMinuteToFrequency.entrySet().stream() //
+                .flatMap(entry -> entry.getValue().entrySet().stream() //
+                        .map(entry2 -> new Triple(entry.getKey(), entry2.getKey(), entry2.getValue()))) //
+                .max(Comparator.comparingInt(Triple::frequency)) //
+                .orElseThrow();
+
+        return maxTriple.guard() * maxTriple.minute();
+    }
+
     public static GuardTimeline parseInput(final BufferedReader in) throws IOException {
         try {
             final var pattern = Pattern.compile("\\[(\\d{4})-(\\d{2})-(\\d{2}) (\\d{2}):(\\d{2})] (.+)");
