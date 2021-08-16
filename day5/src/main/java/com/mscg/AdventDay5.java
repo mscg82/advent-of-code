@@ -22,11 +22,7 @@ public class AdventDay5 {
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
             final var analyzer = MoleculeAnalyzer.parseInput(in);
-            final long before = System.currentTimeMillis();
-            final String reduced = analyzer.reduceToMin();
-            final long elapsed = System.currentTimeMillis() - before;
-            System.out.println("Part 2 - Answer %d".formatted(reduced.length()));
-            System.out.println("Elapsed: " + elapsed + " ms");
+            System.out.println("Part 2 - Answer %d".formatted(analyzer.reduceToMin().length()));
         }
     }
 
