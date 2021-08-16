@@ -17,6 +17,14 @@ public class AdventDay5Test {
         }
     }
 
+    @Test
+    public void testReduceToMin() throws Exception {
+        try (var in = readInput()) {
+            final var analyzer = MoleculeAnalyzer.parseInput(in);
+            Assertions.assertEquals("daDA", analyzer.reduceToMin());
+        }
+    }
+
     private BufferedReader readInput() {
         return new BufferedReader(
                 new InputStreamReader(this.getClass().getResourceAsStream("/test-input.txt"), StandardCharsets.UTF_8));

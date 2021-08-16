@@ -2,14 +2,35 @@ package com.mscg;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public record MoleculeAnalyzer(List<Character> components) {
 
     public String reduce() {
         final var components = new LinkedList<>(this.components);
+        return reduce(components);
+    }
+
+    public String reduceToMin() {
+        final Set<Character> uniqueComponents = components.stream() //
+                .map(Character::toLowerCase) //
+                .collect(Collectors.toSet());
+
+        return uniqueComponents.stream() //
+                .parallel() //
+                .map(uniqueComponent -> components.stream() //
+                        .filter(component -> Character.toLowerCase(component) != uniqueComponent) //
+                        .collect(() -> new LinkedList<Character>(), LinkedList::add, LinkedList::addAll))
+                .map(this::reduce) //
+                .min(Comparator.comparingInt(String::length)) //
+                .orElseThrow();
+    }
+
+    private String reduce(final List<Character> components) {
         boolean isReduced;
         do {
             isReduced = false;
