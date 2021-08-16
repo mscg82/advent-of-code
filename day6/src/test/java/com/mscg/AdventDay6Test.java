@@ -17,6 +17,14 @@ public class AdventDay6Test {
         }
     }
 
+    @Test
+    public void testAreaWithMaxDistance() throws Exception {
+        try (var in = readInput()) {
+            final var map = LocationMap.parseInput(in);
+            Assertions.assertEquals(16, map.findAreaWithDistanceLessThan(32));
+        }
+    }
+
     private BufferedReader readInput() {
         return new BufferedReader(
                 new InputStreamReader(this.getClass().getResourceAsStream("/test-input.txt"), StandardCharsets.UTF_8));

@@ -86,6 +86,23 @@ public record LocationMap(List<Point> points) {
                 .orElseThrow();
     }
 
+    public long findAreaWithDistanceLessThan(final int maxDistance) {
+        long totalArea = 0L;
+        final var area = computeArea();
+        for (int x = area.xMin(); x <= area.xMax(); x++) {
+            for (int y = area.yMin(); y <= area.yMax(); y++) {
+                final var areaPoint = new Point(x, y);
+                final int distanceSum = points.stream() //
+                        .mapToInt(p -> p.distance(areaPoint)) //
+                        .sum();
+                if (distanceSum < maxDistance) {
+                    totalArea++;
+                }
+            }
+        }
+        return totalArea;
+    }
+
     private Area computeArea() {
         final IntSummaryStatistics xStats = points.stream() //
                 .mapToInt(Point::x) //
