@@ -79,7 +79,7 @@ public record SleighAssembler(Map<String, List<String>> stepToRequired) {
                 }
             }
 
-            // check if workers finished his work
+            // check if any worker has finished his work
             for (int i = 0; i < workersData.length; i++) {
                 final var data = workersData[i];
                 if (data == null) {
