@@ -1,5 +1,6 @@
 package com.mscg;
 
+import com.mscg.SleighAssembler.TimedSequence;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -30,6 +31,14 @@ public class AdventDay7Test {
         try (var in = readInput()) {
             final var assembler = SleighAssembler.parseInput(in);
             Assertions.assertEquals("CABDFE", assembler.findSequence());
+        }
+    }
+
+    @Test
+    public void testTimedSequence() throws Exception {
+        try (var in = readInput()) {
+            final var assembler = SleighAssembler.parseInput(in);
+            Assertions.assertEquals(new TimedSequence("CABFDE", 15), assembler.findTimedSequence(2, 0));
         }
     }
 
