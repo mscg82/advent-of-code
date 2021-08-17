@@ -5,16 +5,50 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
 public record LicenseValidator(int[] rawData) {
 
     public long computeChecksum() {
-        final ParseResult entries = parseRecord(null, 0);
+        final ParseResult parseResult = parseRecord(null, 0);
 
-        return entries.entries().stream() //
+        return parseResult.entries().stream() //
                 .flatMapToInt(entry -> Arrays.stream(entry.payloads())) //
                 .sum();
+    }
+
+    public long computeAdvancedChecksum() {
+        final ParseResult parseResult = parseRecord(null, 0);
+
+        final List<Entry> entries = parseResult.entries();
+        final Map<Entry, List<Entry>> nodeToChildren = new IdentityHashMap<>();
+        for (int i = 1, l = entries.size(); i < l; i++) {
+            final var entry = entries.get(i);
+            nodeToChildren.computeIfAbsent(entry.parent(), __ -> new ArrayList<>()).add(entry);
+        }
+
+        final Map<Entry, Long> nodeToValue = new IdentityHashMap<>();
+        computeNodeValue(entries.get(0), nodeToChildren, nodeToValue);
+
+        return nodeToValue.get(entries.get(0));
+    }
+
+    private void computeNodeValue(final Entry node, final Map<Entry, List<Entry>> nodeToChildren, final Map<Entry, Long> nodeToValue) {
+        final List<Entry> children = nodeToChildren.getOrDefault(node, List.of());
+        final long value;
+        if (children.isEmpty()) {
+            value = Arrays.stream(node.payloads()).sum();
+
+        } else {
+            children.forEach(child -> computeNodeValue(child, nodeToChildren, nodeToValue));
+            value = Arrays.stream(node.payloads()) //
+                    .filter(payload -> payload <= children.size()) //
+                    .mapToLong(payload -> nodeToValue.getOrDefault(children.get(payload - 1), 0L)) //
+                    .sum();
+        }
+        nodeToValue.put(node, value);
     }
 
     private ParseResult parseRecord(final Entry parent, final int startIndex) {
@@ -57,6 +91,14 @@ public record LicenseValidator(int[] rawData) {
     }
 
     public static record Entry(Entry parent, int[] payloads) {
+
+        @Override
+        public String toString() {
+            return "Entry[" +
+                    "parent=" + parent +
+                    ", payloads=" + Arrays.toString(payloads) +
+                    ']';
+        }
 
     }
 

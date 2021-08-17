@@ -17,6 +17,14 @@ public class AdventDay8Test {
         }
     }
 
+    @Test
+    public void testAdvancedChecksum() throws Exception {
+        try (var in = readInput()) {
+            final var validator = LicenseValidator.parseInput(in);
+            Assertions.assertEquals(66, validator.computeAdvancedChecksum());
+        }
+    }
+
     private BufferedReader readInput() {
         return new BufferedReader(
                 new InputStreamReader(this.getClass().getResourceAsStream("/test-input.txt"), StandardCharsets.UTF_8));
