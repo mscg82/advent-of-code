@@ -17,9 +17,22 @@ public class AdventDay13Test {
         }
     }
 
+    @Test
+    public void testLastCartPosition() throws Exception {
+        try (var in = readInput2()) {
+            final var tracks = Tracks.parseInput(in);
+            Assertions.assertEquals("6,4", tracks.findLastCartPosition().toString());
+        }
+    }
+
     private BufferedReader readInput() {
         return new BufferedReader(
                 new InputStreamReader(this.getClass().getResourceAsStream("/test-input.txt"), StandardCharsets.UTF_8));
+    }
+
+    private BufferedReader readInput2() {
+        return new BufferedReader(
+                new InputStreamReader(this.getClass().getResourceAsStream("/test-input2.txt"), StandardCharsets.UTF_8));
     }
 
 }

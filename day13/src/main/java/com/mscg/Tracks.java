@@ -6,66 +6,42 @@ import lombok.NonNull;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.function.Predicate.not;
+
 public record Tracks(List<List<Cell>> cells, List<Cart> carts) {
 
     public Position findFirstClash() {
-        List<Cart> carts = this.carts;
+        final List<Cart> carts = new ArrayList<>(this.carts);
         for (long tick = 1; tick <= 1_000_000; tick++) {
-            carts = carts.stream() //
-                    .map(cart -> {
-                        final Cell cell = cells.get(cart.position().y()).get(cart.position().x());
-
-                        return switch (cell) {
-                            case HORIZONTAL, VERTICAL -> cart.withPosition(cart.position().move(cart.direction));
-                            case CURVE_RIGTH -> { // /
-                                final var newDirection = switch (cart.direction()) {
-                                    case LEFT, RIGTH -> cart.direction().turnLeft();
-                                    case UP, DOWN -> cart.direction().turnRight();
-                                };
-                                yield cart.with(c -> {
-                                    c.direction(newDirection);
-                                    c.position(c.position().move(newDirection));
-                                });
-                            }
-                            case CURVE_LEFT -> { // \
-                                final var newDirection = switch (cart.direction()) {
-                                    case LEFT, RIGTH -> cart.direction().turnRight();
-                                    case UP, DOWN -> cart.direction().turnLeft();
-                                };
-                                yield cart.with(c -> {
-                                    c.direction(newDirection);
-                                    c.position(c.position().move(newDirection));
-                                });
-                            }
-                            case INTERSECTION -> { // +
-                                final var newDirection = switch (cart.turnsTaken() % 3) {
-                                    case 0 -> cart.direction().turnLeft();
-                                    case 1 -> cart.direction();
-                                    case 2 -> cart.direction().turnRight();
-                                    default -> throw new IllegalStateException("Impossible situation");
-                                };
-                                yield cart.with(c -> {
-                                    c.turnsTaken(c.turnsTaken() + 1);
-                                    c.direction(newDirection);
-                                    c.position(c.position().move(newDirection));
-                                });
-                            }
-                            case EMPTY -> throw new IllegalStateException("Cart is derailed");
-                        };
-                    }) //
-                    .sorted() //
-                    .toList();
+            moveCarts(carts);
+            carts.sort(Comparator.naturalOrder());
             // check if there is a clash
-            final Optional<Position> clashPosition = StreamUtils.windowed(carts.stream(), 2) //
-                    .filter(win -> win.get(0).position().equals(win.get(1).position())) //
+            final Optional<Position> clashPosition = carts.stream() //
+                    .filter(Cart::dead) //
                     .findFirst() //
-                    .map(win -> win.get(0).position());
+                    .map(Cart::position);
             if (clashPosition.isPresent()) {
                 return clashPosition.get();
+            }
+        }
+        throw new IllegalStateException("Can't find a clash");
+    }
+
+    public Position findLastCartPosition() {
+        final List<Cart> carts = new ArrayList<>(this.carts);
+        for (long tick = 1; tick <= 1_000_000; tick++) {
+            moveCarts(carts);
+            carts.sort(Comparator.naturalOrder());
+            final List<Cart> liveCarts = carts.stream() //
+                    .filter(not(Cart::dead)) //
+                    .toList();
+            if (liveCarts.size() == 1) {
+                return liveCarts.get(0).position();
             }
         }
         throw new IllegalStateException("Can't find a clash");
@@ -106,7 +82,7 @@ public record Tracks(List<List<Cell>> cells, List<Cart> carts) {
                             .flatMap(cellIdx -> {
                                 final long x = cellIdx.getIndex();
                                 return Direction.from(cellIdx.getValue()) //
-                                        .map(d -> new Cart(new Position((int) x, (int) y), d, 0)) //
+                                        .map(d -> new Cart(false, new Position((int) x, (int) y), d, 0)) //
                                         .stream();
                             });
                 }) //
@@ -114,6 +90,74 @@ public record Tracks(List<List<Cell>> cells, List<Cart> carts) {
                 .toList();
 
         return new Tracks(cells, carts);
+    }
+
+    private void moveCarts(final List<Cart> carts) {
+        for (int i = 0, l = carts.size(); i < l; i++) {
+            var cart = carts.get(i);
+            if (cart.dead()) {
+                continue;
+            }
+
+            final Cell cell = cells.get(cart.position().y()).get(cart.position().x());
+
+            carts.set(i, switch (cell) {
+                case HORIZONTAL, VERTICAL -> cart.withPosition(cart.position().move(cart.direction));
+                case CURVE_RIGTH -> { // /
+                    final var newDirection = switch (cart.direction()) {
+                        case LEFT, RIGTH -> cart.direction().turnLeft();
+                        case UP, DOWN -> cart.direction().turnRight();
+                    };
+                    yield cart.with(c -> {
+                        c.direction(newDirection);
+                        c.position(c.position().move(newDirection));
+                    });
+                }
+                case CURVE_LEFT -> { // \
+                    final var newDirection = switch (cart.direction()) {
+                        case LEFT, RIGTH -> cart.direction().turnRight();
+                        case UP, DOWN -> cart.direction().turnLeft();
+                    };
+                    yield cart.with(c -> {
+                        c.direction(newDirection);
+                        c.position(c.position().move(newDirection));
+                    });
+                }
+                case INTERSECTION -> { // +
+                    final var newDirection = switch (cart.turnsTaken() % 3) {
+                        case 0 -> cart.direction().turnLeft();
+                        case 1 -> cart.direction();
+                        case 2 -> cart.direction().turnRight();
+                        default -> throw new IllegalStateException("Impossible situation");
+                    };
+                    yield cart.with(c -> {
+                        c.turnsTaken(c.turnsTaken() + 1);
+                        c.direction(newDirection);
+                        c.position(c.position().move(newDirection));
+                    });
+                }
+                case EMPTY -> throw new IllegalStateException("Cart is derailed");
+            });
+            cart = carts.get(i);
+
+            // check for collisions
+            for (int j = 0; j < l; j++) {
+                if (i == j) {
+                    continue;
+                }
+                final var otherCart = carts.get(j);
+                if (otherCart.dead()) {
+                    continue;
+                }
+
+                if (otherCart.position().equals(cart.position())) {
+                    carts.set(i, cart.withDead(true));
+                    carts.set(j, otherCart.withDead(true));
+                    break;
+                }
+            }
+        }
+
     }
 
     @RecordBuilder
@@ -143,7 +187,7 @@ public record Tracks(List<List<Cell>> cells, List<Cart> carts) {
     }
 
     @RecordBuilder
-    public static record Cart(Position position, Direction direction,
+    public static record Cart(boolean dead, Position position, Direction direction,
                               int turnsTaken) implements TracksCartBuilder.With, Comparable<Cart> {
 
         private static final Comparator<Cart> COMPARATOR = Comparator.comparing(Cart::position);
