@@ -1,8 +1,8 @@
 package com.mscg;
 
-import com.codepoetics.protonpack.StreamUtils;
 import io.soabase.recordbuilder.core.RecordBuilder;
 import lombok.NonNull;
+import org.jooq.lambda.Seq;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public record GuardTimeline(List<TimelineEntry> entries) {
 
@@ -38,7 +39,8 @@ public record GuardTimeline(List<TimelineEntry> entries) {
             final Map<Day, boolean[]> dayToMinuteToAsleep = guardToDayToMinuteToAsleep.computeIfAbsent(guard, __ -> new HashMap<>());
             dayToEntries.forEach((day, entries) -> {
                 final boolean[] minuteToAsleep = dayToMinuteToAsleep.computeIfAbsent(day, __ -> new boolean[60]);
-                StreamUtils.windowed(entries.stream(), 2) //
+                Seq.seq(entries.stream()).sliding(2) //
+                        .map(Stream::toList) //
                         .filter(window -> window.get(0).action() == TimelineAction.FALLS_ASLEEP) //
                         .forEach(window -> {
                             final var asleepEntry = window.get(0);
@@ -102,7 +104,8 @@ public record GuardTimeline(List<TimelineEntry> entries) {
             final Map<Day, boolean[]> dayToMinuteToAsleep = guardToDayToMinuteToAsleep.computeIfAbsent(guard, __ -> new HashMap<>());
             dayToEntries.forEach((day, entries) -> {
                 final boolean[] minuteToAsleep = dayToMinuteToAsleep.computeIfAbsent(day, __ -> new boolean[60]);
-                StreamUtils.windowed(entries.stream(), 2) //
+                Seq.seq(entries.stream()).sliding(2) //
+                        .map(Stream::toList) //
                         .filter(window -> window.get(0).action() == TimelineAction.FALLS_ASLEEP) //
                         .forEach(window -> {
                             final var asleepEntry = window.get(0);

@@ -1,6 +1,6 @@
 package com.mscg;
 
-import com.codepoetics.protonpack.StreamUtils;
+import org.jooq.lambda.Seq;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -49,8 +49,8 @@ public record PotGeneration(List<Pot> pots, Map<EvolutionKey, Pot> evolutionRule
         }
 
         final long finalOffset = offset;
-        return StreamUtils.zipWithIndex(currentGeneration.stream()) //
-                .map(idx -> new IndexedPot(idx.getValue(), idx.getIndex() + finalOffset)) //
+        return Seq.seq(currentGeneration.stream()).zipWithIndex() //
+                .map(idx -> new IndexedPot(idx.v1(), idx.v2() + finalOffset)) //
                 .toList();
     }
 

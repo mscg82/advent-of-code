@@ -1,5 +1,7 @@
 package com.mscg;
 
+import org.jooq.lambda.Seq;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,7 +13,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.codepoetics.protonpack.StreamUtils;
 
 public class AdventDay2 {
 
@@ -52,9 +53,10 @@ public class AdventDay2 {
                 for (int j = i + 1; j < l; j++) {
                     final String idJ = ids.get(j);
                     record CharCouple(int position, char first, char second) {
+
                     }
-                    final List<CharCouple> differentChars = StreamUtils.zip(StreamUtils.zipWithIndex(idI.chars().boxed()), idJ.chars().boxed(),  //
-                            (c1WithPos, c2) -> new CharCouple((int) c1WithPos.getIndex(), (char) c1WithPos.getValue().intValue(), (char) c2.intValue())) //
+                    final List<CharCouple> differentChars = Seq.zip(Seq.seq(idI.chars().boxed()).zipWithIndex(), Seq.seq(idJ.chars().boxed()),  //
+                                    (c1WithPos, c2) -> new CharCouple(c1WithPos.v2().intValue(), (char) c1WithPos.v1().intValue(), (char) c2.intValue())) //
                             .filter(c -> c.first != c.second) //
                             .toList();
                     if (differentChars.size() == 1) {

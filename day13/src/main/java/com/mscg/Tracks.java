@@ -1,8 +1,8 @@
 package com.mscg;
 
-import com.codepoetics.protonpack.StreamUtils;
 import io.soabase.recordbuilder.core.RecordBuilder;
 import lombok.NonNull;
+import org.jooq.lambda.Seq;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -74,14 +74,14 @@ public record Tracks(List<List<Cell>> cells, List<Cart> carts) {
                         .toList()) //
                 .toList();
 
-        final List<Cart> carts = StreamUtils.zipWithIndex(input.stream()) //
+        final List<Cart> carts = Seq.seq(input.stream()).zipWithIndex() //
                 .flatMap(rowIdx -> {
-                    final long y = rowIdx.getIndex();
-                    final String line = rowIdx.getValue();
-                    return StreamUtils.zipWithIndex(line.chars().mapToObj(c -> (char) c)) //
+                    final long y = rowIdx.v2();
+                    final String line = rowIdx.v1();
+                    return Seq.seq(line.chars().mapToObj(c -> (char) c)).zipWithIndex() //
                             .flatMap(cellIdx -> {
-                                final long x = cellIdx.getIndex();
-                                return Direction.from(cellIdx.getValue()) //
+                                final long x = cellIdx.v2();
+                                return Direction.from(cellIdx.v1()) //
                                         .map(d -> new Cart(false, new Position((int) x, (int) y), d, 0)) //
                                         .stream();
                             });
