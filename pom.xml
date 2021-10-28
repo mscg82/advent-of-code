@@ -30,9 +30,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <lombok.version>1.18.20</lombok.version>
-        <record.builder.version>22</record.builder.version>
-        <java.version>16</java.version>
+        <lombok.version>1.18.22</lombok.version>
+        <record.builder.version>28</record.builder.version>
+        <java.version>17</java.version>
     </properties>
 
     <dependencies>
@@ -71,7 +71,7 @@
                 <version>3.8.1</version>
                 <configuration>
                     <release>${java.version}</release>
-                    <!--                    <compilerArgs>&#45;&#45;enable-preview</compilerArgs>-->
+                    <compilerArgs>--enable-preview</compilerArgs>
                     <annotationProcessorPaths>
                         <annotationProcessorPath>
                             <groupId>org.projectlombok</groupId>
@@ -91,7 +91,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.22.2</version>
                 <configuration>
-                    <!--                    <argLine>&#45;&#45;enable-preview</argLine>-->
+                    <argLine>--enable-preview</argLine>
                 </configuration>
             </plugin>
         </plugins>
