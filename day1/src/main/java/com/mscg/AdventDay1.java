@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 
 public class AdventDay1 {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
         part1();
         part2();
     }
@@ -38,7 +38,7 @@ public class AdventDay1 {
         }
     }
 
-    private static long getIncrementsCount(Seq<Integer> inputSequence) {
+    private static long getIncrementsCount(final Seq<Integer> inputSequence) {
         return inputSequence //
                 .sliding(2) //
                 .map(Stream::toList) //
@@ -46,7 +46,7 @@ public class AdventDay1 {
                 .count();
     }
 
-    private static Integer sumValuesInWindow(Seq<Integer> s) {
+    private static Integer sumValuesInWindow(final Seq<Integer> s) {
         return s.foldLeft(0, Integer::sum);
     }
 

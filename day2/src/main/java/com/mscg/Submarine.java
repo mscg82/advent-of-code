@@ -10,13 +10,13 @@ import java.util.List;
 
 public record Submarine(List<Instruction> instructions) {
 
-    public static Submarine parseInput(BufferedReader in) throws IOException {
+    public static Submarine parseInput(final BufferedReader in) throws IOException {
         try {
             final List<Instruction> instructions = in.lines() //
                     .map(Instruction::parse) //
                     .toList();
             return new Submarine(instructions);
-        } catch (UncheckedIOException e) {
+        } catch (final UncheckedIOException e) {
             throw e.getCause();
         }
     }
@@ -34,7 +34,7 @@ public record Submarine(List<Instruction> instructions) {
     public enum Direction {
         FORWARD, DOWN, UP;
 
-        public static Direction fromString(String value) {
+        public static Direction fromString(final String value) {
             return switch (value) {
                 case "up" -> UP;
                 case "down" -> DOWN;
@@ -46,7 +46,7 @@ public record Submarine(List<Instruction> instructions) {
 
     public record Instruction(Direction direction, long amount) {
 
-        public static Instruction parse(String value) {
+        public static Instruction parse(final String value) {
             final String[] parts = value.split(" ");
             return new Instruction(Direction.fromString(parts[0]), Long.parseLong(parts[1]));
         }
@@ -58,7 +58,7 @@ public record Submarine(List<Instruction> instructions) {
 
         public static final Position ORIGIN = new Position(0, 0, 0);
 
-        public Position move(Instruction instruction) {
+        public Position move(final Instruction instruction) {
             return this.with(pos -> {
                 switch (instruction.direction()) {
                     case UP -> pos.depth(pos.depth() - instruction.amount());
@@ -68,7 +68,7 @@ public record Submarine(List<Instruction> instructions) {
             });
         }
 
-        public Position move2(Instruction instruction) {
+        public Position move2(final Instruction instruction) {
             return this.with(pos -> {
                 switch (instruction.direction()) {
                     case UP -> pos.aim(pos.aim() - instruction.amount());

@@ -13,13 +13,13 @@ import java.util.stream.Stream;
 
 public record VentReadings(List<Vent> readings) {
 
-    public static VentReadings parseInput(BufferedReader in) throws IOException {
+    public static VentReadings parseInput(final BufferedReader in) throws IOException {
         try {
             final List<Vent> readings = in.lines() //
                     .map(Vent::parse) //
                     .toList();
             return new VentReadings(readings);
-        } catch (UncheckedIOException e) {
+        } catch (final UncheckedIOException e) {
             throw e.getCause();
         }
     }
@@ -49,8 +49,8 @@ public record VentReadings(List<Vent> readings) {
 
     public record Vent(Point p1, Point p2) {
 
-        public static Vent parse(String input) {
-            String[] parts = input.split(" -> ");
+        public static Vent parse(final String input) {
+            final String[] parts = input.split(" -> ");
             return new Vent(Point.parse(parts[0]), Point.parse(parts[1]));
         }
 
@@ -74,8 +74,8 @@ public record VentReadings(List<Vent> readings) {
                 return LongStream.rangeClosed(Math.min(p1.y(), p2.y()), Math.max(p1.y(), p2.y())) //
                         .mapToObj(y -> new Point(p1.x(), y));
             } else {
-                long dx = p1.x() > p2.x() ? -1L : 1L;
-                long dy = p1.y() > p2.y() ? -1L : 1L;
+                final long dx = p1.x() > p2.x() ? -1L : 1L;
+                final long dy = p1.y() > p2.y() ? -1L : 1L;
 
                 return Stream.concat( //
                         // generate all point in the diagonal [p1, p2)
@@ -93,8 +93,8 @@ public record VentReadings(List<Vent> readings) {
     @RecordBuilder
     public record Point(long x, long y) implements VentReadingsPointBuilder.With {
 
-        public static Point parse(String input) {
-            String[] parts = input.split(",");
+        public static Point parse(final String input) {
+            final String[] parts = input.split(",");
             return new Point(Long.parseLong(parts[0]), Long.parseLong(parts[1]));
         }
 

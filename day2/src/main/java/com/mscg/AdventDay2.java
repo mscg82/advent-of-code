@@ -6,15 +6,15 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 public class AdventDay2 {
-    
-    public static void main(String[] args) throws Exception {
+
+    public static void main(final String[] args) throws Exception {
         part1();
         part2();
     }
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            Submarine sub = Submarine.parseInput(in);
+            final Submarine sub = Submarine.parseInput(in);
             final Submarine.Position finalPosition = sub.execute();
             System.out.println("Part 1 - Answer %d".formatted(finalPosition.depth() * finalPosition.horizontal()));
         }
@@ -22,7 +22,7 @@ public class AdventDay2 {
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            Submarine sub = Submarine.parseInput(in);
+            final Submarine sub = Submarine.parseInput(in);
             final Submarine.Position finalPosition = sub.execute2();
             System.out.println("Part 2 - Answer %d".formatted(finalPosition.depth() * finalPosition.horizontal()));
         }

@@ -14,14 +14,14 @@ public class AdventDay6 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            var lanternFishSimulator = LanternfishSimulator.parseInput(in);
+            final var lanternFishSimulator = LanternfishSimulator.parseInput(in);
             System.out.println("Part 1 - Answer %d".formatted(lanternFishSimulator.countLanternFishes(80)));
         }
     }
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            var lanternFishSimulator = LanternfishSimulator.parseInput(in);
+            final var lanternFishSimulator = LanternfishSimulator.parseInput(in);
             System.out.println("Part 2 - Answer %d".formatted(lanternFishSimulator.countLanternFishes(256)));
         }
     }
