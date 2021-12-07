@@ -6,15 +6,17 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 public class AdventDay3 {
-    
-    public static void main(String[] args) throws Exception {
+
+    public static void main(final String[] args) throws Exception {
         part1();
         part2();
     }
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 1 - Answer %d".formatted(0));
+            final var wireGrid = WireGrid.parseInput(in);
+            final var intersection = wireGrid.findClosestIntersection();
+            System.out.println("Part 1 - Answer %d".formatted(intersection.distance()));
         }
     }
 
