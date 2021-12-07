@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 
 public class AdventDay5 {
 
@@ -14,7 +16,9 @@ public class AdventDay5 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 1 - Answer %d".formatted(0));
+            final var computer = IntcodeV2.parseInput(in);
+            final IntcodeV2.ComputationResult result = computer.execute(null, null, List.of(1).iterator());
+            System.out.println("Part 1 - Answer %s".formatted(Arrays.toString(result.outputs())));
         }
     }
 
