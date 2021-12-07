@@ -23,6 +23,14 @@ public record IntcodeV2(int[] data) {
 
     private static final int CODE_OUTPUT = 4;
 
+    private static final int CODE_JUMP_TRUE = 5;
+
+    private static final int CODE_JUMP_FALSE = 6;
+
+    private static final int CODE_LESS_THAN = 7;
+
+    private static final int CODE_EQUALS = 8;
+
     public static IntcodeV2 parseInput(final BufferedReader in) throws IOException {
         final int[] data = Arrays.stream(in.readLine().split(",")) //
                 .mapToInt(Integer::parseInt) //
@@ -64,7 +72,7 @@ public record IntcodeV2(int[] data) {
 
                 case CODE_MULTIPLY -> {
                     final int mode1 = modes % 10;
-                    final int mode2 = (modes / 10) % 10;
+                    final int mode2 = modes / 10;
                     final int p1 = data[ip + 1];
                     final int p2 = data[ip + 2];
                     final int p3 = data[ip + 3];
@@ -82,6 +90,42 @@ public record IntcodeV2(int[] data) {
                     final int p1 = data[ip + 1];
                     outputs.add(data(data, p1, modes));
                     yield ip + 2;
+                }
+
+                case CODE_JUMP_TRUE -> {
+                    final int mode1 = modes % 10;
+                    final int mode2 = modes / 10;
+                    final int p1 = data[ip + 1];
+                    final int p2 = data[ip + 2];
+                    yield data(data, p1, mode1) != 0 ? data(data, p2, mode2) : ip + 3;
+                }
+
+                case CODE_JUMP_FALSE -> {
+                    final int mode1 = modes % 10;
+                    final int mode2 = modes / 10;
+                    final int p1 = data[ip + 1];
+                    final int p2 = data[ip + 2];
+                    yield data(data, p1, mode1) == 0 ? data(data, p2, mode2) : ip + 3;
+                }
+
+                case CODE_LESS_THAN -> {
+                    final int mode1 = modes % 10;
+                    final int mode2 = modes / 10;
+                    final int p1 = data[ip + 1];
+                    final int p2 = data[ip + 2];
+                    final int p3 = data[ip + 3];
+                    data[p3] = data(data, p1, mode1) < data(data, p2, mode2) ? 1 : 0;
+                    yield ip + 4;
+                }
+
+                case CODE_EQUALS -> {
+                    final int mode1 = modes % 10;
+                    final int mode2 = modes / 10;
+                    final int p1 = data[ip + 1];
+                    final int p2 = data[ip + 2];
+                    final int p3 = data[ip + 3];
+                    data[p3] = data(data, p1, mode1) == data(data, p2, mode2) ? 1 : 0;
+                    yield ip + 4;
                 }
 
                 case CODE_EXIT -> -1;

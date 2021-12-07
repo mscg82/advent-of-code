@@ -24,7 +24,9 @@ public class AdventDay5 {
 
     private static void part2() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 2 - Answer %d".formatted(0));
+            final var computer = IntcodeV2.parseInput(in);
+            final IntcodeV2.ComputationResult result = computer.execute(null, null, List.of(5).iterator());
+            System.out.println("Part 2 - Answer %s".formatted(Arrays.toString(result.outputs())));
         }
     }
 
