@@ -4,10 +4,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public record IntcodeV2(int[] data) {
+import org.jooq.lambda.Seq;
+
+public record IntcodeV3(int[] data, int[] outputs, int ip, boolean halted) {
 
 	private static final int MODE_POSITION = 0;
 
@@ -31,33 +36,55 @@ public record IntcodeV2(int[] data) {
 
 	private static final int CODE_EQUALS = 8;
 
-	public static IntcodeV2 parseInput(final BufferedReader in) throws IOException
+	public IntcodeV3(final int[] data) {
+		this(data, new int[0], 0, false);
+	}
+
+	public static IntcodeV3 parseInput(final BufferedReader in) throws IOException
 	{
 		final int[] data = Arrays.stream(in.readLine().split(",")) //
 				.mapToInt(Integer::parseInt) //
 				.toArray();
-		return new IntcodeV2(data);
+		return new IntcodeV3(data);
 	}
 
 	private static int data(final int[] data, final int value, final int mode)
 	{
-		return mode == MODE_IMMEDIATE ? value : data[value];
+		return switch (mode) {
+			case MODE_IMMEDIATE -> value;
+			case MODE_POSITION -> data[value];
+			default -> throw new IllegalArgumentException("Unsupported mode " + mode);
+		};
 	}
 
-	public ComputationResult execute(final Integer noun, final Integer verb, final Iterator<Integer> inputs)
+	public IntcodeV3 withNounAndVerb(final int noun, final int verb)
 	{
+		final int[] data = this.data.clone();
+		data[1] = noun;
+		data[2] = verb;
+		return new IntcodeV3(data, outputs, ip, halted);
+	}
+
+	public IntcodeV3 execute(final Iterator<Integer> inputs, final boolean interruptOnOutput)
+	{
+		final Deque<Integer> inputsQueue = Seq.seq(inputs).collect(Collectors.toCollection(LinkedList::new));
+		return execute(inputsQueue, interruptOnOutput);
+	}
+
+	public IntcodeV3 execute(final Deque<Integer> inputs, final boolean interruptOnOutput)
+	{
+		if (halted) {
+			throw new IllegalStateException("Computer is halted");
+		}
+
 		// defensive copy to avoid modifying input data
 		final int[] data = this.data.clone();
-		if (noun != null) {
-			data[1] = noun;
-		}
-		if (verb != null) {
-			data[2] = verb;
-		}
 
 		final List<Integer> outputs = new ArrayList<>();
 
-		int ip = 0;
+		int lastIp = -1;
+		boolean halted = false;
+		int ip = this.ip;
 		while (ip >= 0) {
 			final int instruction = data[ip];
 			final int opcode = instruction % 100;
@@ -85,13 +112,17 @@ public record IntcodeV2(int[] data) {
 
 				case CODE_INPUT -> {
 					final int p1 = data[ip + 1];
-					data[p1] = inputs.next();
+					data[p1] = inputs.pop();
 					yield ip + 2;
 				}
 
 				case CODE_OUTPUT -> {
 					final int p1 = data[ip + 1];
 					outputs.add(data(data, p1, modes));
+					if (interruptOnOutput) {
+						lastIp = ip + 2;
+						yield -1;
+					}
 					yield ip + 2;
 				}
 
@@ -131,7 +162,11 @@ public record IntcodeV2(int[] data) {
 					yield ip + 4;
 				}
 
-				case CODE_EXIT -> -1;
+				case CODE_EXIT -> {
+					lastIp = ip + 1;
+					halted = true;
+					yield -1;
+				}
 
 				default -> throw new IllegalStateException("Unknown opcode " + data[ip]);
 			};
@@ -141,11 +176,7 @@ public record IntcodeV2(int[] data) {
 				.mapToInt(Integer::intValue) //
 				.toArray();
 
-		return new ComputationResult(data, outputsArr);
-	}
-
-	public record ComputationResult(int[] data, int[] outputs) {
-
+		return new IntcodeV3(data, outputsArr, lastIp, halted);
 	}
 
 }
