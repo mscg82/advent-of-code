@@ -14,8 +14,10 @@ public class AdventDay7 {
 
     private static void part1() throws IOException {
         try (BufferedReader in = readInput()) {
-            System.out.println("Part 1 - Answer %d".formatted(0));
+            final var amplifier = Amplifier.parseInput(in);
+            System.out.println("Part 1 - Answer %d".formatted(amplifier.computeMaxOutput()));
         }
+
     }
 
     private static void part2() throws IOException {
@@ -25,8 +27,7 @@ public class AdventDay7 {
     }
 
     private static BufferedReader readInput() {
-        return new BufferedReader(
-                new InputStreamReader(AdventDay7.class.getResourceAsStream("/input.txt"), StandardCharsets.UTF_8));
+        return new BufferedReader(new InputStreamReader(AdventDay7.class.getResourceAsStream("/input.txt"), StandardCharsets.UTF_8));
     }
 
 }
