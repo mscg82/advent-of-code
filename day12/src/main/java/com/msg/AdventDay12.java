@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 public class AdventDay12
 {
@@ -17,14 +18,18 @@ public class AdventDay12
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			final var map = CaveMap.parseInput(in);
+			final List<List<String>> allPaths = map.findAllPaths();
+			System.out.println("Part 1 - Answer %d".formatted(allPaths.size()));
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var map = CaveMap.parseInput(in);
+			final List<List<String>> allPaths = map.findAllPaths2();
+			System.out.println("Part 2 - Answer %d".formatted(allPaths.size()));
 		}
 	}
 
