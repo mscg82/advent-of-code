@@ -16,14 +16,16 @@ public class AdventDay13
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			final var instructions = Instructions.parseInput(in);
+			System.out.println("Part 1 - Answer %d".formatted(instructions.doAFoldAndCount()));
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var instructions = Instructions.parseInput(in);
+			System.out.println("Part 2 - Answer %n%s".formatted(instructions.completeFold()));
 		}
 	}
 
