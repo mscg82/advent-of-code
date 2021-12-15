@@ -16,14 +16,16 @@ public class AdventDay15
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			final var caveMap = CaveMap.parseInput(in, false);
+			System.out.println("Part 1 - Answer %d".formatted(caveMap.findLowestRiskPath()));
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var caveMap = CaveMap.parseInput(in, true);
+			System.out.println("Part 2 - Answer %d".formatted(caveMap.findLowestRiskPath()));
 		}
 	}
 
