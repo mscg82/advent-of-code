@@ -1,9 +1,13 @@
 package com.mscg;
 
+import com.mscg.ScannersCluster.Position;
+import org.jooq.lambda.Seq;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 public class AdventDay19
 {
@@ -16,14 +20,22 @@ public class AdventDay19
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			final var cluster = ScannersCluster.parseInput(in);
+			System.out.println("Part 1 - Answer %d".formatted(cluster.decodeScanners().beacons().size()));
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var cluster = ScannersCluster.parseInput(in);
+			final List<Position> scanners = cluster.decodeScanners().scannersPositions();
+			final long maxDistance = Seq.seq(scanners.stream()) //
+					.crossSelfJoin() //
+					.mapToLong(t -> t.v1().manhattanDistance(t.v2())) //
+					.max() //
+					.orElseThrow();
+			System.out.println("Part 2 - Answer %d".formatted(maxDistance));
 		}
 	}
 
