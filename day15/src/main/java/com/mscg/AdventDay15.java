@@ -16,14 +16,16 @@ public class AdventDay15
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			final var droid = RepairDroid.parseInput(in);
+			System.out.println("Part 1 - Answer %d".formatted(droid.findPathToOxygenSystem().size()));
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var droid = RepairDroid.parseInput(in);
+			System.out.println("Part 2 - Answer %d".formatted(droid.findFillTime()));
 		}
 	}
 
