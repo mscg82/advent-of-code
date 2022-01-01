@@ -1,5 +1,7 @@
 package com.mscg;
 
+import lombok.AllArgsConstructor;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,8 +11,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-
-import lombok.AllArgsConstructor;
 
 public record IntcodeV6(long relativeBase, long[] data, Map<Long, Long> additionalData, long[] outputs, int ip, boolean halted)
 {
@@ -49,7 +49,8 @@ public record IntcodeV6(long relativeBase, long[] data, Map<Long, Long> addition
 		return new IntcodeV6(data);
 	}
 
-	public IntcodeV6(final long[] data) {
+	public IntcodeV6(final long[] data)
+	{
 		this(0, data, Map.of(), new long[0], 0, false);
 	}
 
@@ -268,7 +269,31 @@ public record IntcodeV6(long relativeBase, long[] data, Map<Long, Long> addition
 	@FunctionalInterface
 	public interface InputGenerator
 	{
+		static InputGenerator forArray(final long[] inputs)
+		{
+			return forArray(inputs, 0);
+		}
+
+		static InputGenerator forArray(final long[] inputs, final int offset)
+		{
+			return new ArrayInputGenerator(inputs, offset);
+		}
+
 		long next();
+	}
+
+	@AllArgsConstructor
+	private static class ArrayInputGenerator implements InputGenerator
+	{
+		private final long[] inputs;
+
+		private int position;
+
+		@Override
+		public long next()
+		{
+			return inputs[position++];
+		}
 	}
 
 }
