@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 
 public class AdventDay19
 {
@@ -16,14 +18,19 @@ public class AdventDay19
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			final var beam = TractorBeam.parseInput(in);
+			System.out.println("Part 1 - Answer %d".formatted(beam.countAffectedPosition()));
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var beam = TractorBeam.parseInput(in);
+			final var before = Instant.now();
+			final TractorBeam.Position position = beam.findPosition();
+			final var elapsed = Duration.between(before, Instant.now());
+			System.out.println("Part 2 - Answer %d, elapsed %s".formatted(position.x() * 10_000 + position.y(), elapsed));
 		}
 	}
 

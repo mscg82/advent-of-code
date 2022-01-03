@@ -11,4 +11,12 @@
 
 	<artifactId>day19</artifactId>
 
+	<dependencies>
+		<dependency>
+			<groupId>com.mscg</groupId>
+			<artifactId>day13</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
+
 </project>
