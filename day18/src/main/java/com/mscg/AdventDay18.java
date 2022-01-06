@@ -16,14 +16,18 @@ public class AdventDay18
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			final var vault = Vault.parseInput(in);
+			final Vault.Solution minPath = vault.getMinPath();
+			System.out.println("Part 1 - Answer %d".formatted(minPath.pathLength()));
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var vault = Vault.parseInput(in);
+			final Vault.Solution minPath = vault.getMinPath2();
+			System.out.println("Part 2 - Answer %d".formatted(minPath.pathLength()));
 		}
 	}
 
