@@ -16,14 +16,16 @@ public class AdventDay22
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			final var shuffler = SpaceDeckShuffler.parseInput(in, 10007);
+			System.out.println("Part 1 - Answer %d".formatted(shuffler.trackCard(2019)));
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var shuffler = SpaceDeckShuffler.parseInput(in, 119_315_717_514_047L);
+			System.out.println("Part 2 - Answer %d".formatted(shuffler.trackCardsInPositionInBigDeck(2020, 101_741_582_076_661L)));
 		}
 	}
 
