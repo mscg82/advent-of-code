@@ -7,8 +7,10 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-public record IntcodeV2(int[] data) {
+public record IntcodeV2(int[] data)
+{
 
+	@SuppressWarnings("unused")
 	private static final int MODE_POSITION = 0;
 
 	private static final int MODE_IMMEDIATE = 1;
@@ -144,7 +146,8 @@ public record IntcodeV2(int[] data) {
 		return new ComputationResult(data, outputsArr);
 	}
 
-	public record ComputationResult(int[] data, int[] outputs) {
+	public record ComputationResult(int[] data, int[] outputs)
+	{
 
 	}
 

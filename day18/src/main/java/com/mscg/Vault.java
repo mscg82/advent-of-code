@@ -221,9 +221,9 @@ public record Vault(VaultMap map, Map<Position, List<Position>> adjacencyMap, in
 		final List<Connection> connections = new ArrayList<>();
 
 		final Set<Position> seenPositions = new HashSet<>();
-		record Status(Position position, long distance, Set<Key> requiredKeys) {}
-		final Deque<Status> queue = new ArrayDeque<>();
-		queue.add(new Status(startNode, 0, Key.newSet()));
+		record BFSStatus(Position position, long distance, Set<Key> requiredKeys) {}
+		final Deque<BFSStatus> queue = new ArrayDeque<>();
+		queue.add(new BFSStatus(startNode, 0, Key.newSet()));
 		seenPositions.add(startNode);
 
 		while (!queue.isEmpty()) {
@@ -238,7 +238,7 @@ public record Vault(VaultMap map, Map<Position, List<Position>> adjacencyMap, in
 					.forEach(pos -> {
 						final var doorOrKey = doorsAndKeys.get(pos);
 						final var newKeys = Key.concat(current.requiredKeys(), doorOrKey);
-						queue.add(new Status(pos, current.distance() + 1, newKeys));
+						queue.add(new BFSStatus(pos, current.distance() + 1, newKeys));
 						seenPositions.add(pos);
 					});
 		}

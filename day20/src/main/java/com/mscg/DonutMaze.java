@@ -130,10 +130,10 @@ public record DonutMaze(Position start, Position exit, Set<Position> corridors, 
 						.toList())) //
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (l1, l2) -> l1, LinkedHashMap::new));
 
-		record Status(Position position, List<Position> path) {}
+		record BFSStatus(Position position, List<Position> path) {}
 		final Set<Position> seenPositions = new HashSet<>();
-		final Deque<Status> queue = new ArrayDeque<>();
-		queue.add(new Status(start, List.of()));
+		final Deque<BFSStatus> queue = new ArrayDeque<>();
+		queue.add(new BFSStatus(start, List.of()));
 
 		while (!queue.isEmpty()) {
 			final var current = queue.pop();
@@ -145,7 +145,7 @@ public record DonutMaze(Position start, Position exit, Set<Position> corridors, 
 			final List<Position> neighbours = adjacencyMap.get(current.position());
 			neighbours.stream() //
 					.filter(pos -> !seenPositions.contains(pos)) //
-					.forEach(pos -> queue.add(new Status(pos, concat(current.path(), current.position()))));
+					.forEach(pos -> queue.add(new BFSStatus(pos, concat(current.path(), current.position()))));
 		}
 
 		throw new IllegalStateException("Can't find shortest path");
@@ -271,9 +271,9 @@ public record DonutMaze(Position start, Position exit, Set<Position> corridors, 
 		final List<Connection> connections = new ArrayList<>();
 
 		final Set<Position> seenPositions = new HashSet<>();
-		record Status(Position position, long distance) {}
-		final Deque<Status> queue = new ArrayDeque<>();
-		queue.add(new Status(startNode, 0));
+		record BFSStatus(Position position, long distance) {}
+		final Deque<BFSStatus> queue = new ArrayDeque<>();
+		queue.add(new BFSStatus(startNode, 0));
 		seenPositions.add(startNode);
 
 		while (!queue.isEmpty()) {
@@ -287,7 +287,7 @@ public record DonutMaze(Position start, Position exit, Set<Position> corridors, 
 				neighbours.stream() //
 						.filter(pos -> !seenPositions.contains(pos)) //
 						.forEach(pos -> {
-							queue.add(new Status(pos, current.distance() + 1));
+							queue.add(new BFSStatus(pos, current.distance() + 1));
 							seenPositions.add(pos);
 						});
 			}

@@ -39,8 +39,8 @@ public record GameConsole(IntcodeV6 computer)
 
 		var computer = this.computer.withUpdatedData(data -> data[0] = 2);
 		long score = Long.MIN_VALUE;
-		final IntcodeV6.InputGenerator input = () -> Long
-				.signum(Long.compare(positionHolder.ballPosition.x(), positionHolder.paddlePosition.x()));
+		final IntcodeV6.InputGenerator input = () -> Long.signum(
+				Long.compare(positionHolder.ballPosition.x(), positionHolder.paddlePosition.x()));
 		while (true) {
 			computer = computer.execute(input, 3);
 			if (computer.halted()) {
@@ -51,9 +51,10 @@ public record GameConsole(IntcodeV6 computer)
 			} else {
 				final var position = new Position(computer.outputs()[0], computer.outputs()[1]);
 				final var tile = Tile.from((int) computer.outputs()[2]);
-				switch (tile) {
-					case BALL -> positionHolder.ballPosition = position;
-					case PADDLE -> positionHolder.paddlePosition = position;
+				if (tile == Tile.BALL) {
+					positionHolder.ballPosition = position;
+				} else if (tile == Tile.PADDLE) {
+					positionHolder.paddlePosition = position;
 				}
 			}
 		}
@@ -83,7 +84,7 @@ public record GameConsole(IntcodeV6 computer)
 		}
 	}
 
-	private class PositionsHolder
+	private static class PositionsHolder
 	{
 		Position ballPosition = new Position(0, 0);
 
