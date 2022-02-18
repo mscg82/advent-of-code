@@ -239,6 +239,8 @@ public record IntcodeV7(long relativeBase, long[] data, Map<Long, Long> addition
 		void add(final long value1, final long value2);
 
 		void add(final long value1, final long value2, final long... others);
+
+		boolean hasEmptyReads();
 	}
 
 	@AllArgsConstructor
@@ -323,6 +325,8 @@ public record IntcodeV7(long relativeBase, long[] data, Map<Long, Long> addition
 	{
 		private final Deque<Long> values = new ArrayDeque<>();
 
+		private boolean emptyRead;
+
 		@Override
 		public synchronized void add(final long value)
 		{
@@ -347,9 +351,16 @@ public record IntcodeV7(long relativeBase, long[] data, Map<Long, Long> addition
 		}
 
 		@Override
+		public synchronized boolean hasEmptyReads()
+		{
+			return values.isEmpty() && emptyRead;
+		}
+
+		@Override
 		public synchronized long next()
 		{
-			return values.isEmpty() ? -1 : values.pop();
+			emptyRead = values.isEmpty();
+			return emptyRead ? -1 : values.pop();
 		}
 	}
 

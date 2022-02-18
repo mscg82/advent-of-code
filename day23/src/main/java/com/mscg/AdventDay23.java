@@ -24,7 +24,8 @@ public class AdventDay23
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var network = Network.parseInput(in, 50);
+			System.out.println("Part 2 - Answer %d".formatted(network.runWithNAT()));
 		}
 	}
 

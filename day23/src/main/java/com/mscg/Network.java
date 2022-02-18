@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.IntStream;
@@ -52,21 +51,51 @@ public record Network(List<Node> nodes)
 				.map(nodeIdx -> new NodeRunner(nodeIdx.v1(), inputGenerators.get(nodeIdx.v2().intValue()), outputConsumer)) //
 				.toList();
 
-		try {
-			final List<Future<Void>> futures = executorService.invokeAll(nodeRunners);
-			for (final Future<Void> future : futures) {
-				future.get(); // wait for all nodes to finish
-			}
-			executorService.shutdown();
-			if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
-				throw new IllegalStateException("Failed to stop executor service");
-			}
-		} catch (final InterruptedException e) {
-			Thread.currentThread().interrupt();
-			e.printStackTrace();
+		executorService.invokeAll(nodeRunners);
+
+		executorService.shutdownNow();
+		if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+			throw new IllegalStateException("Failed to shutdown the executor service");
 		}
 
 		return result.get();
+	}
+
+	@SneakyThrows
+	public long runWithNAT()
+	{
+		final List<IntcodeV7.QueueInputGenerator> inputGenerators = nodes.stream() //
+				.map(node -> IntcodeV7.QueueInputGenerator.queue(node.index())) //
+				.toList();
+
+		final Nat nat = new Nat();
+
+		final ExecutorService executorService = Executors.newFixedThreadPool(nodes.size());
+
+		final OutputConsumer outputConsumer = (source, target, x, y) -> {
+			if (target == 255) {
+				nat.write(x, y);
+				return;
+			}
+
+			inputGenerators.get(target).add(x, y);
+		};
+
+		final List<? extends Callable<Void>> nodeRunners = Seq.seq(nodes.stream()) //
+				.zipWithIndex() //
+				.map(nodeIdx -> new NodeRunner(nodeIdx.v1(), inputGenerators.get(nodeIdx.v2().intValue()), outputConsumer)) //
+				.toList();
+
+		nodeRunners.forEach(executorService::submit);
+
+		final var natRunner = new NatRunner(nat, inputGenerators);
+		final long result = natRunner.call();
+		executorService.shutdownNow();
+		if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+			throw new IllegalStateException("Failed to shutdown the executor service");
+		}
+
+		return result;
 	}
 
 	@FunctionalInterface
@@ -96,6 +125,59 @@ public record Network(List<Node> nodes)
 			}
 
 			return null;
+		}
+	}
+
+	private static class Nat
+	{
+		private long x;
+
+		private long y;
+
+		public long x()
+		{
+			return x;
+		}
+
+		public long y()
+		{
+			return y;
+		}
+
+		public synchronized void write(final long x, final long y)
+		{
+			this.x = x;
+			this.y = y;
+		}
+	}
+
+	private record NatRunner(Nat nat, List<IntcodeV7.QueueInputGenerator> inputGenerators) implements Callable<Long>
+	{
+		@Override
+		public Long call() throws Exception
+		{
+			long result = 0;
+			int tries = 0;
+			while (!Thread.interrupted()) {
+				final boolean allEmptyReads = inputGenerators.stream().allMatch(IntcodeV7.QueueInputGenerator::hasEmptyReads);
+				if (allEmptyReads) {
+					tries++;
+				} else {
+					tries = 0;
+				}
+
+				if (tries >= 3) {
+					if (nat.y() == result) {
+						return result;
+					}
+
+					result = nat().y();
+					inputGenerators.get(0).add(nat.x(), nat.y());
+					tries = 0;
+				}
+			}
+
+			return -1L;
 		}
 	}
 }
