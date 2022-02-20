@@ -1,0 +1,40 @@
+west
+west
+west
+take coin
+east
+east
+east
+north
+north
+take mutex
+east
+take antenna
+west
+south
+east
+take cake
+east
+north
+take pointer
+south
+west
+west
+south
+east
+east
+take tambourine
+east
+take fuel cell
+east
+take boulder
+north
+drop fuel cell
+drop coin
+drop cake
+drop pointer
+drop boulder
+drop mutex
+drop antenna
+drop tambourine
+east
