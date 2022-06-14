@@ -22,8 +22,8 @@ import java.util.stream.Stream;
 import static java.util.function.Predicate.not;
 
 @RecordBuilder
-public record TerrainMap(Set<Position> clayPositions, Set<Position> waterPositions, Set<Position> dripPositions, int minY, int maxY)
-		implements TerrainMapBuilder.With
+public record TerrainMap(Set<Position> clayPositions, Set<Position> waterPositions, Set<Position> stillWaterPositions,
+						 Set<Position> dripPositions, int minY, int maxY) implements TerrainMapBuilder.With
 {
 	public static TerrainMap parseInput(final BufferedReader in) throws IOException
 	{
@@ -42,11 +42,12 @@ public record TerrainMap(Set<Position> clayPositions, Set<Position> waterPositio
 										new Position(firstVal, secondVal) :
 										new Position(secondVal, firstVal));
 					}) //
-					.collect(Collectors.toUnmodifiableSet());
+					.collect(Collectors.toSet());
 			final var stats = clayPositions.stream() //
 					.mapToInt(Position::y) //
 					.summaryStatistics();
-			return new TerrainMap(clayPositions, Set.of(), Set.of(new Position(500, 0)), stats.getMin(), stats.getMax());
+			return new TerrainMap(Collections.unmodifiableSet(clayPositions), Set.of(), Set.of(), Set.of(new Position(500, 0)),
+					stats.getMin(), stats.getMax());
 		} catch (final UncheckedIOException e) {
 			throw e.getCause();
 		}
@@ -72,6 +73,7 @@ public record TerrainMap(Set<Position> clayPositions, Set<Position> waterPositio
 		return Objects.requireNonNull(lastMap).with(map -> {
 			map.clayPositions(Collections.unmodifiableSet(map.clayPositions()));
 			map.waterPositions(Collections.unmodifiableSet(map.waterPositions()));
+			map.stillWaterPositions(Collections.unmodifiableSet(map.stillWaterPositions()));
 			map.dripPositions(Collections.unmodifiableSet(map.dripPositions()));
 		});
 	}
@@ -120,6 +122,7 @@ public record TerrainMap(Set<Position> clayPositions, Set<Position> waterPositio
 	TerrainMap letWaterDrip()
 	{
 		final Set<Position> newWaterPositions = new HashSet<>(waterPositions);
+		final Set<Position> newStillWaterPositions = new HashSet<>(stillWaterPositions);
 		final Set<Position> newDripPositions = new HashSet<>();
 
 		final Iterable<Position> validDripPositions = () -> dripPositions.stream() //
@@ -134,7 +137,9 @@ public record TerrainMap(Set<Position> clayPositions, Set<Position> waterPositio
 				final var right = newHorPositions.last();
 				if (clayPositions.contains(left) && clayPositions.contains(right)) {
 					// we are in a basin, so fill the line and go up
-					newWaterPositions.addAll(newHorPositions.subSet(left, false, right, false));
+					final var waterPositions = newHorPositions.subSet(left, false, right, false);
+					newWaterPositions.addAll(waterPositions);
+					newStillWaterPositions.addAll(waterPositions);
 					newDripPositions.add(position.withY(position.y() - 1));
 				} else if (!clayPositions.contains(left) && !clayPositions.contains(right)) {
 					// we spill from both sides, but we must have clay supporting on both sides
@@ -191,6 +196,7 @@ public record TerrainMap(Set<Position> clayPositions, Set<Position> waterPositio
 
 		return this.with(m -> {
 			m.waterPositions(newWaterPositions);
+			m.stillWaterPositions(newStillWaterPositions);
 			m.dripPositions(newDripPositions);
 		});
 	}

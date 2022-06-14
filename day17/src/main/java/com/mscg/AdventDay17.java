@@ -28,7 +28,9 @@ public class AdventDay17
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var map = TerrainMap.parseInput(in);
+			final TerrainMap evolvedMap = map.evolve();
+			System.out.println("Part 2 - Answer %d".formatted(evolvedMap.stillWaterPositions().size()));
 		}
 	}
 
