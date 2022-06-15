@@ -1,5 +1,7 @@
 package com.mscg;
 
+import com.mscg.WristDeviceV2.Register;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -17,7 +19,9 @@ public class AdventDay19
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			final var device = WristDeviceV2.parseInput(in);
+			final var registers = device.executeProgram();
+			System.out.println("Part 1 - Answer %d".formatted(registers.get(Register.R0)));
 		}
 	}
 
