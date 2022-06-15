@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.LongStream;
 
 public record WristDeviceV2(List<Instruction> instructions, Register ip)
 {
@@ -31,16 +32,31 @@ public record WristDeviceV2(List<Instruction> instructions, Register ip)
 
 	public RegistersSet executeProgram()
 	{
-		var registerSet = RegistersSet.init();
+		return executeProgram(RegistersSet.init(), false);
+	}
+
+	public RegistersSet executeProgram(final RegistersSet initialRegisterSet, final boolean executeOptimized)
+	{
+		var registerSet = initialRegisterSet;
 
 		while (true) {
-			final int ipVal = (int) registerSet.get(this.ip);
+			final int ipVal = (int) registerSet.get(ip);
 			if (ipVal < 0 || ipVal >= instructions.size()) {
 				break;
 			}
-			final var instruction = instructions.get(ipVal);
-			final RegistersSet afterExecution = instruction.execute(registerSet);
-			registerSet = afterExecution.set(ip, afterExecution.get(ip) + 1);
+			if (executeOptimized && ipVal == 1) {
+				// this loop in the source assembly simply sums the divisors of the value in register 5
+				final var r5 = registerSet.get(Register.R5);
+				final var r0 = LongStream.rangeClosed(1, r5) //
+						.filter(v -> r5 % v == 0) //
+						.sum();
+				registerSet = registerSet.set(Register.R0, r0) //
+						.set(ip, instructions.size());
+			} else {
+				final var instruction = instructions.get(ipVal);
+				final RegistersSet afterExecution = instruction.execute(registerSet);
+				registerSet = afterExecution.set(ip, afterExecution.get(ip) + 1);
+			}
 		}
 
 		return registerSet;
@@ -67,6 +83,12 @@ public record WristDeviceV2(List<Instruction> instructions, Register ip)
 		public RegistersSet execute(final RegistersSet input)
 		{
 			return opcode.execute(this, input);
+		}
+
+		@Override
+		public String toString()
+		{
+			return opcode.name() + " " + a + " " + b + " " + c;
 		}
 	}
 
@@ -101,6 +123,12 @@ public record WristDeviceV2(List<Instruction> instructions, Register ip)
 				case R4 -> this.withV4(newValue);
 				case R5 -> this.withV5(newValue);
 			};
+		}
+
+		@Override
+		public String toString()
+		{
+			return "[" + v0 + ", " + v1 + ", " + v2 + ", " + v3 + ", " + v4 + ", " + v5 + "]";
 		}
 	}
 
