@@ -2,10 +2,12 @@ package com.mscg;
 
 import io.soabase.recordbuilder.core.RecordBuilder;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple2;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -30,17 +32,57 @@ public record CollectionArea(List<List<Block>> blocks, int rows, int cols) imple
 		}
 	}
 
+	public long getCurrentResourceValue()
+	{
+		final Map<Block, Long> countByType = blocks.stream() //
+				.flatMap(List::stream) //
+				.collect(Collectors.groupingBy(b -> b, Collectors.counting()));
+
+		return countByType.getOrDefault(Block.LUMBER, 0L) * countByType.getOrDefault(Block.TREES, 0L);
+	}
+
 	public long computeResourceValue()
 	{
 		final CollectionArea lastArea = Seq.iterate(this, CollectionArea::evolve) //
 				.limit(11) //
 				.findLast() //
 				.orElseThrow();
-		final Map<Block, Long> countByType = lastArea.blocks.stream() //
-				.flatMap(List::stream) //
-				.collect(Collectors.groupingBy(b -> b, Collectors.counting()));
 
-		return countByType.getOrDefault(Block.LUMBER, 0L) * countByType.getOrDefault(Block.TREES, 0L);
+		return lastArea.getCurrentResourceValue();
+	}
+
+	public long computeResourceValueInLongTime()
+	{
+		final var seenConfigurations = new LinkedHashSet<CollectionArea>();
+		final long lastTime = 1_000_000_000L;
+
+		long curTime = 0;
+		var currentArea = this;
+		while (curTime < lastTime && !seenConfigurations.contains(currentArea)) {
+			seenConfigurations.add(currentArea);
+			currentArea = currentArea.evolve();
+			curTime++;
+		}
+
+		// we found a loop
+		final var loopStart = currentArea;
+		final int loopStartIndex = Seq.seq(seenConfigurations.stream()) //
+				.zipWithIndex() //
+				.findFirst(idxArea -> loopStart.equals(idxArea.v1())) //
+				.map(Tuple2::v2) //
+				.orElseThrow() //
+				.intValue();
+		final long loopLength = curTime - loopStartIndex;
+
+		final long remainingTime = lastTime - curTime;
+		final long remainingIterations = remainingTime % loopLength;
+
+		final CollectionArea lastArea = Seq.iterate(currentArea, CollectionArea::evolve) //
+				.limit(remainingIterations + 1) //
+				.findLast() //
+				.orElseThrow();
+
+		return lastArea.getCurrentResourceValue();
 	}
 
 	public CollectionArea evolve()
