@@ -25,7 +25,8 @@ public class AdventDay22
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var map = CaveMap.parseInput(in);
+			System.out.println("Part 2 - Answer %d".formatted(map.computeShortestPath()));
 		}
 	}
 
