@@ -5,7 +5,11 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public record NanobotNetwork(List<Nanobot> nanobots)
 {
@@ -31,8 +35,36 @@ public record NanobotNetwork(List<Nanobot> nanobots)
 				.count();
 	}
 
+	public long findDistanceToMaxOverllappedPoint()
+	{
+		final Map<Long, Integer> distanceToCount = nanobots.stream() //
+				.flatMap(nanobot -> {
+					final long distanceFromOrigin = nanobot.position().distance(Position.ORIGIN);
+					return Stream.of( //
+							Map.entry(Math.max(distanceFromOrigin - nanobot.radius(), 0L), 1), //
+							Map.entry(distanceFromOrigin + nanobot.radius(), -1));
+				}) //
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1, TreeMap::new));
+
+		int count = 0;
+		int maxCount = Integer.MIN_VALUE;
+		long result = Long.MIN_VALUE;
+
+		for (final var entry : distanceToCount.entrySet()) {
+			count += entry.getValue();
+			if (count > maxCount) {
+				result = entry.getKey();
+				maxCount = count;
+			}
+		}
+
+		return result;
+	}
+
 	public record Position(long x, long y, long z)
 	{
+
+		public static final Position ORIGIN = new Position(0, 0, 0);
 
 		public long distance(final Position other)
 		{
