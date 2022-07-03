@@ -75,13 +75,68 @@ public record DeseaseFight(List<Group> immuneSystem, List<Group> infection)
 
 	public long computeWinningArmySize()
 	{
-		List<Group> currentImmuneSystem = immuneSystem;
+		final var figthResult = executeFigthWithBoost(0L) //
+				.orElseThrow(() -> new IllegalStateException("Unable to get the fight result"));
+
+		return Stream.concat(figthResult.immuneSystem.stream(), figthResult.infection.stream()) //
+				.mapToInt(Group::units) //
+				.sum();
+	}
+
+	public long computeWinningArmySizeWithBoost()
+	{
+		// compute the upper bind of the boost
+		long lowerBoost = 0L;
+		long upperBoost = 1024L;
+
+		while (true) {
+			final var figthResult = executeFigthWithBoost(upperBoost);
+			if (figthResult.isEmpty() || figthResult.get().immuneSystem.isEmpty()) {
+				upperBoost *= 2;
+			} else {
+				break;
+			}
+		}
+
+		while (upperBoost > lowerBoost + 1) {
+			final long boost = (upperBoost + lowerBoost) / 2L;
+			final var figthResult = executeFigthWithBoost(boost);
+			if (figthResult.isEmpty() || figthResult.get().immuneSystem.isEmpty()) {
+				lowerBoost = boost;
+			} else {
+				upperBoost = boost;
+			}
+		}
+
+		final var figthResult = Stream.of(executeFigthWithBoost(lowerBoost), //
+						executeFigthWithBoost(upperBoost)) //
+				.flatMap(Optional::stream) //
+				.filter(fight -> !fight.immuneSystem.isEmpty()) //
+				.findFirst() //
+				.orElseThrow(() -> new IllegalStateException("Unable to get the fight result"));
+
+		return Stream.concat(figthResult.immuneSystem.stream(), figthResult.infection.stream()) //
+				.mapToInt(Group::units) //
+				.sum();
+	}
+
+	private Optional<DeseaseFight> executeFigthWithBoost(final long boost)
+	{
+		List<Group> currentImmuneSystem = boost == 0L ? //
+				immuneSystem : //
+				immuneSystem.stream() //
+						.map(g -> g.withAttack(g.attack().withValue(g.attack().value() + boost))) //
+						.toList();
 		List<Group> currentInfection = infection;
 
 		final var byEffectivePowerDescAndInitiativeDesc = Comparator.comparingLong(Group::getEffectivePower).reversed()
 				.thenComparing(Comparator.comparingInt(Group::initiative).reversed());
 
 		while (!currentImmuneSystem.isEmpty() && !currentInfection.isEmpty()) {
+			final long unitsBeforeFight = Stream.concat(currentImmuneSystem.stream(), currentInfection.stream()) //
+					.mapToLong(Group::units) //
+					.sum();
+
 			final Map<GroupId, GroupId> immuneSystemTargeted = new HashMap<>();
 			final Map<GroupId, GroupId> infectionTargeted = new HashMap<>();
 
@@ -104,11 +159,18 @@ public record DeseaseFight(List<Group> immuneSystem, List<Group> infection)
 
 			currentImmuneSystem = partitionedGroups.get(Boolean.TRUE);
 			currentInfection = partitionedGroups.get(Boolean.FALSE);
+
+			final long unitsAfterFight = Stream.concat(currentImmuneSystem.stream(), currentInfection.stream()) //
+					.mapToLong(Group::units) //
+					.sum();
+
+			if (unitsAfterFight == unitsBeforeFight) {
+				// no units have been killed in this run, the fight ends with a draw
+				return Optional.empty();
+			}
 		}
 
-		return Stream.concat(currentImmuneSystem.stream(), currentInfection.stream()) //
-				.mapToInt(Group::units) //
-				.sum();
+		return Optional.of(new DeseaseFight(currentImmuneSystem, currentInfection));
 	}
 
 	private static void selectTargets(final List<Group> currentImmuneSystem, final List<Group> currentInfection,
@@ -173,7 +235,8 @@ public record DeseaseFight(List<Group> immuneSystem, List<Group> infection)
 		return idToGroup.values();
 	}
 
-	public record Attack(int value, String type) {}
+	@RecordBuilder
+	public record Attack(long value, String type) implements DeseaseFightAttackBuilder.With {}
 
 	public record GroupId(int id, GroupType type) {}
 
@@ -230,7 +293,7 @@ public record DeseaseFight(List<Group> immuneSystem, List<Group> infection)
 
 		public long getEffectivePower()
 		{
-			return (long) units * attack.value();
+			return units * attack.value();
 		}
 
 		public long computeReceivedDamageFrom(final Group group)
