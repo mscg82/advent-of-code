@@ -65,10 +65,7 @@ public class LightGrid
 				final int onNeighbours = (int) neighbours.stream() //
 						.filter(light -> light == Light.ON) //
 						.count();
-				newLights.get(i).set(j, switch (lights.get(i).get(j)) {
-					case ON -> (onNeighbours == 2 || onNeighbours == 3) ? Light.ON : Light.OFF;
-					case OFF -> (onNeighbours == 3) ? Light.ON : Light.OFF;
-				});
+				newLights.get(i).set(j, getNewLightStatus(lights.get(i).get(j), onNeighbours));
 			}
 		}
 
@@ -81,6 +78,22 @@ public class LightGrid
 		return lights.stream() //
 				.map(row -> row.stream().map(Object::toString).collect(Collectors.joining())) //
 				.collect(Collectors.joining("\n"));
+	}
+
+	@SuppressWarnings("SwitchStatementWithTooFewBranches")
+	private Light getNewLightStatus(final Light currentLight, final int onNeighbours)
+	{
+		return switch (currentLight) {
+			case ON -> switch (onNeighbours) {
+				case 2, 3 -> Light.ON;
+				default -> Light.OFF;
+			};
+
+			case OFF -> switch (onNeighbours) {
+				case 3 -> Light.ON;
+				default -> Light.OFF;
+			};
+		};
 	}
 
 	private List<? extends List<Light>> cloneLights()
