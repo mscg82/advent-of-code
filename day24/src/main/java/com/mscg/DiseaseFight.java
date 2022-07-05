@@ -93,11 +93,11 @@ public record DiseaseFight(List<Group> immuneSystem, List<Group> infection)
 					.thenComparingLong(Group::getEffectivePower) //
 					.thenComparingInt(Group::initiative);
 
-			final Optional<Group> choosenTarget = targets.stream() //
+			final Optional<Group> chosenTarget = targets.stream() //
 					.filter(g -> !targetedMap.containsKey(g.id())) //
 					.max(byReceivedAttackPowerAndEffectivePower) //
 					.filter(g -> g.computeReceivedDamageFrom(group) != 0);
-			choosenTarget.ifPresent(target -> targetedMap.put(target.id(), group.id()));
+			chosenTarget.ifPresent(target -> targetedMap.put(target.id(), group.id()));
 		}
 	}
 
@@ -137,7 +137,7 @@ public record DiseaseFight(List<Group> immuneSystem, List<Group> infection)
 
 	public long computeWinningArmySize()
 	{
-		final var fightResult = executeFigthWithBoost(0L) //
+		final var fightResult = executeFightWithBoost(0L) //
 				.orElseThrow(() -> new IllegalStateException("Unable to get the fight result"));
 
 		return Stream.concat(fightResult.immuneSystem.stream(), fightResult.infection.stream()) //
@@ -152,7 +152,7 @@ public record DiseaseFight(List<Group> immuneSystem, List<Group> infection)
 		long upperBoost = 1024L;
 
 		while (true) {
-			final var fightResult = executeFigthWithBoost(upperBoost);
+			final var fightResult = executeFightWithBoost(upperBoost);
 			if (fightResult.isEmpty() || fightResult.get().immuneSystem.isEmpty()) {
 				upperBoost *= 2;
 			} else {
@@ -162,7 +162,7 @@ public record DiseaseFight(List<Group> immuneSystem, List<Group> infection)
 
 		while (upperBoost > lowerBoost + 1) {
 			final long boost = (upperBoost + lowerBoost) / 2L;
-			final var fightResult = executeFigthWithBoost(boost);
+			final var fightResult = executeFightWithBoost(boost);
 			if (fightResult.isEmpty() || fightResult.get().immuneSystem.isEmpty()) {
 				lowerBoost = boost;
 			} else {
@@ -170,8 +170,8 @@ public record DiseaseFight(List<Group> immuneSystem, List<Group> infection)
 			}
 		}
 
-		final var fightResult = Stream.of(executeFigthWithBoost(lowerBoost), //
-						executeFigthWithBoost(upperBoost)) //
+		final var fightResult = Stream.of(executeFightWithBoost(lowerBoost), //
+						executeFightWithBoost(upperBoost)) //
 				.flatMap(Optional::stream) //
 				.filter(fight -> !fight.immuneSystem.isEmpty()) //
 				.findFirst() //
@@ -182,7 +182,7 @@ public record DiseaseFight(List<Group> immuneSystem, List<Group> infection)
 				.sum();
 	}
 
-	private Optional<DiseaseFight> executeFigthWithBoost(final long boost)
+	private Optional<DiseaseFight> executeFightWithBoost(final long boost)
 	{
 		List<Group> currentImmuneSystem = boost == 0L ? //
 				immuneSystem : //
@@ -312,7 +312,7 @@ public record DiseaseFight(List<Group> immuneSystem, List<Group> infection)
 
 			final long attackPower = computeReceivedDamageFrom(group);
 			if (attackPower == 0L) {
-				throw new IllegalStateException("Attacker choosed an immune target");
+				throw new IllegalStateException("Attacker have chosen an immune target");
 			}
 
 			final int killedUnits = (int) (attackPower / hitPoints);
