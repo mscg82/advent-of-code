@@ -22,10 +22,10 @@ import java.util.stream.Stream;
 
 import static java.util.function.Predicate.not;
 
-public record DeseaseFight(List<Group> immuneSystem, List<Group> infection)
+public record DiseaseFight(List<Group> immuneSystem, List<Group> infection)
 {
 
-	public static DeseaseFight parseInput(final BufferedReader in) throws IOException
+	public static DiseaseFight parseInput(final BufferedReader in) throws IOException
 	{
 		enum Status
 		{
@@ -70,107 +70,7 @@ public record DeseaseFight(List<Group> immuneSystem, List<Group> infection)
 				.map(idx -> Group.from(idx.v2().intValue() + 1, GroupType.INFECTION, idx.v1())) //
 				.toList();
 
-		return new DeseaseFight(immuneSystem, infection);
-	}
-
-	public long computeWinningArmySize()
-	{
-		final var figthResult = executeFigthWithBoost(0L) //
-				.orElseThrow(() -> new IllegalStateException("Unable to get the fight result"));
-
-		return Stream.concat(figthResult.immuneSystem.stream(), figthResult.infection.stream()) //
-				.mapToInt(Group::units) //
-				.sum();
-	}
-
-	public long computeWinningArmySizeWithBoost()
-	{
-		// compute the upper bind of the boost
-		long lowerBoost = 0L;
-		long upperBoost = 1024L;
-
-		while (true) {
-			final var figthResult = executeFigthWithBoost(upperBoost);
-			if (figthResult.isEmpty() || figthResult.get().immuneSystem.isEmpty()) {
-				upperBoost *= 2;
-			} else {
-				break;
-			}
-		}
-
-		while (upperBoost > lowerBoost + 1) {
-			final long boost = (upperBoost + lowerBoost) / 2L;
-			final var figthResult = executeFigthWithBoost(boost);
-			if (figthResult.isEmpty() || figthResult.get().immuneSystem.isEmpty()) {
-				lowerBoost = boost;
-			} else {
-				upperBoost = boost;
-			}
-		}
-
-		final var figthResult = Stream.of(executeFigthWithBoost(lowerBoost), //
-						executeFigthWithBoost(upperBoost)) //
-				.flatMap(Optional::stream) //
-				.filter(fight -> !fight.immuneSystem.isEmpty()) //
-				.findFirst() //
-				.orElseThrow(() -> new IllegalStateException("Unable to get the fight result"));
-
-		return Stream.concat(figthResult.immuneSystem.stream(), figthResult.infection.stream()) //
-				.mapToInt(Group::units) //
-				.sum();
-	}
-
-	private Optional<DeseaseFight> executeFigthWithBoost(final long boost)
-	{
-		List<Group> currentImmuneSystem = boost == 0L ? //
-				immuneSystem : //
-				immuneSystem.stream() //
-						.map(g -> g.withAttack(g.attack().withValue(g.attack().value() + boost))) //
-						.toList();
-		List<Group> currentInfection = infection;
-
-		final var byEffectivePowerDescAndInitiativeDesc = Comparator.comparingLong(Group::getEffectivePower).reversed()
-				.thenComparing(Comparator.comparingInt(Group::initiative).reversed());
-
-		while (!currentImmuneSystem.isEmpty() && !currentInfection.isEmpty()) {
-			final long unitsBeforeFight = Stream.concat(currentImmuneSystem.stream(), currentInfection.stream()) //
-					.mapToLong(Group::units) //
-					.sum();
-
-			final Map<GroupId, GroupId> immuneSystemTargeted = new HashMap<>();
-			final Map<GroupId, GroupId> infectionTargeted = new HashMap<>();
-
-			final List<Group> allGroups = Stream.concat(currentImmuneSystem.stream(), currentInfection.stream()) //
-					.sorted(byEffectivePowerDescAndInitiativeDesc) //
-					.toList();
-
-			selectTargets(currentImmuneSystem, currentInfection, immuneSystemTargeted, infectionTargeted, allGroups);
-
-			final Map<GroupId, GroupId> immuneSystemTarget = infectionTargeted.entrySet().stream() //
-					.collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-			final Map<GroupId, GroupId> infectionTarget = immuneSystemTargeted.entrySet().stream() //
-					.collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-
-			final Collection<Group> survivedGroups = executeAttacks(currentImmuneSystem, currentInfection, immuneSystemTarget,
-					infectionTarget);
-
-			final Map<Boolean, List<Group>> partitionedGroups = survivedGroups.stream() //
-					.collect(Collectors.partitioningBy(g -> g.id().type() == GroupType.IMMUNE_SYSTEM));
-
-			currentImmuneSystem = partitionedGroups.get(Boolean.TRUE);
-			currentInfection = partitionedGroups.get(Boolean.FALSE);
-
-			final long unitsAfterFight = Stream.concat(currentImmuneSystem.stream(), currentInfection.stream()) //
-					.mapToLong(Group::units) //
-					.sum();
-
-			if (unitsAfterFight == unitsBeforeFight) {
-				// no units have been killed in this run, the fight ends with a draw
-				return Optional.empty();
-			}
-		}
-
-		return Optional.of(new DeseaseFight(currentImmuneSystem, currentInfection));
+		return new DiseaseFight(immuneSystem, infection);
 	}
 
 	private static void selectTargets(final List<Group> currentImmuneSystem, final List<Group> currentInfection,
@@ -235,14 +135,114 @@ public record DeseaseFight(List<Group> immuneSystem, List<Group> infection)
 		return idToGroup.values();
 	}
 
+	public long computeWinningArmySize()
+	{
+		final var fightResult = executeFigthWithBoost(0L) //
+				.orElseThrow(() -> new IllegalStateException("Unable to get the fight result"));
+
+		return Stream.concat(fightResult.immuneSystem.stream(), fightResult.infection.stream()) //
+				.mapToInt(Group::units) //
+				.sum();
+	}
+
+	public long computeWinningArmySizeWithBoost()
+	{
+		// compute the upper bind of the boost
+		long lowerBoost = 0L;
+		long upperBoost = 1024L;
+
+		while (true) {
+			final var fightResult = executeFigthWithBoost(upperBoost);
+			if (fightResult.isEmpty() || fightResult.get().immuneSystem.isEmpty()) {
+				upperBoost *= 2;
+			} else {
+				break;
+			}
+		}
+
+		while (upperBoost > lowerBoost + 1) {
+			final long boost = (upperBoost + lowerBoost) / 2L;
+			final var fightResult = executeFigthWithBoost(boost);
+			if (fightResult.isEmpty() || fightResult.get().immuneSystem.isEmpty()) {
+				lowerBoost = boost;
+			} else {
+				upperBoost = boost;
+			}
+		}
+
+		final var fightResult = Stream.of(executeFigthWithBoost(lowerBoost), //
+						executeFigthWithBoost(upperBoost)) //
+				.flatMap(Optional::stream) //
+				.filter(fight -> !fight.immuneSystem.isEmpty()) //
+				.findFirst() //
+				.orElseThrow(() -> new IllegalStateException("Unable to get the fight result"));
+
+		return Stream.concat(fightResult.immuneSystem.stream(), fightResult.infection.stream()) //
+				.mapToInt(Group::units) //
+				.sum();
+	}
+
+	private Optional<DiseaseFight> executeFigthWithBoost(final long boost)
+	{
+		List<Group> currentImmuneSystem = boost == 0L ? //
+				immuneSystem : //
+				immuneSystem.stream() //
+						.map(g -> g.withAttack(g.attack().withValue(g.attack().value() + boost))) //
+						.toList();
+		List<Group> currentInfection = infection;
+
+		final var byEffectivePowerDescAndInitiativeDesc = Comparator.comparingLong(Group::getEffectivePower).reversed()
+				.thenComparing(Comparator.comparingInt(Group::initiative).reversed());
+
+		while (!currentImmuneSystem.isEmpty() && !currentInfection.isEmpty()) {
+			final long unitsBeforeFight = Stream.concat(currentImmuneSystem.stream(), currentInfection.stream()) //
+					.mapToLong(Group::units) //
+					.sum();
+
+			final Map<GroupId, GroupId> immuneSystemTargeted = new HashMap<>();
+			final Map<GroupId, GroupId> infectionTargeted = new HashMap<>();
+
+			final List<Group> allGroups = Stream.concat(currentImmuneSystem.stream(), currentInfection.stream()) //
+					.sorted(byEffectivePowerDescAndInitiativeDesc) //
+					.toList();
+
+			selectTargets(currentImmuneSystem, currentInfection, immuneSystemTargeted, infectionTargeted, allGroups);
+
+			final Map<GroupId, GroupId> immuneSystemTarget = infectionTargeted.entrySet().stream() //
+					.collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+			final Map<GroupId, GroupId> infectionTarget = immuneSystemTargeted.entrySet().stream() //
+					.collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+
+			final Collection<Group> survivedGroups = executeAttacks(currentImmuneSystem, currentInfection, immuneSystemTarget,
+					infectionTarget);
+
+			final Map<Boolean, List<Group>> partitionedGroups = survivedGroups.stream() //
+					.collect(Collectors.partitioningBy(g -> g.id().type() == GroupType.IMMUNE_SYSTEM));
+
+			currentImmuneSystem = partitionedGroups.get(Boolean.TRUE);
+			currentInfection = partitionedGroups.get(Boolean.FALSE);
+
+			final long unitsAfterFight = Stream.concat(currentImmuneSystem.stream(), currentInfection.stream()) //
+					.mapToLong(Group::units) //
+					.sum();
+
+			if (unitsAfterFight == unitsBeforeFight) {
+				// no units have been killed in this run, the fight ends with a draw
+				return Optional.empty();
+			}
+		}
+
+		return Optional.of(new DiseaseFight(currentImmuneSystem, currentInfection));
+	}
+
 	@RecordBuilder
-	public record Attack(long value, String type) implements DeseaseFightAttackBuilder.With {}
+	public record Attack(long value, String type) implements DiseaseFightAttackBuilder.With {}
 
 	public record GroupId(int id, GroupType type) {}
 
 	@RecordBuilder
 	public record Group(GroupId id, int units, int hitPoints, Set<String> immunities, Set<String> weaknesses, Attack attack,
-						int initiative) implements DeseaseFightGroupBuilder.With
+						int initiative) implements DiseaseFightGroupBuilder.With
 	{
 
 		public static Group from(final int id, final GroupType type, final String line)

@@ -17,7 +17,7 @@ public class AdventDay24
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			final var fight = DeseaseFight.parseInput(in);
+			final var fight = DiseaseFight.parseInput(in);
 			System.out.println("Part 1 - Answer %d".formatted(fight.computeWinningArmySize()));
 		}
 	}
@@ -25,7 +25,7 @@ public class AdventDay24
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			final var fight = DeseaseFight.parseInput(in);
+			final var fight = DiseaseFight.parseInput(in);
 			System.out.println("Part 2 - Answer %d".formatted(fight.computeWinningArmySizeWithBoost()));
 		}
 	}
