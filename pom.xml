@@ -40,8 +40,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<lombok.version>1.18.24</lombok.version>
-		<record.builder.version>33</record.builder.version>
-		<java.version>17</java.version>
+		<record.builder.version>34</record.builder.version>
+		<java.version>19</java.version>
 	</properties>
 
 	<dependencies>
@@ -73,7 +73,7 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
-			<version>5.8.2</version>
+			<version>5.9.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
