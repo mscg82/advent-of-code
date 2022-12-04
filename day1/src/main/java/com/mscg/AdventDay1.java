@@ -1,6 +1,5 @@
 package com.mscg;
 
-import com.mscg.utils.ConversionUtils;
 import com.mscg.utils.InputUtils;
 import com.mscg.utils.StreamUtils;
 import io.soabase.recordbuilder.core.RecordBuilder;
@@ -10,8 +9,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.LongUnaryOperator;
-
-import static com.mscg.utils.CollectionUtils.append;
+import java.util.stream.LongStream;
 
 public class AdventDay1
 {
@@ -48,20 +46,9 @@ public class AdventDay1
 
 	private static long[] computeCarriedCalories(final BufferedReader in)
 	{
-		final Accumulator result = in.lines() //
-				.reduce(new Accumulator(List.of(), 0), //
-						(accumulator, line) -> {
-							if (line.isBlank()) {
-								return new Accumulator(append(accumulator.calories(), accumulator.currentCalories()), 0);
-							}
-
-							final long value = ConversionUtils.parseLong(line) //
-									.orElseThrow();
-							return accumulator.withCurrentCalories(accumulator.currentCalories() + value);
-						}, //
-						StreamUtils.unsupportedMerger());
-		return result.calories().stream() //
-				.mapToLong(Long::longValue) //
+		return StreamUtils.splitted(in.lines(), String::isBlank) //
+				.map(block -> block.mapToLong(Long::parseLong)) //
+				.mapToLong(LongStream::sum) //
 				.toArray();
 	}
 

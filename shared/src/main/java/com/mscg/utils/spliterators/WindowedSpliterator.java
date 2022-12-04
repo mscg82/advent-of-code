@@ -15,11 +15,14 @@ public class WindowedSpliterator<T> implements Spliterator<Collection<T>>
 
 	private final int size;
 
+	private boolean windowConsumed;
+
 	public WindowedSpliterator(final Spliterator<T> source, final int size)
 	{
 		this.window = new ArrayDeque<>(size);
 		this.source = source;
 		this.size = size;
+		this.windowConsumed = false;
 	}
 
 	@Override
@@ -27,10 +30,15 @@ public class WindowedSpliterator<T> implements Spliterator<Collection<T>>
 	{
 		if (source.tryAdvance(window::addLast)) {
 			if (window.size() == size) {
+				windowConsumed = true;
 				action.accept(Collections.unmodifiableCollection(window));
 				window.removeFirst();
 			}
 			return true;
+		}
+
+		if (!windowConsumed) {
+			action.accept(Collections.unmodifiableCollection(window));
 		}
 		return false;
 	}
