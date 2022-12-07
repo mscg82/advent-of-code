@@ -14,11 +14,15 @@ public class SplittingSpliterator<T> implements Spliterator<Stream<T>>
 
 	private final Predicate<T> splittingCondition;
 
+	private final boolean includeSplittedItem;
+
 	private SplittedBlockSpliterator<T> splittedBlock;
 
-	public SplittingSpliterator(final Spliterator<T> source, final Predicate<T> splittingCondition)
+	public SplittingSpliterator(final Spliterator<T> source, final boolean includeSplittedItem,
+			final Predicate<T> splittingCondition)
 	{
 		this.source = source;
+		this.includeSplittedItem = includeSplittedItem;
 		this.splittingCondition = splittingCondition;
 	}
 
@@ -31,7 +35,7 @@ public class SplittingSpliterator<T> implements Spliterator<Stream<T>>
 				return false;
 			}
 
-			splittedBlock = new SplittedBlockSpliterator<>(source, splittingCondition);
+			splittedBlock = new SplittedBlockSpliterator<>(source, includeSplittedItem, splittingCondition);
 			action.accept(StreamSupport.stream(splittedBlock, false));
 			return true;
 		}
@@ -71,6 +75,8 @@ public class SplittingSpliterator<T> implements Spliterator<Stream<T>>
 	{
 		private final Spliterator<T> source;
 
+		private final boolean includeSplittedItem;
+
 		private final Predicate<T> splittingCondition;
 
 		@Getter
@@ -79,9 +85,11 @@ public class SplittingSpliterator<T> implements Spliterator<Stream<T>>
 		@Getter
 		private boolean done;
 
-		private SplittedBlockSpliterator(final Spliterator<T> source, final Predicate<T> splittingCondition)
+		private SplittedBlockSpliterator(final Spliterator<T> source, final boolean includeSplittedItem,
+				final Predicate<T> splittingCondition)
 		{
 			this.source = source;
+			this.includeSplittedItem = includeSplittedItem;
 			this.splittingCondition = splittingCondition;
 			this.sourceFinished = false;
 			this.done = false;
@@ -96,6 +104,9 @@ public class SplittingSpliterator<T> implements Spliterator<Stream<T>>
 				final T newItem = newItemWrapper[0];
 				if (splittingCondition.test(newItem)) {
 					done = true;
+					if (includeSplittedItem) {
+						action.accept(newItem);
+					}
 					return false;
 				} else {
 					action.accept(newItem);

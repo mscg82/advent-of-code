@@ -59,6 +59,31 @@ class StreamUtilsTest
 	}
 
 	@Test
+	void splitStreamWithEmptiesAtBeginningAndConsumeData()
+	{
+		final var source = """
+								
+				a
+				b
+								
+				c
+				d
+				e
+								
+								
+				f
+				g
+				h
+				i
+								
+				""";
+		final List<String> result = StreamUtils.splitted(source.lines(), String::isBlank) //
+				.map(block -> block.collect(Collectors.joining())) //
+				.toList();
+		assertEquals(List.of("", "ab", "cde", "", "fghi", ""), result);
+	}
+
+	@Test
 	void splitStreamWithNoEmptyAndDontConsumeData()
 	{
 		final var source = """
@@ -100,6 +125,169 @@ class StreamUtilsTest
 		final List<Stream<String>> result = StreamUtils.splitted(source.lines(), String::isBlank) //
 				.toList();
 		assertEquals(5, result.size());
+	}
+
+	@Test
+	void splitStreamWithEmptiesAtBeginningAndDontConsumeData()
+	{
+		final var source = """
+								
+				a
+				b
+								
+				c
+				d
+				e
+								
+								
+				f
+				g
+				h
+				i
+								
+				""";
+		final List<Stream<String>> result = StreamUtils.splitted(source.lines(), String::isBlank) //
+				.toList();
+		assertEquals(6, result.size());
+	}
+
+	@Test
+	void splitStreamIncludingWithNoEmptyAndConsumeData()
+	{
+		final var source = """
+				a
+				b
+				$
+				c
+				d
+				e
+				$
+				f
+				g
+				h
+				i
+				""";
+		final List<String> result = StreamUtils.splittedIncluding(source.lines(), "$"::equals) //
+				.map(block -> block.collect(Collectors.joining())) //
+				.toList();
+		assertEquals(List.of("ab$", "cde$", "fghi"), result);
+	}
+
+	@Test
+	void splitStreamIncludingWithEmptiesAndConsumeData()
+	{
+		final var source = """
+				a
+				b
+				$
+				c
+				d
+				e
+				$
+				$
+				f
+				g
+				h
+				i
+				$
+				""";
+		final List<String> result = StreamUtils.splittedIncluding(source.lines(), "$"::equals) //
+				.map(block -> block.collect(Collectors.joining())) //
+				.toList();
+		assertEquals(List.of("ab$", "cde$", "$", "fghi$", ""), result);
+	}
+
+	@Test
+	void splitStreamIncludingWithEmptiesAtBeginningAndConsumeData()
+	{
+		final var source = """
+				$
+				a
+				b
+				$
+				c
+				d
+				e
+				$
+				$
+				f
+				g
+				h
+				i
+				$
+				""";
+		final List<String> result = StreamUtils.splittedIncluding(source.lines(), "$"::equals) //
+				.map(block -> block.collect(Collectors.joining())) //
+				.toList();
+		assertEquals(List.of("$", "ab$", "cde$", "$", "fghi$", ""), result);
+	}
+
+	@Test
+	void splitStreamIncludingWithNoEmptyAndDontConsumeData()
+	{
+		final var source = """
+				a
+				b
+				$
+				c
+				d
+				e
+				$
+				f
+				g
+				h
+				i
+				""";
+		final List<Stream<String>> result = StreamUtils.splittedIncluding(source.lines(), "$"::equals) //
+				.toList();
+		assertEquals(3, result.size());
+	}
+
+	@Test
+	void splitStreamIncludingWithEmptiesAndDontConsumeData()
+	{
+		final var source = """
+				a
+				b
+				$
+				c
+				d
+				e
+				$
+				$
+				f
+				g
+				h
+				i
+				$
+				""";
+		final List<Stream<String>> result = StreamUtils.splitted(source.lines(), "$"::equals) //
+				.toList();
+		assertEquals(5, result.size());
+	}
+
+	@Test
+	void splitStreamIncludingWithEmptiesAtBeginningAndDontConsumeData()
+	{
+		final var source = """
+				$
+				a
+				b
+				$
+				c
+				d
+				e
+				$
+				$
+				f
+				g
+				h
+				i
+				$
+				""";
+		final List<Stream<String>> result = StreamUtils.splitted(source.lines(), "$"::equals) //
+				.toList();
+		assertEquals(6, result.size());
 	}
 
 	@Test

@@ -5,10 +5,13 @@ import com.mscg.utils.spliterators.SplittingSpliterator;
 import com.mscg.utils.spliterators.WindowedSpliterator;
 import lombok.NonNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Spliterator;
 import java.util.function.BinaryOperator;
 import java.util.function.Predicate;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -56,8 +59,51 @@ public final class StreamUtils
 
 	public static <T> @NonNull Stream<Stream<T>> splitted(@NonNull final Stream<T> stream, final Predicate<T> splittingConditions)
 	{
-		final Spliterator<Stream<T>> splitter = new SplittingSpliterator<>(stream.spliterator(), splittingConditions);
+		final Spliterator<Stream<T>> splitter = new SplittingSpliterator<>(stream.spliterator(), false, splittingConditions);
 		return StreamSupport.stream(splitter, false);
+	}
+
+	public static <T> @NonNull Stream<Stream<T>> splittedIncluding(@NonNull final Collection<T> source,
+			final Predicate<T> splittingConditions)
+	{
+		return splittedIncluding(source.stream(), splittingConditions);
+	}
+
+	public static <T> @NonNull Stream<Stream<T>> splittedIncluding(@NonNull final Stream<T> stream,
+			final Predicate<T> splittingConditions)
+	{
+		final Spliterator<Stream<T>> splitter = new SplittingSpliterator<>(stream.spliterator(), true, splittingConditions);
+		return StreamSupport.stream(splitter, false);
+	}
+
+	public static <T> @NonNull Collector<T, ?, List<List<T>>> splitAt(final Predicate<T> splittingConditions)
+	{
+		class Accumulator
+		{
+			final List<List<T>> parts = new ArrayList<>();
+
+			List<T> current = new ArrayList<>();
+		}
+
+		return Collector.of(Accumulator::new, //
+				(acc, obj) -> {
+					if (splittingConditions.test(obj)) {
+						if (!acc.current.isEmpty()) {
+							acc.parts.add(acc.current);
+						}
+						acc.current = new ArrayList<>();
+					}
+					acc.current.add(obj);
+				}, //
+				unsupportedMerger(), //
+				acc -> {
+					if (!acc.current.isEmpty()) {
+						acc.parts.add(acc.current);
+					}
+					return acc.parts.stream() //
+							.map(List::copyOf) //
+							.toList();
+				});
 	}
 
 	private StreamUtils()
