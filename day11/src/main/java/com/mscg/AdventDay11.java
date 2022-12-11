@@ -17,14 +17,16 @@ public class AdventDay11
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			final var game = MonkeysGame.parseInput(in);
+			System.out.println("Part 1 - Answer %d".formatted(game.computeMonkeyBusinessLevel(20, false)));
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var game = MonkeysGame.parseInput(in);
+			System.out.println("Part 2 - Answer %d".formatted(game.computeMonkeyBusinessLevel(10_000, true)));
 		}
 	}
 
