@@ -16,14 +16,16 @@ public class AdventDay15
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			final var network = SensorNetwork.parseInput(in);
+			System.out.println("Part 1 - Answer %d".formatted(network.countPositionWithoutBeaconAtLine(2_000_000)));
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var network = SensorNetwork.parseInput(in);
+			System.out.println("Part 2 - Answer %d".formatted(network.findBeaconFrequency(0, 4_000_000)));
 		}
 	}
 
