@@ -1,5 +1,6 @@
 package com.mscg.utils;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -8,17 +9,20 @@ import java.util.stream.Stream;
 
 public class CollectionUtils
 {
-	public static <T> List<T> append(final List<T> list, final T newValue)
+	@SafeVarargs
+	public static <T> List<T> append(final List<T> list, final T newValue, final T... newValues)
 	{
-		return Stream.concat(list.stream(), Stream.of(newValue)) //
+		return Stream.concat(Stream.concat(list.stream(), Stream.of(newValue)), Arrays.stream(newValues)) //
 				.toList();
 	}
 
+	@SafeVarargs
 	@SuppressWarnings("FuseStreamOperations")
-	public static <T> Set<T> append(final Set<T> set, final T newValue)
+	public static <T> Set<T> append(final Set<T> set, final T newValue, final T... newValues)
 	{
-		return Collections.unmodifiableSet(Stream.concat(set.stream(), Stream.of(newValue)) //
-				.collect(Collectors.toSet()));
+		return Collections.unmodifiableSet( //
+				Stream.concat(Stream.concat(set.stream(), Stream.of(newValue)), Arrays.stream(newValues)) //
+						.collect(Collectors.toSet()));
 	}
 
 	private CollectionUtils()
