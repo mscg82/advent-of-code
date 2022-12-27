@@ -16,14 +16,16 @@ public class AdventDay18
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			final var cubes = Cubes.parseInput(in);
+			System.out.println("Part 1 - Answer %d".formatted(cubes.computeSurfaceArea()));
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var cubes = Cubes.parseInput(in);
+			System.out.println("Part 2 - Answer %d".formatted(cubes.computeExteriorSurfaceArea()));
 		}
 	}
 
