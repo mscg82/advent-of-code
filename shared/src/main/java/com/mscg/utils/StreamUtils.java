@@ -6,14 +6,26 @@ import com.mscg.utils.spliterators.WindowedSpliterator;
 import lombok.NonNull;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Spliterator;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import static java.util.stream.Collector.Characteristics.CONCURRENT;
+import static java.util.stream.Collector.Characteristics.IDENTITY_FINISH;
+import static java.util.stream.Collector.Characteristics.UNORDERED;
 
 public final class StreamUtils
 {
@@ -104,6 +116,46 @@ public final class StreamUtils
 							.map(List::copyOf) //
 							.toList();
 				});
+	}
+
+	public static <N extends Number> Collector<N, BitSet, BitSet> toBitSet()
+	{
+		return Collector.of(BitSet::new, //
+				(bitset, number) -> bitset.set(number.intValue()), //
+				(bitset1, bitset2) -> {
+					bitset1.or(bitset2);
+					return bitset1;
+				}, //
+				CONCURRENT, UNORDERED, IDENTITY_FINISH);
+	}
+
+	public static <T> Collector<T, ? extends Set<T>, Set<T>> toUnmodifiableHashSet()
+	{
+		return toUnmodifiableSet(HashSet::new);
+	}
+
+	public static <T> Collector<T, ? extends Set<T>, Set<T>> toUnmodifiableSet(final Supplier<? extends Set<T>> setAllocator)
+	{
+		return Collector.of(setAllocator, //
+				Set::add, //
+				(set1, set2) -> {
+					set1.addAll(set2);
+					return set1;
+				}, //
+				Collections::unmodifiableSet, //
+				CONCURRENT, UNORDERED);
+	}
+
+	public static <K, V> BiFunction<? super K, ? super V, ? extends V> mapValuesMerger(final V newValue,
+			final Function<? super V, ? extends V> defaultValueMapper, final BiConsumer<? super V, ? super V> merger)
+	{
+		return (key, oldValue) -> {
+			if (oldValue == null) {
+				return defaultValueMapper.apply(newValue);
+			}
+			merger.accept(oldValue, newValue);
+			return oldValue;
+		};
 	}
 
 	private StreamUtils()
