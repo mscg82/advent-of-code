@@ -53,6 +53,27 @@ public record HeightMap(List<String> heights, int rows, int cols, Position start
 		}
 	}
 
+	@RecordBuilder
+	record Position(int x, int y) implements HeightMapPositionBuilder.With
+	{
+
+		public Stream<Position> neighbours(final int rows, final int cols)
+		{
+			return Stream.of( //
+							this.withY(y - 1), //
+							this.withX(x + 1), //
+							this.withY(y + 1), //
+							this.withX(x - 1)) //
+					.filter(pos -> pos.x >= 0 && pos.x < cols && pos.y >= 0 && pos.y < rows);
+		}
+
+		@Override
+		public String toString()
+		{
+			return "(" + x + "," + y + ")";
+		}
+	}
+
 	public HeightMap
 	{
 		Objects.requireNonNull(start, "Start cannot be null");
@@ -102,7 +123,7 @@ public record HeightMap(List<String> heights, int rows, int cols, Position start
 				.withoutVisitedNodeAccumulatorAllocator() //
 				.withDefaultQueueAllocator() //
 				.withNodeIdExtractor(Position::toString) //
-				.withAdjacentMapper( //
+				.withSimpleAdjacentMapper( //
 						pos -> adjacencyMap.get(pos).stream(), //
 						Position::toString) //
 				.withResultBuilder((pos, adjacents) -> {
@@ -147,27 +168,6 @@ public record HeightMap(List<String> heights, int rows, int cols, Position start
 		}
 
 		return Collections.unmodifiableMap(adjacencyMap);
-	}
-
-	@RecordBuilder
-	record Position(int x, int y) implements HeightMapPositionBuilder.With
-	{
-
-		public Stream<Position> neighbours(final int rows, final int cols)
-		{
-			return Stream.of( //
-							this.withY(y - 1), //
-							this.withX(x + 1), //
-							this.withY(y + 1), //
-							this.withX(x - 1)) //
-					.filter(pos -> pos.x >= 0 && pos.x < cols && pos.y >= 0 && pos.y < rows);
-		}
-
-		@Override
-		public String toString()
-		{
-			return "(" + x + "," + y + ")";
-		}
 	}
 
 }

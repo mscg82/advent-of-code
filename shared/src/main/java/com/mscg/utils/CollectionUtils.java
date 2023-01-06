@@ -2,7 +2,9 @@ package com.mscg.utils;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,6 +25,16 @@ public class CollectionUtils
 		return Collections.unmodifiableSet( //
 				Stream.concat(Stream.concat(set.stream(), Stream.of(newValue)), Arrays.stream(newValues)) //
 						.collect(Collectors.toSet()));
+	}
+
+	@SuppressWarnings("java:S1319")
+	public static <E extends Enum<E>, V> EnumMap<E, V> enumMap(final Map<E, V> source, final Class<E> enumClass)
+	{
+		if (source == null || source.isEmpty()) {
+			return new EnumMap<>(enumClass);
+		}
+
+		return new EnumMap<>(source);
 	}
 
 	private CollectionUtils()

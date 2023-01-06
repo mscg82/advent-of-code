@@ -78,7 +78,7 @@ public record Cubes(List<Position> positions)
 				.withoutVisitedNodeAccumulatorAllocator() //
 				.withDefaultQueueAllocator() //
 				.withNodeIdExtractor(Function.identity()) //
-				.withAdjacentMapper( //
+				.withSimpleAdjacentMapper( //
 						position -> Stream.of( //
 										position.withX(position.x() + 1), //
 										position.withX(position.x() - 1), //

@@ -33,88 +33,6 @@ public record VolcanoChambers(Map<String, Valve> namedValves)
 		}
 	}
 
-	public long findMostReleasablePressure()
-	{
-		final Map<String, List<Connection>> adjacencyMap = buildAdjacencyMap();
-
-		final var visitor = BfsVisitor.<Status, Status, Status>builder() //
-				.withDefaultVisitedNodesAllocator() //
-				.withVisitedNodeAccumulatorAllocator(MaxPressureAccumulator::new) //
-				.withDefaultQueueAllocator() //
-				.withNodeIdExtractor(Function.identity()) //
-				.withAdjacentMapper(status -> computeNextStatuses(adjacencyMap, status), //
-						Function.identity()) //
-				.withoutIntermediateResultBuilder() //
-				.withNextNodeMapper((currentNode, adjacent) -> Optional.of(adjacent)) //
-				.build();
-		final BfsVisitor.VisitResult<Status> result = visitor.visitFrom(new Status(30, 0, "AA", Set.of()));
-		final Status maxPressureReleased = result.stream().findFirst().orElseThrow();
-		return maxPressureReleased.totalReleasedPressure();
-	}
-
-	public long findMostReleasablePressure2()
-	{
-		final Map<String, List<Connection>> adjacencyMap = buildAdjacencyMap();
-
-		final var visitor = BfsVisitor.<Status, Status, Status>builder() //
-				.withDefaultVisitedNodesAllocator() //
-				.withDefaultVisitedNodeAccumulatorAllocator() //
-				.withDefaultQueueAllocator() //
-				.withNodeIdExtractor(Function.identity()) //
-				.withAdjacentMapper(status -> computeNextStatuses(adjacencyMap, status), //
-						Function.identity()) //
-				.withoutIntermediateResultBuilder() //
-				.withNextNodeMapper((currentNode, adjacent) -> Optional.of(adjacent)) //
-				.build();
-		final BfsVisitor.VisitResult<Status> result = visitor.visitFrom(new Status(26, 0, "AA", Set.of()));
-
-		if (!(result instanceof BfsVisitor.VisitResult.MultiResults<Status>(List<Status> results))) {
-			throw new IllegalStateException("Expecting a multi result");
-		}
-
-		long maxReleasedPressure = Long.MIN_VALUE;
-		for (int i = 0, l = results.size(); i < l - 1; i++) {
-			final Status status1 = results.get(i);
-			for (int j = i + 1; j < l; j++) {
-				final Status status2 = results.get(j);
-				maxReleasedPressure = combineSolutionsAndFindMaxPressure(maxReleasedPressure, status1, status2);
-			}
-		}
-
-		return maxReleasedPressure;
-	}
-
-	private Map<String, List<Connection>> buildAdjacencyMap()
-	{
-		final var adjacencyMap = new HashMap<String, List<Connection>>();
-
-		for (final Valve valve : namedValves.values()) {
-			final var visitor = BfsVisitor.<Connection, String, Connection>builder() //
-					.withDefaultVisitedNodesAllocator() //
-					.withDefaultVisitedNodeAccumulatorAllocator() //
-					.withDefaultQueueAllocator() //
-					.withNodeIdExtractor(conn -> conn.targetValve().name()) //
-					.withAdjacentMapper( //
-							conn -> conn.targetValve().connectedValves().stream() //
-									.map(v -> new Connection(namedValves.get(v), conn.distance() + 1)), //
-							conn -> conn.targetValve().name()) //
-					.withoutIntermediateResultBuilder() //
-					.withNextNodeMapper((currentNode, adjacent) -> Optional.of(adjacent)) //
-					.build();
-			final BfsVisitor.VisitResult<Connection> result = visitor.visitFrom(new Connection(valve, 0));
-			if (!(result instanceof BfsVisitor.VisitResult.MultiResults<Connection> multiResults)) {
-				throw new IllegalStateException("Can't compute connections for valve " + valve.name());
-			}
-			final List<Connection> connections = multiResults.results().stream() //
-					.filter(conn -> conn.targetValve() != valve) //
-					.filter(conn -> conn.targetValve().flowRate() != 0) //
-					.toList();
-			adjacencyMap.put(valve.name(), connections);
-		}
-
-		return Collections.unmodifiableMap(adjacencyMap);
-	}
-
 	private static Stream<Status> computeNextStatuses(final Map<String, List<Connection>> adjacencyMap, final Status status)
 	{
 		final var connections = adjacencyMap.getOrDefault(status.currentNode(), Collections.emptyList());
@@ -159,6 +77,88 @@ public record VolcanoChambers(Map<String, Valve> namedValves)
 			}
 		}
 		return false;
+	}
+
+	public long findMostReleasablePressure()
+	{
+		final Map<String, List<Connection>> adjacencyMap = buildAdjacencyMap();
+
+		final var visitor = BfsVisitor.<Status, Status, Status>builder() //
+				.withDefaultVisitedNodesAllocator() //
+				.withVisitedNodeAccumulatorAllocator(MaxPressureAccumulator::new) //
+				.withDefaultQueueAllocator() //
+				.withNodeIdExtractor(Function.identity()) //
+				.withSimpleAdjacentMapper(status -> computeNextStatuses(adjacencyMap, status), //
+						Function.identity()) //
+				.withoutIntermediateResultBuilder() //
+				.withNextNodeMapper((currentNode, adjacent) -> Optional.of(adjacent)) //
+				.build();
+		final BfsVisitor.VisitResult<Status> result = visitor.visitFrom(new Status(30, 0, "AA", Set.of()));
+		final Status maxPressureReleased = result.stream().findFirst().orElseThrow();
+		return maxPressureReleased.totalReleasedPressure();
+	}
+
+	public long findMostReleasablePressure2()
+	{
+		final Map<String, List<Connection>> adjacencyMap = buildAdjacencyMap();
+
+		final var visitor = BfsVisitor.<Status, Status, Status>builder() //
+				.withDefaultVisitedNodesAllocator() //
+				.withDefaultVisitedNodeAccumulatorAllocator() //
+				.withDefaultQueueAllocator() //
+				.withNodeIdExtractor(Function.identity()) //
+				.withSimpleAdjacentMapper(status -> computeNextStatuses(adjacencyMap, status), //
+						Function.identity()) //
+				.withoutIntermediateResultBuilder() //
+				.withNextNodeMapper((currentNode, adjacent) -> Optional.of(adjacent)) //
+				.build();
+		final BfsVisitor.VisitResult<Status> result = visitor.visitFrom(new Status(26, 0, "AA", Set.of()));
+
+		if (!(result instanceof BfsVisitor.VisitResult.MultiResults<Status>(List<Status> results))) {
+			throw new IllegalStateException("Expecting a multi result");
+		}
+
+		long maxReleasedPressure = Long.MIN_VALUE;
+		for (int i = 0, l = results.size(); i < l - 1; i++) {
+			final Status status1 = results.get(i);
+			for (int j = i + 1; j < l; j++) {
+				final Status status2 = results.get(j);
+				maxReleasedPressure = combineSolutionsAndFindMaxPressure(maxReleasedPressure, status1, status2);
+			}
+		}
+
+		return maxReleasedPressure;
+	}
+
+	private Map<String, List<Connection>> buildAdjacencyMap()
+	{
+		final var adjacencyMap = new HashMap<String, List<Connection>>();
+
+		for (final Valve valve : namedValves.values()) {
+			final var visitor = BfsVisitor.<Connection, String, Connection>builder() //
+					.withDefaultVisitedNodesAllocator() //
+					.withDefaultVisitedNodeAccumulatorAllocator() //
+					.withDefaultQueueAllocator() //
+					.withNodeIdExtractor(conn -> conn.targetValve().name()) //
+					.withSimpleAdjacentMapper( //
+							conn -> conn.targetValve().connectedValves().stream() //
+									.map(v -> new Connection(namedValves.get(v), conn.distance() + 1)), //
+							conn -> conn.targetValve().name()) //
+					.withoutIntermediateResultBuilder() //
+					.withNextNodeMapper((currentNode, adjacent) -> Optional.of(adjacent)) //
+					.build();
+			final BfsVisitor.VisitResult<Connection> result = visitor.visitFrom(new Connection(valve, 0));
+			if (!(result instanceof BfsVisitor.VisitResult.MultiResults<Connection> multiResults)) {
+				throw new IllegalStateException("Can't compute connections for valve " + valve.name());
+			}
+			final List<Connection> connections = multiResults.results().stream() //
+					.filter(conn -> conn.targetValve() != valve) //
+					.filter(conn -> conn.targetValve().flowRate() != 0) //
+					.toList();
+			adjacencyMap.put(valve.name(), connections);
+		}
+
+		return Collections.unmodifiableMap(adjacencyMap);
 	}
 
 	private interface PressureReleaser

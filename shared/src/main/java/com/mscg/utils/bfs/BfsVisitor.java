@@ -6,11 +6,14 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -18,6 +21,11 @@ import java.util.stream.Stream;
 @SuppressWarnings("java:S119")
 public class BfsVisitor<NODE, NODE_ID, ADJACENT>
 {
+
+	public static <NODE, NODE_ID, ADJACENT> BfsVisitorBuilderStep1<NODE, NODE_ID, ADJACENT> builder()
+	{
+		return new BfsVisitorBuilder<>();
+	}
 
 	private final @NonNull Supplier<? extends Deque<NODE>> queueAllocator;
 
@@ -27,7 +35,7 @@ public class BfsVisitor<NODE, NODE_ID, ADJACENT>
 
 	private final @NonNull Function<? super NODE, ? extends NODE_ID> idExtractor;
 
-	private final @NonNull Function<? super NODE, ? extends Stream<ADJACENT>> adjacentMapper;
+	private final @NonNull BiFunction<? super NODE, BfsVisitor.VisitedNodeAccumulator<NODE>, ? extends Stream<ADJACENT>> adjacentMapper;
 
 	private final @NonNull Function<? super ADJACENT, ? extends NODE_ID> adjacentIdExtractor;
 
@@ -35,12 +43,12 @@ public class BfsVisitor<NODE, NODE_ID, ADJACENT>
 
 	private final @NonNull BiFunction<? super NODE, ? super ADJACENT, Optional<? extends NODE>> nextNodeMapper;
 
-	public static <NODE, NODE_ID, ADJACENT> BfsVisitorBuilderStep1<NODE, NODE_ID, ADJACENT> builder()
+	public VisitResult<NODE> visitFrom(final NODE initialNode)
 	{
-		return new BfsVisitorBuilder<>();
+		return visitFrom(initialNode, VisitMode.BFS);
 	}
 
-	public VisitResult<NODE> visitFrom(final NODE initialNode)
+	public VisitResult<NODE> visitFrom(final NODE initialNode, @NonNull final VisitMode visitMode)
 	{
 		final BfsVisitor.VisitedNodeAccumulator<NODE> nodeAccumulator = nodeAccumulatorAllocator.get();
 		final BfsVisitor.VisitedNodeSet<NODE_ID> visitedNodes = visitedNodesAllocator.get();
@@ -54,7 +62,7 @@ public class BfsVisitor<NODE, NODE_ID, ADJACENT>
 			visitedNodes.mark(idExtractor.apply(currentNode), NodeStatus.VISITED);
 			nodeAccumulator.add(currentNode);
 
-			final Stream<ADJACENT> nonVisitedAdjacents = getNonVisitedAdjacents(visitedNodes, currentNode);
+			final Stream<ADJACENT> nonVisitedAdjacents = getNonVisitedAdjacents(visitedNodes, nodeAccumulator, currentNode);
 
 			final CachableStreamSupplier<ADJACENT> cachedNonVisitedAdjacents = CachableStreamSupplier.wrap( //
 					nonVisitedAdjacents);
@@ -67,7 +75,11 @@ public class BfsVisitor<NODE, NODE_ID, ADJACENT>
 			for (final var adjacent : StreamUtils.iterate(cachedNonVisitedAdjacents.checkAndGet())) {
 				nextNodeMapper.apply(currentNode, adjacent) //
 						.ifPresent(nextNode -> {
-							queue.add(nextNode);
+							if (visitMode == VisitMode.BFS) {
+								queue.add(nextNode);
+							} else {
+								queue.addFirst(nextNode);
+							}
 							visitedNodes.mark(idExtractor.apply(nextNode), NodeStatus.QUEUED);
 						});
 			}
@@ -76,14 +88,23 @@ public class BfsVisitor<NODE, NODE_ID, ADJACENT>
 		final List<NODE> results = List.copyOf(nodeAccumulator.asList());
 		if (results.isEmpty()) {
 			return VisitResult.NotFound.notFound();
+		} else if (results.size() == 1) {
+			return new VisitResult.SingleResult<>(results.get(0));
 		} else {
 			return new VisitResult.MultiResults<>(results);
 		}
 	}
 
-	private Stream<ADJACENT> getNonVisitedAdjacents(final VisitedNodeSet<NODE_ID> visitedNodes, final NODE currentNode)
+	public <R> Function<NODE, R> cached(final Map<NODE, R> cache, final Function<VisitResult<NODE>, R> resultMapper)
 	{
-		final Stream<ADJACENT> adjacents = adjacentMapper.apply(currentNode);
+		final Function<NODE, VisitResult<NODE>> visitor = this::visitFrom;
+		return initialNode -> cache.computeIfAbsent(initialNode, visitor.andThen(resultMapper));
+	}
+
+	private Stream<ADJACENT> getNonVisitedAdjacents(final VisitedNodeSet<NODE_ID> visitedNodes,
+			final BfsVisitor.VisitedNodeAccumulator<NODE> nodeAccumulator, final NODE currentNode)
+	{
+		final Stream<ADJACENT> adjacents = adjacentMapper.apply(currentNode, nodeAccumulator);
 		final Stream<ADJACENT> nonVisitedAdjacents;
 		if (visitedNodes.filters()) {
 			nonVisitedAdjacents = adjacents //
@@ -140,6 +161,11 @@ public class BfsVisitor<NODE, NODE_ID, ADJACENT>
 
 	public interface VisitedNodeAccumulator<NODE>
 	{
+		static <NODE> Supplier<VisitedNodeAccumulator<NODE>> accumulateIf(final Predicate<NODE> accumulationPredicate)
+		{
+			return () -> new VisitedNodeAccumulatorListAdapter<>(new ArrayList<>(), accumulationPredicate);
+		}
+
 		boolean add(NODE node);
 
 		Stream<NODE> stream();
@@ -148,11 +174,17 @@ public class BfsVisitor<NODE, NODE_ID, ADJACENT>
 		{
 			return stream().toList();
 		}
+
 	}
 
 	public enum NodeStatus
 	{
 		NOT_VISITED, QUEUED, VISITED
+	}
+
+	public enum VisitMode
+	{
+		BFS, DFS
 	}
 }
 
@@ -177,4 +209,36 @@ class CachableStreamSupplier<E> implements Supplier<Stream<? extends E>>
 	{
 		return cache != null ? cache.stream() : data;
 	}
+}
+
+@SuppressWarnings({ "java:S117", "java:S119" })
+record VisitedNodeAccumulatorListAdapter<NODE>(List<NODE> visitedNodes, Predicate<NODE> accumulationPredicate)
+		implements BfsVisitor.VisitedNodeAccumulator<NODE>
+{
+	public VisitedNodeAccumulatorListAdapter(final List<NODE> visitedNodes)
+	{
+		this(visitedNodes, __ -> true);
+	}
+
+	@Override
+	public boolean add(final NODE node)
+	{
+		if (!accumulationPredicate.test(node)) {
+			return false;
+		}
+		return visitedNodes.add(node);
+	}
+
+	@Override
+	public Stream<NODE> stream()
+	{
+		return visitedNodes.stream();
+	}
+
+	@Override
+	public List<NODE> asList()
+	{
+		return List.copyOf(visitedNodes);
+	}
+
 }
