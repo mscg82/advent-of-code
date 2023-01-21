@@ -5,6 +5,7 @@ import com.mscg.utils.spliterators.SplittingSpliterator;
 import com.mscg.utils.spliterators.WindowedSpliterator;
 import lombok.NonNull;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
@@ -128,6 +129,11 @@ public final class StreamUtils
 					return bitset1;
 				}, //
 				CONCURRENT, UNORDERED, IDENTITY_FINISH);
+	}
+
+	public static <T> Collector<T, ?, List<T>> toReversedList()
+	{
+		return Collector.<T, ArrayDeque<T>, List<T>>of(ArrayDeque::new, ArrayDeque::addFirst, unsupportedMerger(), List::copyOf);
 	}
 
 	public static <T> Collector<T, ? extends Set<T>, Set<T>> toUnmodifiableHashSet()
