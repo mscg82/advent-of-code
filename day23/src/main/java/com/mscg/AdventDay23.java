@@ -16,14 +16,16 @@ public class AdventDay23
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			final var diff = UnstableDiffusion.parseInput(in);
+			System.out.println("Part 1 - Answer %d".formatted(diff.countFreeSpaces(10)));
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var diff = UnstableDiffusion.parseInput(in);
+			System.out.println("Part 2 - Answer %d".formatted(diff.findFirstRoundWithoutMovement()));
 		}
 	}
 

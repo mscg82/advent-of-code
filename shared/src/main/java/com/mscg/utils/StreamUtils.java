@@ -10,6 +10,7 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Spliterator;
@@ -132,6 +133,11 @@ public final class StreamUtils
 	public static <T> Collector<T, ? extends Set<T>, Set<T>> toUnmodifiableHashSet()
 	{
 		return toUnmodifiableSet(HashSet::new);
+	}
+
+	public static <T> Collector<T, ? extends Set<T>, Set<T>> toUnmodifiableLinkedHashSet()
+	{
+		return toUnmodifiableSet(LinkedHashSet::new);
 	}
 
 	public static <T> Collector<T, ? extends Set<T>, Set<T>> toUnmodifiableSet(final Supplier<? extends Set<T>> setAllocator)
