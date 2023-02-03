@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.ToIntFunction;
@@ -114,6 +115,31 @@ public record MonkeyMap(Map<Position, Tile> tiles, List<Instruction> instruction
 		final Status status = executeInstuctions(adjacentMap);
 
 		return status.computePassword();
+	}
+
+	public long findPasswordOnCube()
+	{
+		final List<Position> openPositions = tiles.entrySet().stream() //
+				.flatMap(entry -> switch (entry.getValue()) {
+					case OPEN -> Stream.of(entry.getKey());
+					case EMPTY, WALL -> Stream.of();
+				}) //
+				.toList();
+
+		final Map<Integer, MinMax> extremesPerRow = findExtremesPerRow();
+		final Map<Integer, MinMax> extremesPerColumn = findExtremesPerColumn();
+
+		final LongSummaryStatistics rowStats = extremesPerRow.values().stream() //
+				.mapToLong(mm -> mm.max().x() - mm.min().x() + 1) //
+				.summaryStatistics();
+
+		final LongSummaryStatistics columnStats = extremesPerColumn.values().stream() //
+				.mapToLong(mm -> mm.max().y() - mm.min().y() + 1) //
+				.summaryStatistics();
+
+		final long blockSize = Math.min(rowStats.getMin(), columnStats.getMin());
+
+		return 0;
 	}
 
 	private Status executeInstuctions(final Map<Position, Map<Facing, Status>> adjacentMap)

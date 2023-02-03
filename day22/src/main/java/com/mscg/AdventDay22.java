@@ -9,7 +9,7 @@ public class AdventDay22
 {
 	public static void main(final String[] args) throws Exception
 	{
-		part1();
+		// part1();
 		part2();
 	}
 
@@ -24,7 +24,8 @@ public class AdventDay22
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var mm = MonkeyMap.parseInput(in);
+			System.out.println("Part 2 - Answer %d".formatted(mm.findPasswordOnCube()));
 		}
 	}
 
