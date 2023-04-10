@@ -7,12 +7,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.LongSummaryStatistics;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.ToIntFunction;
 import java.util.regex.Pattern;
@@ -119,13 +122,49 @@ public record MonkeyMap(Map<Position, Tile> tiles, List<Instruction> instruction
 
 	public long findPasswordOnCube()
 	{
-		final List<Position> openPositions = tiles.entrySet().stream() //
+		PositionedFace[] faces = findPositionedFaces();
+
+		return 0;
+	}
+
+	private PositionedFace[] findPositionedFaces()
+	{
+		final Set<Position> openPositions = tiles.entrySet().stream() //
 				.flatMap(entry -> switch (entry.getValue()) {
 					case OPEN -> Stream.of(entry.getKey());
 					case EMPTY, WALL -> Stream.of();
 				}) //
-				.toList();
+				.collect(StreamUtils.toUnmodifiableLinkedHashSet());
 
+		final long blockSize = findBlockSize();
+
+		final int maxCol = openPositions.stream() //
+				.mapToInt(Position::x) //
+				.max() //
+				.orElseThrow();
+
+		PositionedFace[] faces = new PositionedFace[6];
+
+		// locate the position of the first face
+		for (int x = 0; x < maxCol; x += blockSize) {
+			var topLeft = new Position(x + 1, 1);
+			if (openPositions.contains(topLeft)) {
+				faces[0] = new PositionedFace(new Face(1, Facing.UP), topLeft);
+				break;
+			}
+		}
+
+		// TODO: locate other faces
+
+		if (Arrays.stream(faces).anyMatch(Objects::isNull)) {
+			throw new IllegalStateException("Unable to locate all 6 faces of the cube");
+		}
+
+		return faces;
+	}
+
+	private long findBlockSize()
+	{
 		final Map<Integer, MinMax> extremesPerRow = findExtremesPerRow();
 		final Map<Integer, MinMax> extremesPerColumn = findExtremesPerColumn();
 
@@ -137,9 +176,7 @@ public record MonkeyMap(Map<Position, Tile> tiles, List<Instruction> instruction
 				.mapToLong(mm -> mm.max().y() - mm.min().y() + 1) //
 				.summaryStatistics();
 
-		final long blockSize = Math.min(rowStats.getMin(), columnStats.getMin());
-
-		return 0;
+		return Math.min(rowStats.getMin(), columnStats.getMin());
 	}
 
 	private Status executeInstuctions(final Map<Position, Map<Facing, Status>> adjacentMap)
@@ -239,6 +276,50 @@ public record MonkeyMap(Map<Position, Tile> tiles, List<Instruction> instruction
 	}
 
 	public record Movement(int amount) implements Instruction {}
+
+	public record Face(int id, Facing facing)
+	{
+		public static final Map<Integer, Map<Facing, Face>> NORMALIZED_ADJACENT_FACES = Map.of( //
+				1, Map.of( //
+						Facing.UP, new Face(4, Facing.DOWN), //
+						Facing.RIGHT, new Face(6, Facing.UP), //
+						Facing.DOWN, new Face(2, Facing.UP), //
+						Facing.LEFT, new Face(5, Facing.UP)), //
+				2, Map.of( //
+						Facing.UP, new Face(1, Facing.DOWN), //
+						Facing.RIGHT, new Face(6, Facing.LEFT), //
+						Facing.DOWN, new Face(3, Facing.UP), //
+						Facing.LEFT, new Face(5, Facing.RIGHT)), //
+				3, Map.of( //
+						Facing.UP, new Face(2, Facing.DOWN), //
+						Facing.RIGHT, new Face(6, Facing.DOWN), //
+						Facing.DOWN, new Face(4, Facing.UP), //
+						Facing.LEFT, new Face(5, Facing.DOWN)), //
+				4, Map.of( //
+						Facing.UP, new Face(3, Facing.DOWN), //
+						Facing.RIGHT, new Face(6, Facing.RIGHT), //
+						Facing.DOWN, new Face(1, Facing.UP), //
+						Facing.LEFT, new Face(5, Facing.LEFT)), //
+				5, Map.of( //
+						Facing.UP, new Face(1, Facing.LEFT), //
+						Facing.RIGHT, new Face(2, Facing.LEFT), //
+						Facing.DOWN, new Face(3, Facing.LEFT), //
+						Facing.LEFT, new Face(4, Facing.LEFT)), //
+				6, Map.of( //
+						Facing.UP, new Face(1, Facing.RIGHT), //
+						Facing.RIGHT, new Face(4, Facing.RIGHT), //
+						Facing.DOWN, new Face(3, Facing.RIGHT), //
+						Facing.LEFT, new Face(2, Facing.RIGHT)));
+
+		public Face
+		{
+			if (id < 0 || id > 6) {
+				throw new IllegalArgumentException("Invalid face id " + id);
+			}
+		}
+	}
+
+	public record PositionedFace(Face face, Position topLeft) {}
 
 	private record MinMax(Position min, Position max) {}
 
