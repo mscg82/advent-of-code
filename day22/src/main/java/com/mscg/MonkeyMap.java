@@ -146,8 +146,8 @@ public record MonkeyMap(Map<Position, Tile> tiles, List<Instruction> instruction
 		PositionedFace[] faces = new PositionedFace[6];
 
 		// locate the position of the first face
-		for (int x = 0; x < maxCol; x += blockSize) {
-			var topLeft = new Position(x + 1, 1);
+		for (int x = 1; x <= maxCol; x += blockSize) {
+			var topLeft = new Position(x, 1);
 			if (openPositions.contains(topLeft)) {
 				faces[0] = new PositionedFace(new Face(1, Facing.UP), topLeft);
 				break;
