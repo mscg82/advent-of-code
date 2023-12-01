@@ -16,14 +16,16 @@ public class AdventDay1
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println(STR."Part 1 - Answer \{0}");
+			final var calibrationSequence = CalibrationSequence.parseInput(in);
+			System.out.println(STR."Part 1 - Answer \{calibrationSequence.computeCalibrationSequence()}");
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println(STR."Part 2 - Answer \{0}");
+			final var calibrationSequence = CalibrationSequence.parseInput(in);
+			System.out.println(STR."Part 2 - Answer \{calibrationSequence.computeFixedCalibrationSequence()}");
 		}
 	}
 
