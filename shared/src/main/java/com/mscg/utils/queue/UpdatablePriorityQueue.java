@@ -346,7 +346,7 @@ public class UpdatablePriorityQueue<E> implements UpdatableQueue<E>
 	{
 		final int minLength = oldLength + minGrowth;
 		if (minLength < 0) { // overflow
-			throw new OutOfMemoryError("Required array length " + oldLength + " + " + minGrowth + " is too large");
+			throw new OutOfMemoryError(STR."Required array length \{oldLength} + \{minGrowth} is too large");
 		} else {
 			return Math.max(minLength, SOFT_MAX_ARRAY_LENGTH);
 		}

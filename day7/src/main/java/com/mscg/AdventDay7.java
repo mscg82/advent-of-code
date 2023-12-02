@@ -17,14 +17,14 @@ public class AdventDay7
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			System.out.println(STR."Part 1 - Answer \{0}");
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			System.out.println(STR."Part 2 - Answer \{0}");
 		}
 	}
 

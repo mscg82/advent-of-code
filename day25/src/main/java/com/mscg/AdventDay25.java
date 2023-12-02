@@ -15,7 +15,7 @@ public class AdventDay25
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			System.out.println(STR."Part 1 - Answer \{0}");
 		}
 	}
 
