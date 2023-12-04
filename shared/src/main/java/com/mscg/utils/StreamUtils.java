@@ -21,6 +21,9 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -34,6 +37,18 @@ public final class StreamUtils
 	public static <T> @NonNull Iterable<T> iterate(@NonNull final Stream<T> source)
 	{
 		return source::iterator;
+	}
+
+	public static Function<String, Matcher> matchOrFail(@NonNull final Pattern pattern,
+			@NonNull final UnaryOperator<String> errorGenerator)
+	{
+		return input -> {
+			final var matcher = pattern.matcher(input);
+			if (!matcher.matches()) {
+				throw new IllegalArgumentException(errorGenerator.apply(input));
+			}
+			return matcher;
+		};
 	}
 
 	public static <T> BinaryOperator<T> unsupportedMerger()
