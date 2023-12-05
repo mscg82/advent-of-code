@@ -32,7 +32,7 @@ class BfsVisitorBuilder<NODE, NODE_ID, ADJACENT> implements //
 
 	private @NonNull Function<? super NODE, ? extends NODE_ID> idExtractor;
 
-	private @NonNull Function<? super NODE, ? extends Stream<ADJACENT>> adjacentMapper;
+	private @NonNull BiFunction<? super NODE, BfsVisitor.VisitedNodeAccumulator<NODE>, ? extends Stream<ADJACENT>> adjacentMapper;
 
 	private @NonNull Function<? super ADJACENT, ? extends NODE_ID> adjacentIdExtractor;
 
@@ -74,7 +74,7 @@ class BfsVisitorBuilder<NODE, NODE_ID, ADJACENT> implements //
 
 	@Override
 	public BfsVisitorBuilderStep6<NODE, NODE_ID, ADJACENT> withAdjacentMapper(
-			@NonNull final Function<? super NODE, ? extends Stream<ADJACENT>> adjacentMapper, //
+			@NonNull final BiFunction<? super NODE, BfsVisitor.VisitedNodeAccumulator<NODE>, ? extends Stream<ADJACENT>> adjacentMapper,
 			@NonNull final Function<? super ADJACENT, ? extends NODE_ID> adjacentIdExtractor)
 	{
 		this.adjacentMapper = adjacentMapper;

@@ -33,30 +33,6 @@ public interface BfsVisitorBuilderStep2<NODE, NODE_ID, ADJACENT>
 
 }
 
-@SuppressWarnings("java:S119")
-record VisitedNodeAccumulatorListAdapter<NODE>(List<NODE> visitedNodes) implements BfsVisitor.VisitedNodeAccumulator<NODE>
-{
-
-	@Override
-	public boolean add(final NODE node)
-	{
-		return visitedNodes.add(node);
-	}
-
-	@Override
-	public Stream<NODE> stream()
-	{
-		return visitedNodes.stream();
-	}
-
-	@Override
-	public List<NODE> asList()
-	{
-		return List.copyOf(visitedNodes);
-	}
-
-}
-
 @SuppressWarnings("rawtypes")
 enum NoVisitedNodeAccumulator implements BfsVisitor.VisitedNodeAccumulator
 {
