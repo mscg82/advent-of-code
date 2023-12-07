@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.SequencedCollection;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.BiConsumer;
@@ -58,12 +59,12 @@ public final class StreamUtils
 		};
 	}
 
-	public static <T> @NonNull Stream<Collection<T>> windowed(@NonNull final Collection<T> source, final int size)
+	public static <T> @NonNull Stream<SequencedCollection<T>> windowed(@NonNull final Collection<T> source, final int size)
 	{
 		return windowed(source.stream(), size);
 	}
 
-	public static <T> @NonNull Stream<Collection<T>> windowed(@NonNull final Stream<T> stream, final int size)
+	public static <T> @NonNull Stream<SequencedCollection<T>> windowed(@NonNull final Stream<T> stream, final int size)
 	{
 		final var windower = new WindowedSpliterator<>(stream.spliterator(), size);
 		return StreamSupport.stream(windower, false);

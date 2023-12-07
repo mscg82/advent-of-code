@@ -1,13 +1,13 @@
 package com.mscg.utils.spliterators;
 
 import java.util.ArrayDeque;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.SequencedCollection;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
-public class WindowedSpliterator<T> implements Spliterator<Collection<T>>
+public class WindowedSpliterator<T> implements Spliterator<SequencedCollection<T>>
 {
 	private final Deque<T> window;
 
@@ -26,25 +26,25 @@ public class WindowedSpliterator<T> implements Spliterator<Collection<T>>
 	}
 
 	@Override
-	public boolean tryAdvance(final Consumer<? super Collection<T>> action)
+	public boolean tryAdvance(final Consumer<? super SequencedCollection<T>> action)
 	{
 		if (source.tryAdvance(window::addLast)) {
 			if (window.size() == size) {
 				windowConsumed = true;
-				action.accept(Collections.unmodifiableCollection(window));
+				action.accept(Collections.unmodifiableSequencedCollection(window));
 				window.removeFirst();
 			}
 			return true;
 		}
 
 		if (!windowConsumed) {
-			action.accept(Collections.unmodifiableCollection(window));
+			action.accept(Collections.unmodifiableSequencedCollection(window));
 		}
 		return false;
 	}
 
 	@Override
-	public Spliterator<Collection<T>> trySplit()
+	public Spliterator<SequencedCollection<T>> trySplit()
 	{
 		return null;
 	}
