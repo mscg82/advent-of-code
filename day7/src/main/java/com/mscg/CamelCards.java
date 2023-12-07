@@ -34,33 +34,49 @@ public record CamelCards(List<Game> games)
 	public long computeTotalWinning()
 	{
 		final List<Game> sortedGames = games.stream() //
-				.sorted() //
+				.sorted(Game.BASE_COMPARATOR) //
 				.toList();
 		return Seq.zipWithIndex(sortedGames) //
 				.mapToLong(elIdx -> elIdx.v1().bid() * (elIdx.v2() + 1)) //
 				.sum();
 	}
 
-	public record Game(CardHand hand, long bid) implements Comparable<Game>
+	public long computeTotalWinningWithJolly()
 	{
-		private static final Comparator<Game> COMPARATOR = Comparator.comparing((Game game) -> HandType.fromCardHand(game.hand)) //
-				.thenComparing(Game::hand);
+		final List<Game> sortedGames = games.stream() //
+				.sorted(Game.CUSTOM_COMPARATOR) //
+				.toList();
+		return Seq.zipWithIndex(sortedGames) //
+				.mapToLong(elIdx -> elIdx.v1().bid() * (elIdx.v2() + 1)) //
+				.sum();
+	}
 
-		@Override
-		public int compareTo(final Game other)
-		{
-			return COMPARATOR.compare(this, other);
-		}
+	public record Game(CardHand hand, long bid)
+	{
+		private static final Comparator<Game> BASE_COMPARATOR = Comparator.comparing(
+						(Game game) -> HandType.fromCardHand(game.hand)) //
+				.thenComparing(Game::hand, CardHand.BASE_COMPARATOR);
+
+		private static final Comparator<Game> CUSTOM_COMPARATOR = Comparator.comparing(
+						(Game game) -> HandType.fromCardHandWithJolly(game.hand)) //
+				.thenComparing(Game::hand, CardHand.CUSTOM_COMPARATOR);
 	}
 
 	public record CardHand(CardLabel card1, CardLabel card2, CardLabel card3, CardLabel card4, CardLabel card5)
-			implements Comparable<CardHand>
 	{
-		private static final Comparator<CardHand> COMPARATOR = Comparator.comparing(CardHand::card1) //
-				.thenComparing(CardHand::card2) //
-				.thenComparing(CardHand::card3) //
-				.thenComparing(CardHand::card4) //
-				.thenComparing(CardHand::card5);
+		private static final Comparator<CardHand> BASE_COMPARATOR = Comparator //
+				.comparing(CardHand::card1, CardLabel.BASE_COMPARATOR) //
+				.thenComparing(CardHand::card2, CardLabel.BASE_COMPARATOR) //
+				.thenComparing(CardHand::card3, CardLabel.BASE_COMPARATOR) //
+				.thenComparing(CardHand::card4, CardLabel.BASE_COMPARATOR) //
+				.thenComparing(CardHand::card5, CardLabel.BASE_COMPARATOR);
+
+		private static final Comparator<CardHand> CUSTOM_COMPARATOR = Comparator //
+				.comparing(CardHand::card1, CardLabel.CUSTOM_COMPARATOR) //
+				.thenComparing(CardHand::card2, CardLabel.CUSTOM_COMPARATOR) //
+				.thenComparing(CardHand::card3, CardLabel.CUSTOM_COMPARATOR) //
+				.thenComparing(CardHand::card4, CardLabel.CUSTOM_COMPARATOR) //
+				.thenComparing(CardHand::card5, CardLabel.CUSTOM_COMPARATOR);
 
 		public static CardHand from(final String handStr)
 		{
@@ -79,17 +95,29 @@ public record CamelCards(List<Game> games)
 		{
 			return Stream.of(card1, card2, card3, card4, card5);
 		}
-
-		@Override
-		public int compareTo(final CardHand other)
-		{
-			return COMPARATOR.compare(this, other);
-		}
 	}
 
 	public enum CardLabel
 	{
 		L2, L3, L4, L5, L6, L7, L8, L9, T, J, Q, K, A;
+
+		public static final Comparator<CardLabel> BASE_COMPARATOR = Comparator.naturalOrder();
+
+		public static final Comparator<CardLabel> CUSTOM_COMPARATOR = Comparator.comparingInt(label -> switch (label) {
+			case J -> 1;
+			case L2 -> 2;
+			case L3 -> 3;
+			case L4 -> 4;
+			case L5 -> 5;
+			case L6 -> 6;
+			case L7 -> 7;
+			case L8 -> 8;
+			case L9 -> 9;
+			case T -> 10;
+			case Q -> 11;
+			case K -> 12;
+			case A -> 13;
+		});
 
 		public static CardLabel from(final char c)
 		{
@@ -119,7 +147,7 @@ public record CamelCards(List<Game> games)
 		public static HandType fromCardHand(final CardHand hand)
 		{
 			final List<CardLabel> labels = hand.stream() //
-					.sorted() //
+					.sorted(CardLabel.BASE_COMPARATOR) //
 					.toList();
 
 			if (allEquals(labels)) {
@@ -148,6 +176,54 @@ public record CamelCards(List<Game> games)
 				case 2 -> TWO_PAIR;
 				case 1 -> ONE_PAIR;
 				default -> HIGH_CARD;
+			};
+		}
+
+		public static HandType fromCardHandWithJolly(final CardHand hand)
+		{
+			final List<CardLabel> labels = hand.stream() //
+					.sorted(CardLabel.CUSTOM_COMPARATOR) //
+					.toList();
+
+			final int jollyCount = (int) labels.stream() //
+					.filter(CardLabel.J::equals) //
+					.count();
+
+			return switch (jollyCount) {
+				case 5, 4 -> FIVE_OF_A_KIND;
+				case 3 -> {
+					if (labels.get(3).equals(labels.get(4))) {
+						yield FIVE_OF_A_KIND;
+					}
+					yield FOUR_OF_A_KIND;
+				}
+				case 2 -> {
+					if (allEquals(List.of(labels.get(2), labels.get(3), labels.get(4)))) {
+						yield FIVE_OF_A_KIND;
+					}
+					if (allEquals(List.of(labels.get(2), labels.get(3))) || allEquals(List.of(labels.get(3), labels.get(4)))) {
+						yield FOUR_OF_A_KIND;
+					}
+					yield THREE_OF_A_KIND;
+				}
+				case 1 -> {
+					if (allEquals(List.of(labels.get(1), labels.get(2), labels.get(3), labels.get(4)))) {
+						yield FIVE_OF_A_KIND;
+					}
+					if (allEquals(List.of(labels.get(1), labels.get(2), labels.get(3))) || allEquals(
+							List.of(labels.get(2), labels.get(3), labels.get(4)))) {
+						yield FOUR_OF_A_KIND;
+					}
+					final int pairCounts = (int) StreamUtils.windowed(labels.stream().skip(1), 2) //
+							.filter(HandType::allEquals) //
+							.count();
+					yield switch (pairCounts) {
+						case 2 -> FULL_HOUSE;
+						case 1 -> THREE_OF_A_KIND;
+						default -> ONE_PAIR;
+					};
+				}
+				default -> fromCardHand(hand);
 			};
 		}
 
