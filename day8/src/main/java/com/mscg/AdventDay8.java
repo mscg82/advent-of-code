@@ -17,14 +17,16 @@ public class AdventDay8
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println(STR."Part 1 - Answer \{0}");
+			final var desertMap = DesertMap.parseInput(in);
+			System.out.println(STR."Part 1 - Answer \{desertMap.countStepsToDestination()}");
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println(STR."Part 2 - Answer \{0}");
+			final var desertMap = DesertMap.parseInput(in);
+			System.out.println(STR."Part 2 - Answer \{desertMap.countStepsToDestinationForGhosts()}");
 		}
 	}
 
