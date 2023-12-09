@@ -17,14 +17,16 @@ public class AdventDay9
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println(STR."Part 1 - Answer \{0}");
+			final var oasisAnalyzer = OasisAnalyzer.parseInput(in);
+			System.out.println(STR."Part 1 - Answer \{oasisAnalyzer.sumExtrapolatedNextValues()}");
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println(STR."Part 2 - Answer \{0}");
+			final var oasisAnalyzer = OasisAnalyzer.parseInput(in);
+			System.out.println(STR."Part 2 - Answer \{oasisAnalyzer.sumExtrapolatedPreviousValues()}");
 		}
 	}
 
