@@ -25,7 +25,8 @@ public class AdventDay10
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println(STR."Part 2 - Answer \{0}");
+			final var pipesMap = PipesMap.parseInput(in);
+			System.out.println(STR."Part 2 - Answer \{pipesMap.computeAreaInsideLoop()}");
 		}
 	}
 
