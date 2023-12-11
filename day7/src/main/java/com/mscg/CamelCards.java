@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.SequencedCollection;
 import java.util.stream.Stream;
 
+import static com.mscg.utils.StringTemplates.ILLEGAL_ARGUMENT_EXC;
+
 public record CamelCards(List<Game> games)
 {
 	public static CamelCards parseInput(final BufferedReader in) throws IOException
@@ -20,7 +22,7 @@ public record CamelCards(List<Game> games)
 					.map(line -> {
 						final var parts = line.split(" ");
 						if (parts.length != 2) {
-							throw new IllegalArgumentException(STR."Invalid game format \{line}");
+							throw ILLEGAL_ARGUMENT_EXC."Invalid game format \{line}";
 						}
 						return new Game(CardHand.from(parts[0]), Long.parseLong(parts[1]));
 					}) //
@@ -135,7 +137,7 @@ public record CamelCards(List<Game> games)
 				case 'Q' -> Q;
 				case 'K' -> K;
 				case 'A' -> A;
-				default -> throw new IllegalArgumentException(STR."Unsupportd card label '\{c}'");
+				default -> throw ILLEGAL_ARGUMENT_EXC."Unsupportd card label '\{c}'";
 			};
 		}
 	}
