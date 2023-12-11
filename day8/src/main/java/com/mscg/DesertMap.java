@@ -17,6 +17,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.mscg.utils.StringTemplates.ILLEGAL_ARGUMENT_EXC;
+
 public record DesertMap(List<Direction> directions, Map<String, Node> nodes)
 {
 
@@ -99,7 +101,7 @@ public record DesertMap(List<Direction> directions, Map<String, Node> nodes)
 			return switch (c) {
 				case 'L' -> LEFT;
 				case 'R' -> RIGHT;
-				default -> throw new IllegalArgumentException(STR."Invalid direction '\{c}'");
+				default -> throw ILLEGAL_ARGUMENT_EXC."Invalid direction '\{c}'";
 			};
 		}
 	}
