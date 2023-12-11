@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.mscg.utils.StringTemplates.ILLEGAL_ARGUMENT_EXC;
+
 public record SkyMap(List<List<CellType>> skyCells)
 {
 
@@ -141,7 +143,7 @@ public record SkyMap(List<List<CellType>> skyCells)
 			return switch (c) {
 				case '.' -> EMPTY;
 				case '#' -> GALAXY;
-				default -> throw new IllegalArgumentException(STR."Unsupported cell type '\{c}'");
+				default -> throw ILLEGAL_ARGUMENT_EXC."Unsupported cell type '\{c}'";
 			};
 		}
 	}
