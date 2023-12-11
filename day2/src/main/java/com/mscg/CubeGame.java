@@ -10,6 +10,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static com.mscg.utils.StreamUtils.unsupportedMerger;
+import static com.mscg.utils.StringTemplates.ILLEGAL_ARGUMENT_EXC;
+
 public record CubeGame(List<Game> games)
 {
 	public static CubeGame parseInput(final BufferedReader in) throws IOException
@@ -18,7 +21,7 @@ public record CubeGame(List<Game> games)
 			final var pattern = Pattern.compile("Game (\\d+):(.+)");
 			final var setPattern = Pattern.compile("(\\d+) (red|blue|green)");
 			final List<Game> games = in.lines() //
-					.map(StreamUtils.matchOrFail(pattern, input -> STR. "Unsupported game format \{ input }" )) //
+					.map(StreamUtils.matchOrFail(pattern, input -> STR."Unsupported game format \{input}")) //
 					.map(matcher -> {
 						final int index = Integer.parseInt(matcher.group(1));
 						final String set = matcher.group(2);
@@ -27,7 +30,7 @@ public record CubeGame(List<Game> games)
 								.map(cubeSetStr -> Arrays.stream(cubeSetStr.split(",")) //
 										.map(String::trim) //
 										.map(StreamUtils.matchOrFail(setPattern,
-												ball -> STR. "Unsupported game set format \{ ball }" )) //
+												ball -> STR."Unsupported game set format \{ball}")) //
 										.reduce(new CubeSet(0, 0, 0), //
 												(cubeSet, setMatcher) -> {
 													final int value = Integer.parseInt(setMatcher.group(1));
@@ -35,13 +38,11 @@ public record CubeGame(List<Game> games)
 														case "red" -> cubeSet.withReds(value);
 														case "blue" -> cubeSet.withBlues(value);
 														case "green" -> cubeSet.withGreens(value);
-														default -> throw new IllegalArgumentException(
-																STR. "Unsupported ball color \{ setMatcher.group(2) }" );
+														default -> throw ILLEGAL_ARGUMENT_EXC. //
+																"Unsupported ball color \{setMatcher.group(2)}";
 													};
 												}, //
-												(__, ___) -> {
-													throw new UnsupportedOperationException("Unsupported merging");
-												})) //
+												unsupportedMerger())) //
 								.toList();
 						return new Game(index, cubeSets);
 					}) //
