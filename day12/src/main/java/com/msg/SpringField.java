@@ -2,6 +2,7 @@ package com.msg;
 
 import com.mscg.utils.CollectionUtils;
 import io.soabase.recordbuilder.core.RecordBuilder;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntImmutableList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
@@ -12,6 +13,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.mscg.utils.CollectionUtils.append;
 import static com.mscg.utils.CollectionUtils.tail;
@@ -23,16 +25,7 @@ public record SpringField(List<SpringRow> springRows)
 	{
 		try {
 			final List<SpringRow> springRows = in.lines() //
-					.map(line -> {
-						final String[] parts = line.split(" ");
-						final List<SpringType> types = parts[0].codePoints() //
-								.mapToObj(cp -> SpringType.from((char) cp)) //
-								.toList();
-						final IntList damagedBlocks = new IntImmutableList(Arrays.stream(parts[1].split(",")) //
-								.mapToInt(Integer::parseInt) //
-								.toArray());
-						return new SpringRow(types, damagedBlocks);
-					}) //
+					.map(SpringField::parseSpringRow) //
 					.toList();
 			return new SpringField(springRows);
 		} catch (final UncheckedIOException e) {
@@ -40,9 +33,47 @@ public record SpringField(List<SpringRow> springRows)
 		}
 	}
 
+	public static SpringRow expandSpringRow(final SpringRow springRow)
+	{
+		final List<SpringType> expandedTypes = new ArrayList<>(springRow.types().size() * 5 + 4);
+		final IntList expandedDamagedBlocks = new IntArrayList(springRow.damagedBlocks().size() * 5);
+		for (int i = 0; i < 5; i++) {
+			if (i != 0) {
+				expandedTypes.add(SpringType.UNKNOWN);
+			}
+			expandedTypes.addAll(springRow.types());
+			expandedDamagedBlocks.addAll(springRow.damagedBlocks());
+		}
+		return new SpringRow(expandedTypes, expandedDamagedBlocks);
+	}
+
+	public static SpringRow parseSpringRow(final String line)
+	{
+		final String[] parts = line.split(" ");
+		final List<SpringType> types = parts[0].codePoints() //
+				.mapToObj(cp -> SpringType.from((char) cp)) //
+				.toList();
+		final IntList damagedBlocks = new IntImmutableList(Arrays.stream(parts[1].split(",")) //
+				.mapToInt(Integer::parseInt) //
+				.toArray());
+		return new SpringRow(types, damagedBlocks);
+	}
+
 	public long sumAllArrangements()
 	{
 		return springRows.stream() //
+				.mapToLong(this::countArrangements) //
+				.sum();
+	}
+
+	public long sumAllUnfoldedArrangements()
+	{
+		final List<SpringRow> expandedSpringRows = springRows.stream() //
+				.map(SpringField::expandSpringRow) //
+				.toList();
+
+		return expandedSpringRows.stream() //
+				.parallel() //
 				.mapToLong(this::countArrangements) //
 				.sum();
 	}
@@ -142,7 +173,25 @@ public record SpringField(List<SpringRow> springRows)
 	}
 
 	@RecordBuilder
-	public record SpringRow(List<SpringType> types, IntList damagedBlocks) implements SpringFieldSpringRowBuilder.With {}
+	public record SpringRow(List<SpringType> types, IntList damagedBlocks) implements SpringFieldSpringRowBuilder.With
+	{
+		@Override
+		public String toString()
+		{
+			final var typesStr = types.stream() //
+					.map(type -> switch (type) {
+						case OPERATIONAL -> ".";
+						case DAMAGED -> "#";
+						case UNKNOWN -> "?";
+						case END -> "";
+					}) //
+					.collect(Collectors.joining());
+			final var damagedStr = damagedBlocks.intStream() //
+					.mapToObj(Integer::toString) //
+					.collect(Collectors.joining(","));
+			return STR."\{typesStr} \{damagedStr}";
+		}
+	}
 
 	@RecordBuilder
 	protected record Status(SpringRow springRow, int damagedCount, boolean countingDamaged, List<SpringType> processed)
