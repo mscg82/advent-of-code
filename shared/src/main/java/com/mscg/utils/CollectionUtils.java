@@ -1,5 +1,8 @@
 package com.mscg.utils;
 
+import it.unimi.dsi.fastutil.ints.IntList;
+import lombok.NonNull;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -35,6 +38,21 @@ public class CollectionUtils
 		}
 
 		return new EnumMap<>(source);
+	}
+
+	public static <T> List<T> tail(@NonNull final List<T> list)
+	{
+		return list.subList(1, list.size());
+	}
+
+	public static <T> List<T> replaceHead(@NonNull final T newHead, @NonNull final List<T> list)
+	{
+		return Stream.concat(Stream.of(newHead), tail(list).stream()).toList();
+	}
+
+	public static IntList tail(@NonNull final IntList list)
+	{
+		return list.subList(1, list.size());
 	}
 
 	private CollectionUtils()
