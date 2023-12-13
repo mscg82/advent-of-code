@@ -10,9 +10,14 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.SequencedCollection;
 import java.util.Set;
 import java.util.Spliterator;
@@ -152,6 +157,11 @@ public final class StreamUtils
 		return Collector.<T, ArrayDeque<T>, List<T>>of(ArrayDeque::new, ArrayDeque::addFirst, unsupportedMerger(), List::copyOf);
 	}
 
+	public static <T extends Enum<T>> Collector<T, ? extends Set<T>, Set<T>> toUnmodifiableEnumSet(final Class<T> enumClass)
+	{
+		return toUnmodifiableSet(() -> EnumSet.noneOf(enumClass));
+	}
+
 	public static <T> Collector<T, ? extends Set<T>, Set<T>> toUnmodifiableHashSet()
 	{
 		return toUnmodifiableSet(HashSet::new);
@@ -171,6 +181,38 @@ public final class StreamUtils
 					return set1;
 				}, //
 				Collections::unmodifiableSet, //
+				CONCURRENT, UNORDERED);
+	}
+
+	public static <T, K extends Enum<K>, V> Collector<T, ? extends Map<K, V>, Map<K, V>> toUnmodifiableEnumMap(
+			final Class<K> enumClass, final Function<T, K> keyExtractor, final Function<T, V> valueExtractor)
+	{
+		return toUnmodifiableMap(() -> new EnumMap<>(enumClass), keyExtractor, valueExtractor);
+	}
+
+	public static <T, K, V> Collector<T, ? extends Map<K, V>, Map<K, V>> toUnmodifiableHashMap(final Function<T, K> keyExtractor,
+			final Function<T, V> valueExtractor)
+	{
+		return toUnmodifiableMap(HashMap::new, keyExtractor, valueExtractor);
+	}
+
+	public static <T, K, V> Collector<T, ? extends Map<K, V>, Map<K, V>> toUnmodifiableLinkedHashMap(
+			final Function<T, K> keyExtractor, final Function<T, V> valueExtractor)
+	{
+		return toUnmodifiableMap(LinkedHashMap::new, keyExtractor, valueExtractor);
+	}
+
+	public static <T, K, V> Collector<T, ? extends Map<K, V>, Map<K, V>> toUnmodifiableMap(
+			final Supplier<? extends Map<K, V>> mapAllocator, final Function<T, K> keyExtractor,
+			final Function<T, V> valueExtractor)
+	{
+		return Collector.of(mapAllocator, //
+				(map, v) -> map.put(keyExtractor.apply(v), valueExtractor.apply(v)), //
+				(map1, map2) -> {
+					map1.putAll(map2);
+					return map1;
+				}, //
+				Collections::unmodifiableMap, //
 				CONCURRENT, UNORDERED);
 	}
 
