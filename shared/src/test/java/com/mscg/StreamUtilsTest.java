@@ -18,11 +18,11 @@ class StreamUtilsTest
 		final var source = """
 				a
 				b
-								
+				
 				c
 				d
 				e
-								
+				
 				f
 				g
 				h
@@ -40,17 +40,17 @@ class StreamUtilsTest
 		final var source = """
 				a
 				b
-								
+				
 				c
 				d
 				e
-								
-								
+				
+				
 				f
 				g
 				h
 				i
-								
+				
 				""";
 		final List<String> result = StreamUtils.splitted(source.lines(), String::isBlank) //
 				.map(block -> block.collect(Collectors.joining())) //
@@ -62,20 +62,20 @@ class StreamUtilsTest
 	void splitStreamWithEmptiesAtBeginningAndConsumeData()
 	{
 		final var source = """
-								
+				
 				a
 				b
-								
+				
 				c
 				d
 				e
-								
-								
+				
+				
 				f
 				g
 				h
 				i
-								
+				
 				""";
 		final List<String> result = StreamUtils.splitted(source.lines(), String::isBlank) //
 				.map(block -> block.collect(Collectors.joining())) //
@@ -89,11 +89,11 @@ class StreamUtilsTest
 		final var source = """
 				a
 				b
-								
+				
 				c
 				d
 				e
-								
+				
 				f
 				g
 				h
@@ -110,17 +110,17 @@ class StreamUtilsTest
 		final var source = """
 				a
 				b
-								
+				
 				c
 				d
 				e
-								
-								
+				
+				
 				f
 				g
 				h
 				i
-								
+				
 				""";
 		final List<Stream<String>> result = StreamUtils.splitted(source.lines(), String::isBlank) //
 				.toList();
@@ -131,20 +131,20 @@ class StreamUtilsTest
 	void splitStreamWithEmptiesAtBeginningAndDontConsumeData()
 	{
 		final var source = """
-								
+				
 				a
 				b
-								
+				
 				c
 				d
 				e
-								
-								
+				
+				
 				f
 				g
 				h
 				i
-								
+				
 				""";
 		final List<Stream<String>> result = StreamUtils.splitted(source.lines(), String::isBlank) //
 				.toList();
