@@ -20,7 +20,7 @@ public record ScratchCardGame(List<ScratchCard> cards)
 		try {
 			final var pattern = Pattern.compile("Card\\s+(\\d+):([^|]+)\\|(.+)");
 			final List<ScratchCard> cards = in.lines() //
-					.map(StreamUtils.matchOrFail(pattern, input -> STR."Invalid input line \"\{input}\"")) //
+					.map(StreamUtils.matchOrFail(pattern, input -> "Invalid input line \"" + input + "\"")) //
 					.map(matcher -> {
 						final int index = Integer.parseInt(matcher.group(1).trim());
 						final var winningNumbers = parseIntSet(matcher.group(2).trim());

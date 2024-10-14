@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 import static com.mscg.utils.CollectionUtils.append;
 import static com.mscg.utils.CollectionUtils.tail;
-import static com.mscg.utils.StringTemplates.ILLEGAL_ARGUMENT_EXC;
 
 public record SpringField(List<SpringRow> springRows)
 {
@@ -189,7 +188,7 @@ public record SpringField(List<SpringRow> springRows)
 			final var damagedStr = damagedBlocks.intStream() //
 					.mapToObj(Integer::toString) //
 					.collect(Collectors.joining(","));
-			return STR."\{typesStr} \{damagedStr}";
+			return typesStr + " " + damagedStr;
 		}
 	}
 
@@ -207,7 +206,7 @@ public record SpringField(List<SpringRow> springRows)
 				case '.' -> OPERATIONAL;
 				case '#' -> DAMAGED;
 				case '?' -> UNKNOWN;
-				default -> throw ILLEGAL_ARGUMENT_EXC."Unsupported sprng type '\{c}'";
+				default -> throw new IllegalArgumentException("Unsupported spring type '" + c + "'");
 			};
 		}
 	}
