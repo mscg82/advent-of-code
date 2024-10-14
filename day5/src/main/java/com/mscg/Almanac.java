@@ -20,7 +20,6 @@ import java.util.function.LongUnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.mscg.utils.StringTemplates.ILLEGAL_ARGUMENT_EXC;
 import static java.util.function.Predicate.not;
 
 public record Almanac(long[] seeds, Map<String, AlmanacMap> almanacMaps)
@@ -44,7 +43,7 @@ public record Almanac(long[] seeds, Map<String, AlmanacMap> almanacMaps)
 					.map(block -> {
 						final var mapTypeMatcher = mapTypePattern.matcher(block.get(1));
 						if (!mapTypeMatcher.matches()) {
-							throw ILLEGAL_ARGUMENT_EXC."Unsupported map type format \"\{block.get(1)}\"";
+							throw new IllegalArgumentException("Unsupported map type format \"" + block.get(1) + "\"");
 						}
 						final var source = mapTypeMatcher.group(1);
 						final var target = mapTypeMatcher.group(2);

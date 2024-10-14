@@ -17,8 +17,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.mscg.utils.StringTemplates.ILLEGAL_ARGUMENT_EXC;
-
 public record DesertMap(List<Direction> directions, Map<String, Node> nodes)
 {
 
@@ -34,7 +32,7 @@ public record DesertMap(List<Direction> directions, Map<String, Node> nodes)
 			final var pattern = Pattern.compile("([^ ]+) = \\(([^,]+), (.+)\\)");
 			final Map<String, Node> nodes = allLines.stream() //
 					.skip(2) //
-					.map(StreamUtils.matchOrFail(pattern, line -> STR."Unsupported node format \"\{line}\"")) //
+					.map(StreamUtils.matchOrFail(pattern, line -> "Unsupported node format \"" + line + "\"")) //
 					.map(matcher -> new Node(matcher.group(1), matcher.group(2), matcher.group(3))) //
 					.collect(Collectors.toMap(Node::name, Function.identity(), (n1, __) -> n1, LinkedHashMap::new));
 
@@ -101,7 +99,7 @@ public record DesertMap(List<Direction> directions, Map<String, Node> nodes)
 			return switch (c) {
 				case 'L' -> LEFT;
 				case 'R' -> RIGHT;
-				default -> throw ILLEGAL_ARGUMENT_EXC."Invalid direction '\{c}'";
+				default -> throw new IllegalArgumentException("Invalid direction '" + c + "'");
 			};
 		}
 	}

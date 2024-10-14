@@ -14,8 +14,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.mscg.utils.StringTemplates.ILLEGAL_ARGUMENT_EXC;
-import static com.mscg.utils.StringTemplates.UNSUPPORTED_OP_EXC;
 import static java.util.function.Predicate.not;
 
 public record PipesMap(List<List<Tile>> mapLines, Position startPosition, int rows, int columns)
@@ -103,11 +101,11 @@ public record PipesMap(List<List<Tile>> mapLines, Position startPosition, int ro
 							} while (x < columns);
 							yield inside;
 						}
-						case SW -> throw ILLEGAL_ARGUMENT_EXC."Unexpected SW tube in position \{position}";
-						case NW -> throw ILLEGAL_ARGUMENT_EXC."Unexpected NW tube in position \{position}";
-						case EW -> throw ILLEGAL_ARGUMENT_EXC."Unexpected horizontal tube in position \{position}";
-						case EMPTY -> throw ILLEGAL_ARGUMENT_EXC."Unexpected empty in loop in position \{position}";
-						case START -> throw ILLEGAL_ARGUMENT_EXC."Unexpected start in loop in position \{position}";
+						case SW -> throw new IllegalArgumentException("Unexpected SW tube in position " + position);
+						case NW -> throw new IllegalArgumentException("Unexpected NW tube in position " + position);
+						case EW -> throw new IllegalArgumentException("Unexpected horizontal tube in position " + position);
+						case EMPTY -> throw new IllegalArgumentException("Unexpected empty in loop in position " + position);
+						case START -> throw new IllegalArgumentException("Unexpected start in loop in position " + position);
 					};
 				} else {
 					if (inside) {
@@ -158,7 +156,8 @@ public record PipesMap(List<List<Tile>> mapLines, Position startPosition, int ro
 				}) //
 				.toList();
 		if (startNeighbours.size() != 2) {
-			throw UNSUPPORTED_OP_EXC."Unsupported map type, start has \{startNeighbours.size()} neighbours, expected 2.";
+			throw new UnsupportedOperationException(
+					"Unsupported map type, start has " + startNeighbours.size() + " neighbours, expected 2.");
 		}
 		final var initialPaths = new Tuple2<>( //
 				List.of(startPosition, startNeighbours.get(0)), //
@@ -183,7 +182,8 @@ public record PipesMap(List<List<Tile>> mapLines, Position startPosition, int ro
 		final Position newPosition = connections.stream() //
 				.filter(not(secondFromLast::equals)) //
 				.findFirst() //
-				.orElseThrow(() -> ILLEGAL_ARGUMENT_EXC."Cannot find connection for node \{last}. Connections: \{connections}");
+				.orElseThrow(() -> new IllegalArgumentException(
+						"Cannot find connection for node " + last + ". Connections: " + connections));
 		return CollectionUtils.append(path, newPosition);
 	}
 
@@ -223,7 +223,7 @@ public record PipesMap(List<List<Tile>> mapLines, Position startPosition, int ro
 				case '7' -> SW;
 				case 'F' -> SE;
 				case '.' -> EMPTY;
-				default -> throw ILLEGAL_ARGUMENT_EXC."Invalid tile '\{c}'}";
+				default -> throw new IllegalArgumentException("Invalid tile '" + c + "'");
 			};
 		}
 
@@ -254,7 +254,7 @@ public record PipesMap(List<List<Tile>> mapLines, Position startPosition, int ro
 						position.withY(position.y() + 1), //
 						position.withX(position.x() - 1));
 
-				case START, EMPTY -> throw ILLEGAL_ARGUMENT_EXC."Cannot connect to tile of type \{this}";
+				case START, EMPTY -> throw new IllegalArgumentException("Cannot connect to tile of type " + this);
 			};
 			return positions.toList();
 		}
