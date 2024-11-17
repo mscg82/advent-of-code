@@ -17,7 +17,8 @@ public class AdventDay19
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			final var partSorter = PartSorter.parseInput(in);
+			System.out.println("Part 1 - Answer %d".formatted(partSorter.rateAcceptedParts()));
 		}
 	}
 
