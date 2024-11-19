@@ -126,7 +126,7 @@ public record PartSorter(Map<WorkflowId, Workflow> workflows, List<Part> parts)
 			newStatuses.reversed().forEach(queue::addFirst);
 		}
 
-		return computeUniqueCombinations(acceptedRanges, List.of(PartDataExtractor.values()));
+		return computeUniqueCombinations(acceptedRanges);
 	}
 
 	private void applyWorkflow(final Part part, final Workflow workflow, final List<Part> acceptedParts)
@@ -149,6 +149,40 @@ public record PartSorter(Map<WorkflowId, Workflow> workflows, List<Part> parts)
 		}
 	}
 
+	static long computeUniqueCombinations(final List<Map<PartDataExtractor, Range>> acceptedRanges)
+	{
+		final Set<PartDataExtractor> dimensions = acceptedRanges.stream() //
+				.flatMap(m -> m.keySet().stream()) //
+				.collect(StreamUtils.toUnmodifiableHashSet());
+		final Map<PartDataExtractor, Set<Range>> splittedRangedPerDimension = dimensions.stream() //
+				.map(currentDimension -> {
+					final Map<Range, List<Map<PartDataExtractor, Range>>> rangeToAcceptedRanges = acceptedRanges.stream() //
+							.collect(Collectors.groupingBy(ranges -> ranges.get(currentDimension)));
+					final Set<Range> splittedDistinctRanges = splitInNonIntersectingRanges(rangeToAcceptedRanges.keySet());
+					return Map.entry(currentDimension, splittedDistinctRanges);
+				}) //
+				.collect(StreamUtils.toUnmodifiableEnumMap(PartDataExtractor.class, Map.Entry::getKey, Map.Entry::getValue));
+		var crossProducts = new ArrayDeque<Map<PartDataExtractor, Range>>(1);
+		crossProducts.add(Map.of());
+		for (final var entry : splittedRangedPerDimension.entrySet()) {
+			final PartDataExtractor dimension = entry.getKey();
+			final Set<Range> ranges = entry.getValue();
+			final var newQueue = new ArrayDeque<Map<PartDataExtractor, Range>>(crossProducts.size() * ranges.size());
+			while (!crossProducts.isEmpty()) {
+				final var currentMap = crossProducts.poll();
+				for (final Range range : ranges) {
+					final var newMap = new EnumMap<PartDataExtractor, Range>(PartDataExtractor.class);
+					newMap.putAll(currentMap);
+					newMap.put(dimension, range);
+					newQueue.push(newMap);
+				}
+			}
+			crossProducts = newQueue;
+		}
+
+		return crossProducts.size();
+	}
+
 	private static Set<Range> splitInNonIntersectingRanges(final Set<Range> ranges)
 	{
 		final long[] points = ranges.stream() //
@@ -161,7 +195,7 @@ public record PartSorter(Map<WorkflowId, Workflow> workflows, List<Part> parts)
 		for (int i = 1; i < points.length; i++) {
 			final long start = lastMax == points[i - 1] ? lastMax + 1 : points[i - 1];
 			final Range completeRange = new Range(start, points[i]);
-			if (ranges.contains(completeRange)) {
+			if (ranges.contains(completeRange) || i == points.length - 1) {
 				lastMax = completeRange.max();
 				splittedRanges.add(completeRange);
 			} else {
@@ -170,33 +204,6 @@ public record PartSorter(Map<WorkflowId, Workflow> workflows, List<Part> parts)
 			}
 		}
 		return Collections.unmodifiableSet(splittedRanges);
-	}
-
-	private static long computeUniqueCombinations(final List<Map<PartDataExtractor, Range>> acceptedRanges,
-			final List<PartDataExtractor> dimensions)
-	{
-		if (dimensions.isEmpty()) {
-			return 1;
-		}
-
-		final PartDataExtractor currentDimension = dimensions.getFirst();
-		final List<PartDataExtractor> remainingDimensions = dimensions.subList(1, dimensions.size());
-		final Map<Range, List<Map<PartDataExtractor, Range>>> rangeToAcceptedRanges = acceptedRanges.stream() //
-				.collect(Collectors.groupingBy(ranges -> ranges.get(currentDimension)));
-		final var splittedDistinctRanges = splitInNonIntersectingRanges(rangeToAcceptedRanges.keySet());
-		long uniqueCombinations = 0L;
-		for (final var entry : rangeToAcceptedRanges.entrySet()) {
-			final Range range = entry.getKey();
-			for (final Range smallerRange : splittedDistinctRanges) {
-				final Optional<Range> intersection = smallerRange.intersection(range);
-				if (intersection.isPresent()) {
-					final List<Map<PartDataExtractor, Range>> mappedRanges = entry.getValue();
-					uniqueCombinations += intersection.get().size() * //
-							computeUniqueCombinations(mappedRanges, remainingDimensions);
-				}
-			}
-		}
-		return uniqueCombinations;
 	}
 
 	public sealed interface Destination

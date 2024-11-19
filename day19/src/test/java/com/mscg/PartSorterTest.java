@@ -1,9 +1,13 @@
 package com.mscg;
 
+import com.mscg.PartSorter.PartDataExtractor;
+import com.mscg.PartSorter.Range;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
 import java.io.StringReader;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -33,6 +37,23 @@ class PartSorterTest
 				{x=2127,m=1623,a=2188,s=1013}""")));
 
 		assertEquals(167409079868000L, partSorter.countAllValidParts());
+	}
+
+	@Test
+	void testComputeUniqueCombinations()
+	{
+		final List<Map<PartDataExtractor, Range>> acceptedRanges = List.of( //
+				Map.of(PartDataExtractor.X, new Range(1, 3), //
+						PartDataExtractor.M, new Range(1, 6)), //
+
+				Map.of(PartDataExtractor.X, new Range(1, 10), //
+						PartDataExtractor.M, new Range(5, 6)), //
+
+				Map.of(PartDataExtractor.X, new Range(6, 10), //
+						PartDataExtractor.M, new Range(3, 8)) //
+		);
+
+		assertEquals(52L, PartSorter.computeUniqueCombinations(acceptedRanges));
 	}
 
 }
