@@ -24,7 +24,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
-import java.util.stream.Stream;
 
 public record PartSorter(Map<WorkflowId, Workflow> workflows, List<Part> parts)
 {
@@ -127,7 +126,7 @@ public record PartSorter(Map<WorkflowId, Workflow> workflows, List<Part> parts)
 			newStatuses.reversed().forEach(queue::addFirst);
 		}
 
-		return intersectRanges(acceptedRanges);
+		return computeUniqueCombinations(acceptedRanges, List.of(PartDataExtractor.values()));
 	}
 
 	private void applyWorkflow(final Part part, final Workflow workflow, final List<Part> acceptedParts)
@@ -148,36 +147,6 @@ public record PartSorter(Map<WorkflowId, Workflow> workflows, List<Part> parts)
 			case final Rejected _ -> { /* do nothing */}
 			case final Accepted _ -> acceptedParts.add(part);
 		}
-	}
-
-	static List<Range> splitInNonIntersectingRanges(final Range range1, final Range range2)
-	{
-		// same range
-		if (range1.equals(range2)) {
-			return List.of(range1);
-		}
-		// no intersection range 1 before
-		if (range1.max() < range2.min()) {
-			return List.of(range1, range2);
-		}
-		// no intersection range 2 before
-		if (range2.max() < range1.min()) {
-			return List.of(range2, range1);
-		}
-		// range 1 contains range 2
-		if (range1.min() <= range2.min() && range1.max() >= range2.max()) {
-			return splitContainedRanges(range1, range2);
-		}
-		// range 2 contains range 1
-		if (range2.min() <= range1.min() && range2.max() >= range1.max()) {
-			return splitContainedRanges(range2, range1);
-		}
-		// ranges intersect, range 1 before range 2
-		if (range1.min() < range2.min()) {
-			return splitIntersectingRanges(range1, range2);
-		}
-		// ranges intersect, range 2 before range 1
-		return splitIntersectingRanges(range2, range1);
 	}
 
 	private static Set<Range> splitInNonIntersectingRanges(final Set<Range> ranges)
@@ -203,48 +172,31 @@ public record PartSorter(Map<WorkflowId, Workflow> workflows, List<Part> parts)
 		return Collections.unmodifiableSet(splittedRanges);
 	}
 
-	private static long intersectRanges(final List<Map<PartDataExtractor, Range>> acceptedRanges)
+	private static long computeUniqueCombinations(final List<Map<PartDataExtractor, Range>> acceptedRanges,
+			final List<PartDataExtractor> dimensions)
 	{
-		final PartDataExtractor currentDimension = PartDataExtractor.X;
+		if (dimensions.isEmpty()) {
+			return 1;
+		}
+
+		final PartDataExtractor currentDimension = dimensions.getFirst();
+		final List<PartDataExtractor> remainingDimensions = dimensions.subList(1, dimensions.size());
 		final Map<Range, List<Map<PartDataExtractor, Range>>> rangeToAcceptedRanges = acceptedRanges.stream() //
 				.collect(Collectors.groupingBy(ranges -> ranges.get(currentDimension)));
 		final var splittedDistinctRanges = splitInNonIntersectingRanges(rangeToAcceptedRanges.keySet());
-		final Map<Range, List<Map<PartDataExtractor, Range>>> splittedRangeToAcceptedRanges = rangeToAcceptedRanges.entrySet()
-				.stream() //
-				.flatMap(entry -> {
-					final var range = entry.getKey();
-					return splittedDistinctRanges.stream() //
-							.filter(piece -> piece.intersects(range)) //
-							.map(piece -> Map.entry(piece, entry.getValue()));
-				}) //
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-		System.out.println(splittedRangeToAcceptedRanges);
-
-		final long allAcceptedParts = acceptedRanges.stream() //
-				.mapToLong(ranges -> ranges.values().stream() //
-						.mapToLong(Range::size) //
-						.reduce(1L, (a, b) -> a * b)) //
-				.sum();
-		return allAcceptedParts;
-	}
-
-	private static List<Range> splitContainedRanges(final Range biggest, final Range smallest)
-	{
-		return Stream.of(new Range(biggest.min(), smallest.min() - 1), //
-						smallest, //
-						new Range(smallest.max() + 1, biggest.max())) //
-				.filter(range -> range.size() > 0) //
-				.toList();
-	}
-
-	private static List<Range> splitIntersectingRanges(final Range first, final Range second)
-	{
-		return Stream.of(new Range(first.min(), second.min() - 1), //
-						new Range(second.min(), first.max()), //
-						new Range(first.max() + 1, second.max())) //
-				.filter(range -> range.size() > 0) //
-				.toList();
+		long uniqueCombinations = 0L;
+		for (final var entry : rangeToAcceptedRanges.entrySet()) {
+			final Range range = entry.getKey();
+			for (final Range smallerRange : splittedDistinctRanges) {
+				final Optional<Range> intersection = smallerRange.intersection(range);
+				if (intersection.isPresent()) {
+					final List<Map<PartDataExtractor, Range>> mappedRanges = entry.getValue();
+					uniqueCombinations += intersection.get().size() * //
+							computeUniqueCombinations(mappedRanges, remainingDimensions);
+				}
+			}
+		}
+		return uniqueCombinations;
 	}
 
 	public sealed interface Destination
@@ -366,9 +318,15 @@ public record PartSorter(Map<WorkflowId, Workflow> workflows, List<Part> parts)
 			return max - min + 1;
 		}
 
-		boolean intersects(final Range other)
+		Optional<Range> intersection(final Range other)
 		{
-			return (min <= other.min && other.min <= max) || (other.min <= min && min <= other.max);
+			if (min <= other.min && other.min <= max) {
+				return Optional.of(new Range(other.min, Math.min(max, other.max)));
+			}
+			if (other.min <= min && min <= other.max) {
+				return Optional.of(new Range(min, Math.min(max, other.max)));
+			}
+			return Optional.empty();
 		}
 	}
 
