@@ -17,14 +17,16 @@ public class AdventDay1
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			final var comp = LocationIDComparator.parseInput(in);
+			System.out.println("Part 1 - Answer %d".formatted(comp.compareLists()));
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var comp = LocationIDComparator.parseInput(in);
+			System.out.println("Part 2 - Answer %d".formatted(comp.computeSimilarity()));
 		}
 	}
 
