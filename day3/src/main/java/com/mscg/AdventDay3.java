@@ -18,14 +18,16 @@ public class AdventDay3
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			final var computer = ShopComputer.parseInput(in);
+			System.out.println("Part 1 - Answer %d".formatted(computer.sumMultiplicationResults()));
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var computer = ShopComputer.parseInput(in);
+			System.out.println("Part 2 - Answer %d".formatted(computer.sumEnabledMultiplicationResults()));
 		}
 	}
 
