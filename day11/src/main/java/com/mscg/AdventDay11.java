@@ -11,21 +11,27 @@ public class AdventDay11
 
 	public static void main(final String[] args) throws Exception
 	{
-		part1();
+		//part1();
+		part2();
+		part2();
+		part2();
+		part2();
 		part2();
 	}
 
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			final var pebbles = PlutonianPebbles.parseInput(in);
+			System.out.println("Part 1 - Answer %d".formatted(pebbles.countPebblesAfterIterations(25)));
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var pebbles = PlutonianPebbles.parseInput(in);
+			System.out.println("Part 2 - Answer %d".formatted(pebbles.countPebblesAfterIterations(75)));
 		}
 	}
 
