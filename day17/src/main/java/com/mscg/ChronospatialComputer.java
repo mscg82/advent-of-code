@@ -1,28 +1,37 @@
 package com.mscg;
 
 import com.mscg.utils.StreamUtils;
+import it.unimi.dsi.fastutil.ints.IntImmutableList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.longs.LongLists;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UncheckedIOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.util.function.Predicate.not;
 
-public record ChronospatialComputer(List<Instruction> instructions, LongList registers, int instructionPointer, LongList results)
+public record ChronospatialComputer(List<Instruction> instructions, IntList binaryInstructions, LongList registers,
+									int instructionPointer, LongList results)
 {
 
 	public static ChronospatialComputer parseInput(final BufferedReader in) throws IOException
 	{
 		try {
 			final List<Instruction> instructions = new ArrayList<>();
+			int[] binaryInstructions = null;
 			final long[] registers = new long[3];
 			for (final String line : StreamUtils.iterate(in.lines().filter(not(String::isBlank)))) {
 				final var parts = line.split(": ");
@@ -34,23 +43,22 @@ public record ChronospatialComputer(List<Instruction> instructions, LongList reg
 					case "Register B" -> registers[Register.B.ordinal()] = Long.parseLong(parts[1].trim());
 					case "Register C" -> registers[Register.C.ordinal()] = Long.parseLong(parts[1].trim());
 					case "Program" -> {
-						final int[] binaryInstructions = Arrays.stream(parts[1].trim().split(",")) //
+						binaryInstructions = Arrays.stream(parts[1].trim().split(",")) //
 								.mapToInt(Integer::parseInt) //
 								.toArray();
 						final Operation[] allOperations = Operation.values();
-						for (int i = 0; i < binaryInstructions.length; i++) {
-							final int binaryInstruction = binaryInstructions[i];
-							if (i % 2 == 0) {
-								instructions.add(allOperations[binaryInstruction]);
-							} else {
-								instructions.add(new LiteralOperand(binaryInstruction));
-							}
+						for (int i = 0; i < binaryInstructions.length; i += 2) {
+							final Operation operation = allOperations[binaryInstructions[i]];
+							instructions.add(operation);
+							instructions.add(operation.operand(binaryInstructions[i + 1]));
 						}
 					}
 					default -> throw new IllegalArgumentException("invalid line: " + line);
 				}
 			}
-			return new ChronospatialComputer(List.copyOf(instructions), LongList.of(registers), 0, LongList.of());
+			return new ChronospatialComputer(List.copyOf(instructions), //
+					IntList.of(Objects.requireNonNull(binaryInstructions)), //
+					LongList.of(registers), 0, LongList.of());
 		} catch (final UncheckedIOException e) {
 			throw e.getCause();
 		}
@@ -58,20 +66,85 @@ public record ChronospatialComputer(List<Instruction> instructions, LongList reg
 
 	public String executionOutputs()
 	{
-		var current = this;
+		final ChronospatialComputer runComputer = run();
+		return runComputer.results().longStream() //
+				.mapToObj(String::valueOf) //
+				.collect(Collectors.joining(","));
+	}
+
+	public long findInputToMatchProgram()
+	{
+		final IntList expectedOutput = binaryInstructions;
+		final var queue = new ArrayDeque<>((List.of(0L, 1L, 2L, 3L, 4L, 5L, 6L, 7L)));
+		for (int i = 1, l = expectedOutput.size(); i <= l && !queue.isEmpty(); i++) {
+			final long target = base8DigitsToNumber(expectedOutput, i);
+			final var newValues = new LongArrayList();
+			while (!queue.isEmpty()) {
+				final long currentA = queue.poll();
+				final var newRegisters = new LongArrayList(registers);
+				Register.A.set(newRegisters, currentA);
+				final var newComputer = new ChronospatialComputer(instructions, binaryInstructions,
+						LongLists.unmodifiable(newRegisters), instructionPointer, results);
+				final ChronospatialComputer runComputer = newComputer.run();
+				final IntStream newResultsAsInts = runComputer.results().longStream() //
+						.mapToInt(v -> (int) v);
+				final IntList newResults = IntImmutableList.toList(newResultsAsInts);
+				final long resultsAsNumber = base8DigitsToNumber(newResults, newResults.size());
+				if (resultsAsNumber == target) {
+					if (i < l) {
+						for (int j = 0; j < 8; j++) {
+							newValues.add(currentA * 8 + j);
+						}
+					} else {
+						newValues.add(currentA);
+					}
+				}
+			}
+			queue.addAll(newValues);
+		}
+		return queue.stream() //
+				.mapToLong(Long::longValue) //
+				.min() //
+				.orElseThrow(() -> new IllegalStateException("Unable to find suitable input"));
+	}
+
+	@Override
+	public String toString()
+	{
+		final var sw = new StringWriter();
+		final var out = new PrintWriter(sw);
+		out.println("A: %d [%s]".formatted(Register.A.get(registers), Long.toString(Register.A.get(registers), 8)));
+		out.println("B: %d [%s]".formatted(Register.B.get(registers), Long.toString(Register.B.get(registers), 8)));
+		out.println("C: %d [%s]".formatted(Register.C.get(registers), Long.toString(Register.C.get(registers), 8)));
+		out.println();
+		for (int i = 0; i < instructions.size(); i += 2) {
+			final var operation = (Operation) instructions.get(i);
+			final var operand = (Operand) instructions.get(i + 1);
+			final var operandStr = switch (operand) {
+				case LiteralOperand(final int value) -> String.valueOf(value);
+				case RegisterOperand(final Register register) -> "[" + register.name() + "]";
+			};
+			out.println("%s %s %s".formatted((i == instructionPointer ? ">" : " "), operation.name(), operandStr));
+		}
+		out.print("Program: " + binaryInstructions);
+
+		return sw.toString();
+	}
+
+	private ChronospatialComputer run()
+	{
+		ChronospatialComputer current = this;
 		while (true) {
-			final var next = current.executeInstruction();
+			final Optional<ChronospatialComputer> next = current.executeInstruction();
 			if (next.isEmpty()) {
 				break;
 			}
 			current = next.get();
 		}
-		return current.results.longStream() //
-				.mapToObj(String::valueOf) //
-				.collect(Collectors.joining(","));
+		return current;
 	}
 
-	Optional<ChronospatialComputer> executeInstruction()
+	private Optional<ChronospatialComputer> executeInstruction()
 	{
 		if (instructionPointer >= instructions.size() - 1) {
 			return Optional.empty();
@@ -81,47 +154,44 @@ public record ChronospatialComputer(List<Instruction> instructions, LongList reg
 			throw new IllegalArgumentException(
 					"Invalid instruction pointer value: " + instructionPointer + ". Expected operation.");
 		}
-		if (!(instructions.get(instructionPointer + 1) instanceof final LiteralOperand literalOperand)) {
-			throw new IllegalArgumentException(
-					"Invalid instruction pointer value: " + instructionPointer + ". Expected literal operand.");
+		if (!(instructions.get(instructionPointer + 1) instanceof final Operand operand)) {
+			throw new IllegalArgumentException("Invalid instruction pointer value: " + instructionPointer + ". Expected operand.");
 		}
-
-		final Operand operand = operation.operand(literalOperand);
 
 		final LongList newRegisters = new LongArrayList(registers);
 		final LongList newResults = new LongArrayList(results);
 		final int newInstructionPointer = switch (operation) {
 			case ADV -> {
-				final long numerator = newRegisters.getLong(Register.A.ordinal());
+				final long numerator = Register.A.get(newRegisters);
 				final long denominator = pow2(operand.getValue(newRegisters));
-				newRegisters.set(Register.A.ordinal(), numerator / denominator);
+				Register.A.set(newRegisters, numerator / denominator);
 				yield instructionPointer + 2;
 			}
 
 			case BXL -> {
-				final long b = newRegisters.getLong(Register.B.ordinal());
+				final long b = Register.B.get(newRegisters);
 				final long value = operand.getValue(newRegisters);
 				final long xor = b ^ value;
-				newRegisters.set(Register.B.ordinal(), xor);
+				Register.B.set(newRegisters, xor);
 				yield instructionPointer + 2;
 			}
 
 			case BST -> {
 				final long value = operand.getValue(newRegisters);
-				newRegisters.set(Register.B.ordinal(), value % 8);
+				Register.B.set(newRegisters, value % 8);
 				yield instructionPointer + 2;
 			}
 
 			case JNZ -> {
 				final long value = operand.getValue(newRegisters);
-				final long a = newRegisters.getLong(Register.A.ordinal());
+				final long a = Register.A.get(newRegisters);
 				yield a == 0 ? instructionPointer + 2 : (int) value;
 			}
 
 			case BXC -> {
-				final long b = newRegisters.getLong(Register.B.ordinal());
-				final long c = newRegisters.getLong(Register.C.ordinal());
-				newRegisters.set(Register.B.ordinal(), b ^ c);
+				final long b = Register.B.get(newRegisters);
+				final long c = Register.C.get(newRegisters);
+				Register.B.set(newRegisters, b ^ c);
 				yield instructionPointer + 2;
 			}
 
@@ -131,25 +201,25 @@ public record ChronospatialComputer(List<Instruction> instructions, LongList reg
 			}
 
 			case BDV -> {
-				final long numerator = newRegisters.getLong(Register.A.ordinal());
+				final long numerator = Register.A.get(newRegisters);
 				final long denominator = pow2(operand.getValue(newRegisters));
-				newRegisters.set(Register.B.ordinal(), numerator / denominator);
+				Register.B.set(newRegisters, numerator / denominator);
 				yield instructionPointer + 2;
 			}
 
 			case CDV -> {
-				final long numerator = newRegisters.getLong(Register.A.ordinal());
+				final long numerator = Register.A.get(newRegisters);
 				final long denominator = pow2(operand.getValue(newRegisters));
-				newRegisters.set(Register.C.ordinal(), numerator / denominator);
+				Register.C.set(newRegisters, numerator / denominator);
 				yield instructionPointer + 2;
 			}
 		};
 
-		return Optional.of(new ChronospatialComputer(instructions, LongLists.unmodifiable(newRegisters), newInstructionPointer,
-				LongLists.unmodifiable(newResults)));
+		return Optional.of(new ChronospatialComputer(instructions, binaryInstructions, LongLists.unmodifiable(newRegisters),
+				newInstructionPointer, LongLists.unmodifiable(newResults)));
 	}
 
-	private long pow2(final long exponent)
+	private static long pow2(final long exponent)
 	{
 		long result = 1;
 		for (long i = 1; i <= exponent; i++) {
@@ -158,28 +228,25 @@ public record ChronospatialComputer(List<Instruction> instructions, LongList reg
 		return result;
 	}
 
-	public sealed interface Instruction permits Operand, Operation {}
-
-	public sealed interface Operand extends Instruction permits LiteralOperand, ComboOperand
+	private static long base8DigitsToNumber(final IntList digits, final int maxDigits)
 	{
-		default long getValue(final LongList registers)
-		{
-			return switch (this) {
-				case LiteralOperand(final int v) -> v;
-				case LiteralComboOperand(final int v) -> v;
-				case RegisterOperand(final Register r) -> registers.getLong(r.ordinal());
-			};
+		long value = 0;
+		final int l = digits.size();
+		for (int i = l - maxDigits; i < l; i++) {
+			final int digit = digits.getInt(i);
+			value = value * 8 + digit;
 		}
+		return value;
 	}
 
-	public sealed interface ComboOperand extends Operand permits LiteralComboOperand, RegisterOperand {}
+	public sealed interface Instruction permits Operand, Operation {}
 
-	public record LiteralOperand(int value) implements Operand
+	public sealed interface Operand extends Instruction permits LiteralOperand, RegisterOperand
 	{
-		public ComboOperand toCombo()
+		static Operand asCombo(final int value)
 		{
 			return switch (value) {
-				case 0, 1, 2, 3 -> new LiteralComboOperand(value);
+				case 0, 1, 2, 3 -> new LiteralOperand(value);
 				case 4 -> new RegisterOperand(Register.A);
 				case 5 -> new RegisterOperand(Register.B);
 				case 6 -> new RegisterOperand(Register.C);
@@ -187,28 +254,46 @@ public record ChronospatialComputer(List<Instruction> instructions, LongList reg
 				default -> throw new IllegalArgumentException("Unknown operand value " + value);
 			};
 		}
+
+		default long getValue(final LongList registers)
+		{
+			return switch (this) {
+				case LiteralOperand(final int v) -> v;
+				case RegisterOperand(final Register r) -> r.get(registers);
+			};
+		}
 	}
 
-	public record LiteralComboOperand(int value) implements ComboOperand {}
+	public record LiteralOperand(int value) implements Operand {}
 
-	public record RegisterOperand(Register register) implements ComboOperand {}
+	public record RegisterOperand(Register register) implements Operand {}
 
 	public enum Operation implements Instruction
 	{
 		ADV, BXL, BST, JNZ, BXC, OUT, BDV, CDV;
 
-		public Operand operand(final LiteralOperand literal)
+		public Operand operand(final int value)
 		{
 			return switch (this) {
-				case ADV, BST, BXC, OUT, BDV, CDV -> literal.toCombo();
-				case BXL, JNZ -> literal;
+				case ADV, BST, OUT, BDV, CDV -> Operand.asCombo(value);
+				case BXL, JNZ, BXC -> new LiteralOperand(value);
 			};
 		}
 	}
 
 	public enum Register
 	{
-		A, B, C
+		A, B, C;
+
+		public void set(final LongList registers, final long value)
+		{
+			registers.set(ordinal(), value);
+		}
+
+		public long get(final LongList registers)
+		{
+			return registers.getLong(ordinal());
+		}
 	}
 
 }
