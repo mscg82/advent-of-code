@@ -17,14 +17,17 @@ public class AdventDay18
 	private static void part1() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 1 - Answer %d".formatted(0));
+			final var ramRun = RamRun.parseInput(in);
+			System.out.println("Part 1 - Answer %d".formatted(ramRun.findMinPathToExit(1024, 70, 70)));
 		}
 	}
 
 	private static void part2() throws IOException
 	{
 		try (BufferedReader in = readInput()) {
-			System.out.println("Part 2 - Answer %d".formatted(0));
+			final var ramRun = RamRun.parseInput(in);
+			final var blockingPosition = ramRun.findFirstBlockingByte(70, 70);
+			System.out.println("Part 2 - Answer (%d,%d)".formatted(blockingPosition.x(), blockingPosition.y()));
 		}
 	}
 
