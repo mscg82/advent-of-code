@@ -39,9 +39,9 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<lombok.version>1.18.34</lombok.version>
-		<record.builder.version>43</record.builder.version>
-		<java.version>23</java.version>
+		<lombok.version>1.18.42</lombok.version>
+		<record.builder.version>51</record.builder.version>
+		<java.version>25</java.version>
 	</properties>
 
 	<dependencies>
