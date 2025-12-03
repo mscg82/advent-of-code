@@ -45,6 +45,11 @@ public final class StreamUtils
 		return source::iterator;
 	}
 
+	public static Predicate<String> nonEmptyString()
+	{
+		return line -> line != null && !line.isBlank();
+	}
+
 	public static Function<String, Matcher> matchOrFail(@NonNull final Pattern pattern,
 			@NonNull final UnaryOperator<String> errorGenerator)
 	{
